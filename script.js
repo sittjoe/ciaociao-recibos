@@ -131,6 +131,11 @@ function setupEventListeners() {
         document.getElementById('shareWhatsappBtn').addEventListener('click', shareWhatsApp);
         document.getElementById('historyBtn').addEventListener('click', showHistory);
         document.getElementById('resetBtn').addEventListener('click', resetForm);
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (window.authManager) {
+                window.authManager.logout();
+            }
+        });
         
         // Botones de fotografía
         document.getElementById('takePhotoBtn').addEventListener('click', takePhoto);
