@@ -1025,10 +1025,20 @@ function renderPaymentModal(receipt, summary) {
             <div class="payment-history">
                 <h4>Historial de Pagos</h4>
                 ${summary.payments.length > 0 ? 
-                    summary.payments.map(payment => `
+                    summary.payments.map((payment, index) => `
                         <div class="payment-item">
-                            <span>${utils.formatDate(payment.date, 'full')} - ${utils.formatCurrency(payment.amount)} (${utils.capitalize(payment.method)})</span>
-                            ${payment.reference ? `<small>Ref: ${payment.reference}</small>` : ''}
+                            <div class="payment-info">
+                                <span>${utils.formatDate(payment.date, 'full')} - ${utils.formatCurrency(payment.amount)} (${utils.capitalize(payment.method)})</span>
+                                ${payment.reference ? `<small>Ref: ${payment.reference}</small>` : ''}
+                            </div>
+                            <div class="payment-actions">
+                                <button onclick="generatePaymentReceipt('${payment.id}')" class="btn-mini" title="Generar recibo de este abono">
+                                    📄 Recibo Abono #${index + 1}
+                                </button>
+                                <button onclick="sharePaymentWhatsApp('${payment.id}', '${receipt.id}')" class="btn-mini btn-whatsapp" title="Enviar por WhatsApp">
+                                    📱 WhatsApp
+                                </button>
+                            </div>
                         </div>
                     `).join('') : 
                     '<p>No hay pagos registrados</p>'
@@ -1330,6 +1340,102 @@ function closeModal(modalId) {
     }
 }
 
+// ==================== RECIBOS DE ABONO ====================
+
+async function generatePaymentReceipt(paymentId) {
+    try {
+        if (!paymentManager) {
+            utils.showNotification('Sistema de pagos no disponible', 'error');
+            return;
+        }
+
+        utils.showLoading('Generando recibo de abono...');
+
+        const result = await paymentManager.generatePaymentReceiptPDF(paymentId);
+        
+        utils.hideLoading();
+
+        if (result.success) {
+            utils.showNotification(`Recibo de abono ${result.receiptNumber} generado exitosamente`, 'success');
+        } else {
+            utils.showNotification('Error: ' + result.error, 'error');
+        }
+
+    } catch (error) {
+        console.error('❌ Error generando recibo de abono:', error);
+        utils.hideLoading();
+        utils.showNotification('Error al generar recibo de abono', 'error');
+    }
+}
+
+function sharePaymentWhatsApp(paymentId, receiptId) {
+    try {
+        if (!paymentManager || !receiptDB) {
+            utils.showNotification('Sistema no disponible', 'error');
+            return;
+        }
+
+        const payment = paymentManager.payments.find(p => p.id === paymentId);
+        const receipt = receiptDB.getReceiptById(receiptId);
+        
+        if (!payment || !receipt) {
+            utils.showNotification('Datos no encontrados', 'error');
+            return;
+        }
+
+        // Obtener todos los pagos para calcular progreso
+        const allPayments = paymentManager.getPaymentsForReceipt(receiptId);
+        const paymentIndex = allPayments.findIndex(p => p.id === paymentId) + 1;
+        const totalPaid = paymentManager.getTotalPaidForReceipt(receiptId);
+        const totalAmount = receipt.subtotal || receipt.price;
+        const balance = totalAmount - totalPaid;
+        const progressPercentage = Math.round((totalPaid / totalAmount) * 100);
+        const paymentReceiptNumber = `${receipt.receiptNumber}-A${paymentIndex}`;
+
+        let message = `*RECIBO DE ABONO #${paymentIndex}* ✅\n\n`;
+        message += `*Número:* ${paymentReceiptNumber}\n`;
+        message += `*Cliente:* ${receipt.clientName}\n`;
+        message += `*Teléfono:* ${receipt.clientPhone}\n`;
+        message += `*Producto:* ${utils.capitalize(receipt.pieceType)} ${receipt.material.replace('-', ' ').toUpperCase()}\n\n`;
+        
+        message += `*ABONO RECIBIDO:*\n`;
+        message += `💰 Monto: ${utils.formatCurrency(payment.amount)}\n`;
+        message += `📅 Fecha: ${utils.formatDate(payment.date)}\n`;
+        message += `💳 Método: ${utils.capitalize(payment.method)}\n`;
+        
+        if (payment.reference) {
+            message += `🔗 Referencia: ${payment.reference}\n`;
+        }
+        
+        message += `\n*ESTADO DE PAGOS:*\n`;
+        message += `📊 Total del producto: ${utils.formatCurrency(totalAmount)}\n`;
+        message += `✅ Total pagado: ${utils.formatCurrency(totalPaid)} (${progressPercentage}%)\n`;
+        message += `💸 Saldo pendiente: ${utils.formatCurrency(balance)}\n`;
+        message += `📈 Progreso: ${paymentIndex} de ${allPayments.length} abonos\n\n`;
+        
+        if (balance > 0) {
+            message += `*Próximo abono sugerido:* ${utils.formatCurrency(Math.min(balance, payment.amount))}\n\n`;
+        } else {
+            message += `🎉 *¡PRODUCTO TOTALMENTE PAGADO!*\n`;
+            message += `Ya puede pasar a recoger su producto.\n\n`;
+        }
+        
+        message += `¡Gracias por su abono!\n*ciaociao.mx* ✨\n`;
+        message += `Tel: +52 1 55 9211 2643`;
+
+        const encodedMessage = encodeURIComponent(message);
+        const phoneNumber = receipt.clientPhone.replace(/\D/g, '');
+        const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+
+        window.open(whatsappUrl, '_blank');
+        utils.showNotification('Mensaje de WhatsApp preparado', 'success');
+
+    } catch (error) {
+        console.error('❌ Error compartiendo abono por WhatsApp:', error);
+        utils.showNotification('Error al preparar mensaje de WhatsApp', 'error');
+    }
+}
+
 // ==================== FUNCIONES GLOBALES ====================
 
 // Hacer funciones disponibles globalmente para eventos onclick
@@ -1337,6 +1443,8 @@ window.viewReceiptDetails = viewReceiptDetails;
 window.processPayment = processPayment;
 window.showAddPaymentForm = showAddPaymentForm;
 window.hidePaymentForm = hidePaymentForm;
+window.generatePaymentReceipt = generatePaymentReceipt;
+window.sharePaymentWhatsApp = sharePaymentWhatsApp;
 
 // Funciones de limpieza al cerrar la aplicación
 window.addEventListener('beforeunload', function() {

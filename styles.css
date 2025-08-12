@@ -1421,3 +1421,80 @@ input[type="file"]:hover {
         color: black;
     }
 }
+
+/* Estilos para recibos de abono */
+.payment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+}
+
+.payment-info {
+    flex-grow: 1;
+}
+
+.payment-info small {
+    display: block;
+    color: #666;
+    margin-top: 5px;
+}
+
+.payment-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-mini {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: 1px solid var(--gold);
+    background: white;
+    color: var(--gold);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.btn-mini:hover {
+    background: var(--gold);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-mini.btn-whatsapp {
+    background: #25D366;
+    border-color: #25D366;
+    color: white;
+}
+
+.btn-mini.btn-whatsapp:hover {
+    background: #128C7E;
+    border-color: #128C7E;
+}
+
+/* Responsive para botones mini */
+@media (max-width: 768px) {
+    .payment-item {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .payment-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .btn-mini {
+        font-size: 11px;
+        padding: 5px 10px;
+    }
+}

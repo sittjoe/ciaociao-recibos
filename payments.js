@@ -270,6 +270,252 @@ class PaymentManager {
         }
     }
 
+    // Generar PDF de recibo de abono individual
+    async generatePaymentReceiptPDF(paymentId) {
+        try {
+            const payment = this.payments.find(p => p.id === paymentId);
+            if (!payment) {
+                throw new Error('Pago no encontrado');
+            }
+
+            // Obtener información del recibo principal
+            const receipt = window.receiptDB ? window.receiptDB.getReceiptById(payment.receiptId) : null;
+            if (!receipt) {
+                throw new Error('Recibo principal no encontrado');
+            }
+
+            // Obtener todos los pagos del recibo para calcular progreso
+            const allPayments = this.getPaymentsForReceipt(payment.receiptId);
+            const paymentIndex = allPayments.findIndex(p => p.id === paymentId) + 1;
+            const totalPaid = this.getTotalPaidForReceipt(payment.receiptId);
+            const totalAmount = receipt.subtotal || receipt.price;
+            const balance = totalAmount - totalPaid;
+            const progressPercentage = Math.round((totalPaid / totalAmount) * 100);
+
+            // Generar número de recibo de abono
+            const paymentReceiptNumber = `${receipt.receiptNumber}-A${paymentIndex}`;
+
+            // Crear HTML del recibo de abono
+            const paymentReceiptHTML = this.generatePaymentReceiptHTML({
+                payment,
+                receipt,
+                paymentReceiptNumber,
+                paymentIndex,
+                allPayments,
+                totalPaid,
+                totalAmount,
+                balance,
+                progressPercentage
+            });
+
+            // Crear contenedor temporal para el recibo
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = paymentReceiptHTML;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.width = '800px';
+            tempDiv.style.background = 'white';
+            tempDiv.style.padding = '40px';
+            document.body.appendChild(tempDiv);
+
+            // Esperar un momento para que se renderice
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Generar imagen con html2canvas
+            const canvas = await html2canvas(tempDiv, {
+                scale: 2,
+                logging: false,
+                useCORS: true,
+                allowTaint: true
+            });
+
+            // Crear PDF
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            const imgWidth = 210;
+            const pageHeight = 295;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+
+            // Guardar PDF
+            const fileName = `Abono_${paymentReceiptNumber}_${receipt.clientName.replace(/\s+/g, '_')}.pdf`;
+            pdf.save(fileName);
+
+            // Limpiar
+            document.body.removeChild(tempDiv);
+
+            console.log('✅ Recibo de abono generado:', paymentReceiptNumber);
+            return { success: true, fileName, receiptNumber: paymentReceiptNumber };
+
+        } catch (error) {
+            console.error('❌ Error generando PDF de recibo de abono:', error);
+            if (window.utils) {
+                window.utils.showNotification('Error al generar recibo de abono: ' + error.message, 'error');
+            }
+            return { success: false, error: error.message };
+        }
+    }
+
+    // Generar HTML para recibo de abono
+    generatePaymentReceiptHTML(data) {
+        const { payment, receipt, paymentReceiptNumber, paymentIndex, allPayments, totalPaid, totalAmount, balance, progressPercentage } = data;
+        
+        return `
+            <div class="payment-receipt">
+                <div class="receipt-header">
+                    <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" style="max-height: 80px;">
+                    <h2>RECIBO DE ABONO #${paymentIndex}</h2>
+                    <div class="receipt-info">
+                        <p>ciaociao.mx - Fine Jewelry</p>
+                        <p>Tel: +52 1 55 9211 2643</p>
+                    </div>
+                    <div class="receipt-number">No. ${paymentReceiptNumber}</div>
+                </div>
+                
+                <div class="receipt-section">
+                    <h3>Información del Recibo Principal</h3>
+                    <dl class="receipt-details">
+                        <dt>Recibo Principal:</dt>
+                        <dd>${receipt.receiptNumber}</dd>
+                        <dt>Fecha Original:</dt>
+                        <dd>${this.formatDate(receipt.receiptDate)}</dd>
+                        <dt>Tipo:</dt>
+                        <dd>${receipt.transactionType.charAt(0).toUpperCase() + receipt.transactionType.slice(1)}</dd>
+                    </dl>
+                </div>
+                
+                <div class="receipt-section">
+                    <h3>Datos del Cliente</h3>
+                    <dl class="receipt-details">
+                        <dt>Nombre:</dt>
+                        <dd>${receipt.clientName}</dd>
+                        <dt>Teléfono:</dt>
+                        <dd>${receipt.clientPhone}</dd>
+                        ${receipt.clientEmail ? `
+                            <dt>Email:</dt>
+                            <dd>${receipt.clientEmail}</dd>
+                        ` : ''}
+                    </dl>
+                </div>
+                
+                <div class="receipt-section">
+                    <h3>Producto</h3>
+                    <table class="receipt-table">
+                        <tr>
+                            <th>Tipo</th>
+                            <td>${receipt.pieceType.charAt(0).toUpperCase() + receipt.pieceType.slice(1)}</td>
+                        </tr>
+                        <tr>
+                            <th>Material</th>
+                            <td>${receipt.material.replace('-', ' ').toUpperCase()}</td>
+                        </tr>
+                        ${receipt.description ? `
+                            <tr>
+                                <th>Descripción</th>
+                                <td>${receipt.description}</td>
+                            </tr>
+                        ` : ''}
+                    </table>
+                </div>
+                
+                <div class="receipt-section payment-detail">
+                    <h3>Detalle del Abono</h3>
+                    <table class="receipt-table">
+                        <tr>
+                            <th>Abono #</th>
+                            <td>${paymentIndex} de ${allPayments.length}</td>
+                        </tr>
+                        <tr>
+                            <th>Monto</th>
+                            <td>${this.formatCurrency(payment.amount)}</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha</th>
+                            <td>${this.formatDate(payment.date)}</td>
+                        </tr>
+                        <tr>
+                            <th>Método de Pago</th>
+                            <td>${payment.method.charAt(0).toUpperCase() + payment.method.slice(1)}</td>
+                        </tr>
+                        ${payment.reference ? `
+                            <tr>
+                                <th>Referencia</th>
+                                <td>${payment.reference}</td>
+                            </tr>
+                        ` : ''}
+                        ${payment.notes ? `
+                            <tr>
+                                <th>Notas</th>
+                                <td>${payment.notes}</td>
+                            </tr>
+                        ` : ''}
+                    </table>
+                </div>
+                
+                <div class="receipt-section">
+                    <h3>Resumen de Pagos</h3>
+                    <table class="receipt-table">
+                        <tr>
+                            <th>Total del Producto</th>
+                            <td>${this.formatCurrency(totalAmount)}</td>
+                        </tr>
+                        <tr>
+                            <th>Total Pagado</th>
+                            <td>${this.formatCurrency(totalPaid)}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <th>Saldo Pendiente</th>
+                            <td>${this.formatCurrency(balance)}</td>
+                        </tr>
+                        <tr>
+                            <th>Progreso</th>
+                            <td>${progressPercentage}% completado</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="progress-bar-section">
+                    <div class="progress-label">Progreso de Pagos</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progressPercentage}%; background: #D4AF37;"></div>
+                    </div>
+                    <div class="progress-text">${allPayments.length} abono(s) de ${Math.ceil(totalAmount / (totalAmount / allPayments.length))} registrados</div>
+                </div>
+                
+                <div class="receipt-footer">
+                    <p><strong>IMPORTANTE</strong></p>
+                    <p>• Este es un recibo de abono parcial del producto.</p>
+                    <p>• Conserve este comprobante para sus registros.</p>
+                    <p>• El producto será entregado al completar el pago total.</p>
+                    <p style="margin-top: 15px;">Gracias por su abono - ciaociao.mx</p>
+                </div>
+            </div>
+            
+            <style>
+                .payment-receipt { font-family: 'Inter', sans-serif; }
+                .receipt-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #D4AF37; padding-bottom: 20px; }
+                .receipt-section { margin-bottom: 25px; }
+                .receipt-section h3 { color: #D4AF37; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 15px; }
+                .receipt-details { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+                .receipt-details dt { font-weight: bold; }
+                .receipt-table { width: 100%; border-collapse: collapse; }
+                .receipt-table th, .receipt-table td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+                .receipt-table th { background: #f5f5f5; font-weight: bold; }
+                .total-row { background: #f9f9f9; font-weight: bold; }
+                .payment-detail { background: #f8f9fa; padding: 15px; border-radius: 5px; }
+                .progress-bar-section { margin: 20px 0; }
+                .progress-label { font-weight: bold; margin-bottom: 10px; }
+                .progress-bar { width: 100%; height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden; }
+                .progress-fill { height: 100%; border-radius: 10px; }
+                .progress-text { text-align: center; margin-top: 10px; font-size: 14px; color: #666; }
+                .receipt-footer { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px; text-align: center; font-size: 14px; }
+            </style>
+        `;
+    }
+
     // Crear plan de pagos
     createPaymentPlan(totalAmount, numberOfPayments, frequency = 30, startDate = new Date()) {
         try {
