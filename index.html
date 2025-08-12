@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Recibos - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" class="logo">
+            <h1>Generador de Recibos</h1>
+        </header>
+
+        <div class="form-container">
+            <form id="receiptForm">
+                <!-- Información del Recibo -->
+                <section class="form-section">
+                    <h2>Información del Recibo</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="receiptNumber">Número de Recibo</label>
+                            <input type="text" id="receiptNumber" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="receiptDate">Fecha</label>
+                            <input type="date" id="receiptDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transactionType">Tipo de Transacción</label>
+                            <select id="transactionType" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="venta">Venta</option>
+                                <option value="reparacion">Reparación</option>
+                                <option value="consignacion">Consignación</option>
+                                <option value="apartado">Apartado</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Datos del Cliente -->
+                <section class="form-section">
+                    <h2>Datos del Cliente</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientName">Nombre Completo *</label>
+                            <input type="text" id="clientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientPhone">Teléfono *</label>
+                            <input type="tel" id="clientPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientEmail">Email</label>
+                            <input type="email" id="clientEmail">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Detalles de la Pieza -->
+                <section class="form-section">
+                    <h2>Detalles de la Pieza</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pieceType">Tipo de Pieza *</label>
+                            <select id="pieceType" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="anillo">Anillo</option>
+                                <option value="collar">Collar</option>
+                                <option value="pulsera">Pulsera</option>
+                                <option value="aretes">Aretes</option>
+                                <option value="reloj">Reloj</option>
+                                <option value="dije">Dije</option>
+                                <option value="brazalete">Brazalete</option>
+                                <option value="broche">Broche</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="material">Material *</label>
+                            <select id="material" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="oro-10k">Oro 10k</option>
+                                <option value="oro-14k">Oro 14k</option>
+                                <option value="oro-18k">Oro 18k</option>
+                                <option value="oro-24k">Oro 24k</option>
+                                <option value="plata-925">Plata .925</option>
+                                <option value="platino">Platino</option>
+                                <option value="oro-blanco">Oro Blanco</option>
+                                <option value="acero">Acero Inoxidable</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="weight">Peso (gramos)</label>
+                            <input type="number" id="weight" step="0.01" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="size">Talla/Medida</label>
+                            <input type="text" id="size" placeholder="Ej: 7, 45cm">
+                        </div>
+                        <div class="form-group">
+                            <label for="stones">Descripción de Piedras</label>
+                            <input type="text" id="stones" placeholder="Ej: Diamante 0.5ct, Zafiro azul">
+                        </div>
+                        <div class="form-group">
+                            <label for="orderNumber">Número de Pedido</label>
+                            <input type="text" id="orderNumber">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="description">Descripción Detallada</label>
+                            <textarea id="description" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="repairSection" style="display: none;">
+                        <div class="form-group full-width">
+                            <label for="pieceCondition">Estado de la Pieza (para reparación)</label>
+                            <textarea id="pieceCondition" rows="2" placeholder="Describe el estado actual y el trabajo a realizar"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Información Financiera -->
+                <section class="form-section">
+                    <h2>Información Financiera</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="price">Precio Total *</label>
+                            <input type="number" id="price" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deposit">Anticipo</label>
+                            <input type="number" id="deposit" step="0.01" min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="balance">Saldo Pendiente</label>
+                            <input type="number" id="balance" step="0.01" min="0" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="deliveryDate">Fecha de Entrega</label>
+                            <input type="date" id="deliveryDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Método de Pago</label>
+                            <select id="paymentMethod">
+                                <option value="">Seleccionar...</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="mixto">Mixto</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Fotografías de la Pieza -->
+                <section class="form-section">
+                    <h2>Fotografías de la Pieza</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button type="button" id="takePhotoBtn" class="btn-camera">📸 Tomar Foto</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadPhoto">Subir Fotos</label>
+                            <input type="file" id="uploadPhoto" accept="image/*" multiple>
+                        </div>
+                    </div>
+                    <div id="imageGallery" class="image-gallery-container">
+                        <!-- Las imágenes aparecerán aquí -->
+                    </div>
+                </section>
+
+                <!-- Observaciones -->
+                <section class="form-section">
+                    <h2>Observaciones</h2>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <textarea id="observations" rows="3" placeholder="Notas adicionales..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Firma Digital -->
+                <section class="form-section">
+                    <h2>Firma del Cliente</h2>
+                    <div class="signature-container">
+                        <canvas id="signatureCanvas"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" id="clearSignature" class="btn-secondary">Limpiar Firma</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Botones de Acción -->
+                <div class="action-buttons">
+                    <button type="button" id="previewBtn" class="btn-primary">Vista Previa</button>
+                    <button type="button" id="generatePdfBtn" class="btn-success">Generar PDF</button>
+                    <button type="button" id="shareWhatsappBtn" class="btn-whatsapp">Compartir por WhatsApp</button>
+                    <button type="button" id="historyBtn" class="btn-info">📚 Historial</button>
+                    <button type="button" id="resetBtn" class="btn-secondary">Limpiar Formulario</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal de Vista Previa -->
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="receiptPreview" class="receipt-preview"></div>
+                <div class="modal-actions">
+                    <button id="confirmGeneratePdf" class="btn-success">Confirmar y Generar PDF</button>
+                    <button id="closePreview" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Historial -->
+        <div id="historyModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📚 Historial de Recibos</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="history-controls">
+                    <input type="text" id="historySearch" placeholder="🔍 Buscar por cliente, número o teléfono...">
+                    <button id="exportHistoryBtn" class="btn-secondary">📊 Exportar</button>
+                </div>
+                <div id="historyList" class="history-list">
+                    <!-- Lista de recibos aparecerá aquí -->
+                </div>
+                <div class="modal-actions">
+                    <button id="closeHistory" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Pagos -->
+        <div id="paymentsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>💰 Gestión de Pagos</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div id="paymentContent">
+                    <!-- Contenido de pagos -->
+                </div>
+                <div class="modal-actions">
+                    <button id="addPaymentBtn" class="btn-success">➕ Registrar Pago</button>
+                    <button id="closePayments" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    <script src="camera.js"></script>
+    <script src="payments.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
