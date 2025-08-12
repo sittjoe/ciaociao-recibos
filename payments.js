@@ -2,13 +2,15 @@
 class PaymentManager {
     constructor() {
         this.payments = [];
-        this.paymentMethods = ['efectivo', 'tarjeta', 'transferencia', 'mixto'];
+        this.paymentMethods = ['efectivo', 'tarjeta', 'transferencia', 'paypal', 'mixto'];
         this.receiptStatuses = {
             PENDING: 'pending',
             PARTIAL: 'partial',
             PAID: 'paid',
             DELIVERED: 'delivered',
-            CANCELLED: 'cancelled'
+            CANCELLED: 'cancelled',
+            OVERDUE: 'overdue',
+            DUE_SOON: 'due_soon'
         };
         this.initializePayments();
     }
@@ -269,29 +271,48 @@ class PaymentManager {
     }
 
     // Crear plan de pagos
-    createPaymentPlan(totalAmount, numberOfPayments, startDate = new Date()) {
+    createPaymentPlan(totalAmount, numberOfPayments, frequency = 30, startDate = new Date()) {
         try {
             if (numberOfPayments <= 0 || totalAmount <= 0) {
                 throw new Error('Parámetros inválidos para plan de pagos');
             }
             
-            const paymentAmount = this.roundMoney(totalAmount / numberOfPayments);
             const plan = [];
             
             for (let i = 0; i < numberOfPayments; i++) {
                 const dueDate = new Date(startDate);
-                dueDate.setMonth(dueDate.getMonth() + i);
+                dueDate.setDate(dueDate.getDate() + (frequency * i));
                 
-                // Ajustar el último pago para cubrir cualquier diferencia por redondeo
-                const amount = (i === numberOfPayments - 1) 
-                    ? this.roundMoney(totalAmount - (paymentAmount * (numberOfPayments - 1)))
-                    : paymentAmount;
+                // Calcular monto - el último pago ajusta diferencias por redondeo
+                let amount;
+                if (numberOfPayments === 2) {
+                    amount = (i === 0) ? this.roundMoney(totalAmount * 0.5) : this.roundMoney(totalAmount * 0.5);
+                } else if (numberOfPayments === 3) {
+                    if (i < 2) {
+                        amount = this.roundMoney(totalAmount * 0.33);
+                    } else {
+                        amount = this.roundMoney(totalAmount - (this.roundMoney(totalAmount * 0.33) * 2));
+                    }
+                } else if (numberOfPayments === 4) {
+                    amount = this.roundMoney(totalAmount * 0.25);
+                    if (i === 3) {
+                        amount = this.roundMoney(totalAmount - (this.roundMoney(totalAmount * 0.25) * 3));
+                    }
+                } else {
+                    // Para otros casos, dividir equitativamente
+                    const baseAmount = this.roundMoney(totalAmount / numberOfPayments);
+                    amount = (i === numberOfPayments - 1) 
+                        ? this.roundMoney(totalAmount - (baseAmount * (numberOfPayments - 1)))
+                        : baseAmount;
+                }
                 
                 plan.push({
                     paymentNumber: i + 1,
                     dueDate: dueDate.toISOString().split('T')[0],
                     amount: amount,
-                    status: 'pending'
+                    status: 'pending',
+                    description: i === 0 ? 'Anticipo' : `Abono ${i}`,
+                    method: ''
                 });
             }
             
@@ -301,6 +322,114 @@ class PaymentManager {
         } catch (error) {
             console.error('❌ Error creando plan de pagos:', error);
             return [];
+        }
+    }
+    
+    // Obtener estado del pago basado en fecha de vencimiento
+    getPaymentStatus(dueDate, isPaid = false) {
+        try {
+            if (isPaid) return this.receiptStatuses.PAID;
+            
+            const today = new Date();
+            const due = new Date(dueDate);
+            const diffTime = due.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) {
+                return this.receiptStatuses.OVERDUE; // Vencido
+            } else if (diffDays <= 3) {
+                return this.receiptStatuses.DUE_SOON; // Por vencer
+            } else {
+                return this.receiptStatuses.PENDING; // Pendiente normal
+            }
+        } catch (error) {
+            console.error('❌ Error obteniendo estado de pago:', error);
+            return this.receiptStatuses.PENDING;
+        }
+    }
+    
+    // Generar HTML para progress bar
+    generateProgressBar(totalAmount, paidAmount) {
+        try {
+            const percentage = Math.min(100, Math.round((paidAmount / totalAmount) * 100));
+            const remaining = totalAmount - paidAmount;
+            
+            return `
+                <div class="payment-progress">
+                    <div class="progress-info">
+                        <span class="progress-text">${percentage}% Pagado</span>
+                        <span class="progress-amounts">${this.formatCurrency(paidAmount)} / ${this.formatCurrency(totalAmount)}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                    </div>
+                    ${remaining > 0 ? `<div class="progress-remaining">Saldo pendiente: ${this.formatCurrency(remaining)}</div>` : ''}
+                </div>
+            `;
+        } catch (error) {
+            console.error('❌ Error generando progress bar:', error);
+            return '';
+        }
+    }
+    
+    // Generar timeline visual de pagos
+    generatePaymentTimeline(paymentPlan, payments = []) {
+        try {
+            if (!paymentPlan || paymentPlan.length === 0) {
+                return '<p>No hay plan de pagos configurado</p>';
+            }
+            
+            let timelineHTML = '<div class="payment-timeline">';
+            
+            paymentPlan.forEach((plannedPayment, index) => {
+                // Buscar si este pago ya fue realizado
+                const actualPayment = payments.find(p => p.paymentNumber === plannedPayment.paymentNumber);
+                const status = actualPayment ? 'paid' : this.getPaymentStatus(plannedPayment.dueDate);
+                
+                const statusIcons = {
+                    'paid': '✅',
+                    'overdue': '🔴',
+                    'due_soon': '🟡',
+                    'pending': '🔄'
+                };
+                
+                const statusClasses = {
+                    'paid': 'timeline-paid',
+                    'overdue': 'timeline-overdue', 
+                    'due_soon': 'timeline-due-soon',
+                    'pending': 'timeline-pending'
+                };
+                
+                timelineHTML += `
+                    <div class="timeline-item ${statusClasses[status]}">
+                        <div class="timeline-icon">${statusIcons[status]}</div>
+                        <div class="timeline-content">
+                            <h5>${plannedPayment.description}</h5>
+                            <p class="timeline-amount">${this.formatCurrency(plannedPayment.amount)}</p>
+                            <p class="timeline-date">${this.formatDate(plannedPayment.dueDate)}</p>
+                            ${actualPayment ? `<small>Pagado: ${this.formatDate(actualPayment.date)} (${actualPayment.method})</small>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            timelineHTML += '</div>';
+            return timelineHTML;
+            
+        } catch (error) {
+            console.error('❌ Error generando timeline:', error);
+            return '<p>Error generando timeline de pagos</p>';
+        }
+    }
+    
+    // Formatear fecha para mostrar
+    formatDate(dateString) {
+        try {
+            if (!dateString) return '';
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('es-MX', options);
+        } catch (error) {
+            return dateString;
         }
     }
 

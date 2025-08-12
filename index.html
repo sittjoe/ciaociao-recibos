@@ -106,12 +106,25 @@
                             <input type="text" id="size" placeholder="Ej: 7, 45cm">
                         </div>
                         <div class="form-group">
+                            <label for="sku">SKU (Código)</label>
+                            <input type="text" id="sku" placeholder="Código del producto (opcional)">
+                        </div>
+                        <div class="form-group">
                             <label for="stones">Descripción de Piedras</label>
                             <input type="text" id="stones" placeholder="Ej: Diamante 0.5ct, Zafiro azul">
                         </div>
+                    </div>
+                    
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="orderNumber">Número de Pedido</label>
                             <input type="text" id="orderNumber">
+                        </div>
+                        <div class="form-group">
+                            <!-- Espacio para mantener diseño -->
+                        </div>
+                        <div class="form-group">
+                            <!-- Espacio para mantener diseño -->
                         </div>
                     </div>
 
@@ -139,12 +152,26 @@
                             <input type="number" id="price" step="0.01" min="0" required>
                         </div>
                         <div class="form-group">
+                            <label for="contribution">Aportación</label>
+                            <input type="number" id="contribution" step="0.01" min="0" value="0" placeholder="Depósitos previos">
+                        </div>
+                        <div class="form-group">
+                            <label for="subtotal">Subtotal</label>
+                            <input type="number" id="subtotal" step="0.01" min="0" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
                             <label for="deposit">Anticipo</label>
                             <input type="number" id="deposit" step="0.01" min="0" value="0">
                         </div>
                         <div class="form-group">
                             <label for="balance">Saldo Pendiente</label>
                             <input type="number" id="balance" step="0.01" min="0" readonly>
+                        </div>
+                        <div class="form-group">
+                            <!-- Espacio para mantener el diseño -->
                         </div>
                     </div>
                     
@@ -160,8 +187,15 @@
                                 <option value="efectivo">Efectivo</option>
                                 <option value="tarjeta">Tarjeta</option>
                                 <option value="transferencia">Transferencia</option>
+                                <option value="paypal">PayPal</option>
                                 <option value="mixto">Mixto</option>
                             </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button type="button" id="configurePaymentPlan" class="btn-plan">📅 Configurar Plan de Pagos</button>
                         </div>
                     </div>
                 </section>
@@ -261,6 +295,63 @@
                 <div class="modal-actions">
                     <button id="addPaymentBtn" class="btn-success">➕ Registrar Pago</button>
                     <button id="closePayments" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Plan de Pagos -->
+        <div id="paymentPlanModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📅 Configurar Plan de Pagos</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="payment-plan-content">
+                    <div class="plan-options">
+                        <h4>Selecciona el Plan de Pagos</h4>
+                        <div class="plan-grid">
+                            <div class="plan-option" data-plan="1">
+                                <div class="plan-circle">1</div>
+                                <h5>Pago Único</h5>
+                                <p>100% al momento</p>
+                            </div>
+                            <div class="plan-option" data-plan="2">
+                                <div class="plan-circle">2</div>
+                                <h5>2 Pagos</h5>
+                                <p>50% - 50%</p>
+                            </div>
+                            <div class="plan-option" data-plan="3">
+                                <div class="plan-circle">3</div>
+                                <h5>3 Pagos</h5>
+                                <p>33% - 33% - 34%</p>
+                            </div>
+                            <div class="plan-option" data-plan="4">
+                                <div class="plan-circle">4</div>
+                                <h5>4 Pagos</h5>
+                                <p>25% cada uno</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-details" id="planDetails" style="display: none;">
+                        <h4>Detalles del Plan</h4>
+                        <div class="plan-schedule" id="planSchedule">
+                            <!-- Se genera dinámicamente -->
+                        </div>
+                        
+                        <div class="plan-frequency">
+                            <label>Frecuencia de Pagos:</label>
+                            <select id="paymentFrequency">
+                                <option value="15">Cada 15 días</option>
+                                <option value="30">Mensual</option>
+                                <option value="custom">Fechas específicas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="savePlan" class="btn-success" style="display: none;">💾 Guardar Plan</button>
+                    <button id="closePlanModal" class="btn-secondary">Cerrar</button>
                 </div>
             </div>
         </div>

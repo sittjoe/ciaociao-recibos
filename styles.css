@@ -268,6 +268,26 @@ button {
     box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
 }
 
+.btn-plan {
+    background: linear-gradient(135deg, #8E44AD 0%, #7D3C98 100%);
+    color: var(--white);
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 100%;
+}
+
+.btn-plan:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(142, 68, 173, 0.4);
+}
+
 /* Modal Styles */
 .modal {
     display: none;
@@ -910,6 +930,255 @@ input[type="file"]:hover {
     .payment-form .form-row {
         grid-template-columns: 1fr;
     }
+}
+
+/* Payment Plan Modal Styles */
+.payment-plan-content {
+    padding: 20px;
+}
+
+.plan-options h4 {
+    color: var(--black);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.plan-option {
+    background: var(--light-gray);
+    border: 2px solid var(--medium-gray);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.plan-option:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
+}
+
+.plan-option.selected {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, var(--gold), var(--dark-gold));
+    color: var(--white);
+}
+
+.plan-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0 auto 10px;
+}
+
+.plan-option.selected .plan-circle {
+    background: var(--white);
+    color: var(--gold);
+}
+
+.plan-option h5 {
+    margin: 10px 0 5px;
+    font-size: 1.1rem;
+    color: var(--black);
+}
+
+.plan-option.selected h5 {
+    color: var(--white);
+}
+
+.plan-option p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--dark-gray);
+}
+
+.plan-option.selected p {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.plan-details {
+    background: var(--light-gray);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.plan-details h4 {
+    color: var(--black);
+    margin-bottom: 15px;
+}
+
+.plan-schedule {
+    margin-bottom: 20px;
+}
+
+.plan-frequency label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--black);
+}
+
+.plan-frequency select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--medium-gray);
+    border-radius: 5px;
+    background: var(--white);
+}
+
+/* Progress Bar Styles */
+.payment-progress {
+    margin: 20px 0;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.progress-text {
+    font-weight: 600;
+    color: var(--black);
+}
+
+.progress-amounts {
+    font-size: 0.9rem;
+    color: var(--dark-gray);
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--medium-gray);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--dark-gold) 100%);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.progress-remaining {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: var(--dark-gray);
+    text-align: center;
+}
+
+/* Timeline Styles */
+.payment-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.timeline-paid {
+    background: #E8F5E8;
+    border-left: 4px solid #27AE60;
+}
+
+.timeline-overdue {
+    background: #FADBD8;
+    border-left: 4px solid #E74C3C;
+}
+
+.timeline-due-soon {
+    background: #FFF3CD;
+    border-left: 4px solid #F39C12;
+}
+
+.timeline-pending {
+    background: #EBF3FD;
+    border-left: 4px solid #3498DB;
+}
+
+.timeline-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.timeline-content h5 {
+    margin: 0 0 5px;
+    font-size: 1.1rem;
+    color: var(--black);
+}
+
+.timeline-amount {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin: 5px 0;
+}
+
+.timeline-date {
+    font-size: 0.9rem;
+    color: var(--dark-gray);
+    margin: 5px 0;
+}
+
+.timeline-content small {
+    font-size: 0.8rem;
+    color: var(--dark-gray);
+    font-style: italic;
+}
+
+/* History item status updates */
+.history-item-status.status-overdue {
+    background: #E74C3C;
+    color: white;
+}
+
+.history-item-status.status-due-soon {
+    background: #F39C12;
+    color: white;
 }
 
 /* Login Screen Styles */

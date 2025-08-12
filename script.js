@@ -68,10 +68,22 @@ function setCurrentDate() {
 }
 
 function generateReceiptNumber() {
-    const year = new Date().getFullYear();
-    const number = String(receiptCounter).padStart(4, '0');
-    const receiptNumber = `CIAO-${year}-${number}`;
+    const now = new Date();
+    const year = String(now.getFullYear());
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    
+    // Obtener contador del día actual para evitar duplicados
+    const dayKey = `${year}${month}${day}`;
+    const dailyCounter = parseInt(localStorage.getItem(`receiptCounter_${dayKey}`) || '1');
+    
+    const number = String(dailyCounter).padStart(3, '0');
+    const receiptNumber = `CIAO-${year}${month}${day}-${number}`;
+    
     document.getElementById('receiptNumber').value = receiptNumber;
+    
+    // Guardar contador actualizado para este día
+    localStorage.setItem(`receiptCounter_${dayKey}`, (dailyCounter + 1).toString());
 }
 
 function initializeSignaturePad() {
@@ -111,6 +123,7 @@ function setupEventListeners() {
         
         // Cálculo automático del saldo
         document.getElementById('price').addEventListener('input', calculateBalance);
+        document.getElementById('contribution').addEventListener('input', calculateBalance);
         document.getElementById('deposit').addEventListener('input', calculateBalance);
         
         // Autocompletado de clientes
@@ -136,6 +149,9 @@ function setupEventListeners() {
                 window.authManager.logout();
             }
         });
+        
+        // Botón configurar plan de pagos
+        document.getElementById('configurePaymentPlan').addEventListener('click', showPaymentPlanModal);
         
         // Botones de fotografía
         document.getElementById('takePhotoBtn').addEventListener('click', takePhoto);
@@ -170,6 +186,11 @@ function setupModalEventListeners() {
         document.querySelector('#paymentsModal .close').addEventListener('click', () => closeModal('paymentsModal'));
         document.getElementById('closePayments').addEventListener('click', () => closeModal('paymentsModal'));
         document.getElementById('addPaymentBtn').addEventListener('click', showAddPaymentForm);
+        
+        // Modal de plan de pagos
+        document.querySelector('#paymentPlanModal .close').addEventListener('click', () => closeModal('paymentPlanModal'));
+        document.getElementById('closePlanModal').addEventListener('click', () => closeModal('paymentPlanModal'));
+        document.getElementById('savePlan').addEventListener('click', savePaymentPlan);
         
         // Cerrar modal al hacer clic fuera
         window.addEventListener('click', function(event) {
@@ -319,8 +340,15 @@ function handleClientInput(event) {
 function calculateBalance() {
     try {
         const price = parseFloat(document.getElementById('price').value) || 0;
+        const contribution = parseFloat(document.getElementById('contribution').value) || 0;
         const deposit = parseFloat(document.getElementById('deposit').value) || 0;
-        const balance = Math.max(0, price - deposit);
+        
+        // Calcular subtotal (precio + aportación)
+        const subtotal = price + contribution;
+        document.getElementById('subtotal').value = subtotal.toFixed(2);
+        
+        // Calcular saldo pendiente
+        const balance = Math.max(0, subtotal - deposit);
         document.getElementById('balance').value = balance.toFixed(2);
     } catch (error) {
         console.error('❌ Error calculando saldo:', error);
@@ -425,18 +453,22 @@ function collectFormData() {
             material: document.getElementById('material').value,
             weight: parseFloat(document.getElementById('weight').value) || 0,
             size: document.getElementById('size').value,
+            sku: document.getElementById('sku').value,
             stones: document.getElementById('stones').value,
             orderNumber: document.getElementById('orderNumber').value,
             description: document.getElementById('description').value,
             pieceCondition: document.getElementById('pieceCondition').value,
             price: parseFloat(document.getElementById('price').value) || 0,
+            contribution: parseFloat(document.getElementById('contribution').value) || 0,
+            subtotal: parseFloat(document.getElementById('subtotal').value) || 0,
             deposit: parseFloat(document.getElementById('deposit').value) || 0,
             balance: parseFloat(document.getElementById('balance').value) || 0,
             deliveryDate: document.getElementById('deliveryDate').value,
             paymentMethod: document.getElementById('paymentMethod').value,
             observations: document.getElementById('observations').value,
             images: cameraManager.getImages(),
-            signature: signaturePad && !signaturePad.isEmpty() ? signaturePad.toDataURL() : null
+            signature: signaturePad && !signaturePad.isEmpty() ? signaturePad.toDataURL() : null,
+            paymentPlan: currentPaymentPlan
         };
     } catch (error) {
         console.error('❌ Error recolectando datos del formulario:', error);
@@ -547,6 +579,12 @@ function generateReceiptHTML() {
                             <td>${formData.size}</td>
                         </tr>
                     ` : ''}
+                    ${formData.sku ? `
+                        <tr>
+                            <th>SKU/Código</th>
+                            <td>${formData.sku}</td>
+                        </tr>
+                    ` : ''}
                     ${formData.stones ? `
                         <tr>
                             <th>Piedras</th>
@@ -579,9 +617,19 @@ function generateReceiptHTML() {
             
             <div class="receipt-totals">
                 <div class="total-row">
-                    <span>Precio Total:</span>
+                    <span>Precio Base:</span>
                     <span>${utils.formatCurrency(formData.price)}</span>
                 </div>
+                ${formData.contribution > 0 ? `
+                    <div class="total-row">
+                        <span>Aportación:</span>
+                        <span>${utils.formatCurrency(formData.contribution)}</span>
+                    </div>
+                    <div class="total-row">
+                        <span>Subtotal:</span>
+                        <span>${utils.formatCurrency(formData.subtotal)}</span>
+                    </div>
+                ` : ''}
                 ${formData.deposit > 0 ? `
                     <div class="total-row">
                         <span>Anticipo:</span>
@@ -650,12 +698,13 @@ async function generatePDF() {
         
         // Registrar anticipo si existe
         if (formData.deposit > 0) {
+            const totalAmount = formData.contribution > 0 ? formData.subtotal : formData.price;
             const paymentData = {
                 receiptId: saveResult.data.id,
                 receiptNumber: formData.receiptNumber,
                 amount: formData.deposit,
                 method: formData.paymentMethod || 'efectivo',
-                totalAmount: formData.price,
+                totalAmount: totalAmount,
                 type: 'anticipo'
             };
             
@@ -756,7 +805,8 @@ function renderHistoryList(receipts) {
         
         historyList.innerHTML = receipts.map(receipt => {
             const status = getReceiptStatusInfo(receipt);
-            const balance = paymentManager.getBalanceForReceipt(receipt.id, receipt.price);
+            const totalAmount = receipt.subtotal || receipt.price; // Use subtotal if available, otherwise price
+            const balance = paymentManager.getBalanceForReceipt(receipt.id, totalAmount);
             
             return `
                 <div class="history-item" onclick="viewReceiptDetails('${receipt.id}')">
@@ -764,7 +814,7 @@ function renderHistoryList(receipts) {
                         <h4>${receipt.receiptNumber}</h4>
                         <p><strong>${receipt.clientName}</strong> - ${receipt.clientPhone}</p>
                         <p>${utils.formatDate(receipt.receiptDate)} • ${utils.capitalize(receipt.transactionType)}</p>
-                        <p>Total: ${utils.formatCurrency(receipt.price)} ${balance > 0 ? `• Saldo: ${utils.formatCurrency(balance)}` : ''}</p>
+                        <p>Total: ${utils.formatCurrency(totalAmount)} ${balance > 0 ? `• Saldo: ${utils.formatCurrency(balance)}` : ''}</p>
                     </div>
                     <div class="history-item-status status-${status.status}">
                         ${status.label}
@@ -847,7 +897,7 @@ function fillFormWithReceiptData(receipt) {
         // Llenar campos básicos
         Object.keys(receipt).forEach(key => {
             const element = document.getElementById(key);
-            if (element && receipt[key] !== undefined) {
+            if (element && receipt[key] !== undefined && receipt[key] !== null) {
                 element.value = receipt[key];
             }
         });
@@ -1083,21 +1133,39 @@ function shareWhatsApp() {
         
         if (formData.weight) message += `*Peso:* ${formData.weight} gramos\n`;
         if (formData.size) message += `*Talla:* ${formData.size}\n`;
+        if (formData.sku) message += `*Código SKU:* ${formData.sku}\n`;
         if (formData.stones) message += `*Piedras:* ${formData.stones}\n`;
         if (formData.description) message += `*Descripción:* ${formData.description}\n`;
         
         message += `\n*INFORMACIÓN FINANCIERA*\n`;
-        message += `*Total:* ${utils.formatCurrency(formData.price)}\n`;
-        if (formData.deposit > 0) {
+        message += `*Precio Base:* ${utils.formatCurrency(formData.price)}\n`;
+        if (formData.contribution > 0) {
+            message += `*Aportación:* ${utils.formatCurrency(formData.contribution)}\n`;
+            message += `*Total:* ${utils.formatCurrency(formData.subtotal)}\n`;
+        }
+        
+        // Incluir plan de pagos si existe
+        if (formData.paymentPlan && formData.paymentPlan.length > 1) {
+            message += `\n*PLAN DE PAGOS:*\n`;
+            formData.paymentPlan.forEach((payment, index) => {
+                const status = payment.status === 'paid' ? '✅' : payment.status === 'overdue' ? '🔴' : '🔄';
+                message += `${status} ${payment.description}: ${utils.formatCurrency(payment.amount)} (${utils.formatDate(payment.dueDate)})\n`;
+            });
+        } else if (formData.deposit > 0) {
             message += `*Anticipo:* ${utils.formatCurrency(formData.deposit)}\n`;
             message += `*Saldo Pendiente:* ${utils.formatCurrency(balance)}\n`;
         }
         
         if (formData.deliveryDate) {
-            message += `*Fecha de Entrega:* ${utils.formatDate(formData.deliveryDate)}\n`;
+            message += `\n*Fecha de Entrega:* ${utils.formatDate(formData.deliveryDate)}\n`;
         }
         
-        message += `\n_Gracias por su preferencia_\n*ciaociao.mx*\n`;
+        message += `\n*Métodos de pago disponibles:*\n`;
+        message += `💰 Efectivo en tienda\n`;
+        message += `💳 Tarjeta/PayPal\n`;
+        message += `📲 Transferencia\n`;
+        
+        message += `\n_¡Gracias por su preferencia!_\n*ciaociao.mx* ✨\n`;
         message += `Tel: +52 1 55 9211 2643`;
         
         const encodedMessage = encodeURIComponent(message);
@@ -1109,6 +1177,120 @@ function shareWhatsApp() {
     } catch (error) {
         console.error('❌ Error compartiendo por WhatsApp:', error);
         utils.showNotification('Error compartiendo por WhatsApp', 'error');
+    }
+}
+
+// ==================== PLAN DE PAGOS ====================
+
+let currentPaymentPlan = null;
+
+function showPaymentPlanModal() {
+    try {
+        const priceInput = document.getElementById('price');
+        const price = parseFloat(priceInput.value);
+        
+        if (!price || price <= 0) {
+            utils.showNotification('Ingrese el precio total antes de configurar el plan de pagos', 'warning');
+            priceInput.focus();
+            return;
+        }
+        
+        // Resetear selección
+        document.querySelectorAll('.plan-option').forEach(option => {
+            option.classList.remove('selected');
+            option.addEventListener('click', selectPlan);
+        });
+        
+        // Ocultar detalles
+        document.getElementById('planDetails').style.display = 'none';
+        document.getElementById('savePlan').style.display = 'none';
+        
+        document.getElementById('paymentPlanModal').style.display = 'block';
+        
+    } catch (error) {
+        console.error('❌ Error mostrando modal de plan de pagos:', error);
+        utils.showNotification('Error abriendo configurador de pagos', 'error');
+    }
+}
+
+function selectPlan(event) {
+    try {
+        const planOption = event.currentTarget;
+        const planNumber = parseInt(planOption.dataset.plan);
+        
+        // Limpiar selección anterior
+        document.querySelectorAll('.plan-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        
+        // Seleccionar actual
+        planOption.classList.add('selected');
+        
+        if (planNumber === 1) {
+            // Pago único - ocultar detalles
+            document.getElementById('planDetails').style.display = 'none';
+            document.getElementById('savePlan').style.display = 'inline-block';
+            currentPaymentPlan = null;
+        } else {
+            // Mostrar detalles del plan
+            showPlanDetails(planNumber);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error seleccionando plan:', error);
+    }
+}
+
+function showPlanDetails(numberOfPayments) {
+    try {
+        const price = parseFloat(document.getElementById('price').value);
+        const frequency = parseInt(document.getElementById('paymentFrequency').value) || 30;
+        
+        // Generar plan de ejemplo
+        const plan = paymentManager.createPaymentPlan(price, numberOfPayments, frequency);
+        currentPaymentPlan = plan;
+        
+        // Mostrar timeline del plan
+        const timelineHTML = paymentManager.generatePaymentTimeline(plan);
+        document.getElementById('planSchedule').innerHTML = timelineHTML;
+        
+        // Mostrar sección de detalles
+        document.getElementById('planDetails').style.display = 'block';
+        document.getElementById('savePlan').style.display = 'inline-block';
+        
+        // Event listener para cambio de frecuencia
+        document.getElementById('paymentFrequency').addEventListener('change', () => {
+            showPlanDetails(numberOfPayments);
+        });
+        
+    } catch (error) {
+        console.error('❌ Error mostrando detalles del plan:', error);
+    }
+}
+
+function savePaymentPlan() {
+    try {
+        if (currentPaymentPlan && currentPaymentPlan.length > 1) {
+            // Guardar plan en el formulario (como campo oculto)
+            const formData = collectFormData();
+            formData.paymentPlan = currentPaymentPlan;
+            
+            // Actualizar el anticipo con el primer pago del plan
+            document.getElementById('deposit').value = currentPaymentPlan[0].amount;
+            calculateBalance();
+            
+            utils.showNotification(`Plan de ${currentPaymentPlan.length} pagos configurado`, 'success');
+        } else {
+            // Pago único
+            currentPaymentPlan = null;
+            utils.showNotification('Configurado para pago único', 'success');
+        }
+        
+        closeModal('paymentPlanModal');
+        
+    } catch (error) {
+        console.error('❌ Error guardando plan de pagos:', error);
+        utils.showNotification('Error guardando plan de pagos', 'error');
     }
 }
 
