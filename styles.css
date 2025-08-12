@@ -1480,6 +1480,60 @@ input[type="file"]:hover {
     border-color: #128C7E;
 }
 
+/* Estilos para historial mejorado */
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.history-item:hover {
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.1);
+    border-color: var(--gold);
+}
+
+.history-item-info {
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+.history-item-info h4 {
+    margin: 0 0 5px 0;
+    color: var(--black);
+}
+
+.history-item-info p {
+    margin: 3px 0;
+    color: var(--dark-gray);
+}
+
+.history-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.history-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.history-item-status {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 80px;
+}
+
 /* Responsive para botones mini */
 @media (max-width: 768px) {
     .payment-item {
@@ -1496,5 +1550,22 @@ input[type="file"]:hover {
     .btn-mini {
         font-size: 11px;
         padding: 5px 10px;
+    }
+    
+    .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .history-item-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .history-buttons {
+        flex-shrink: 0;
     }
 }

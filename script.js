@@ -809,15 +809,25 @@ function renderHistoryList(receipts) {
             const balance = paymentManager.getBalanceForReceipt(receipt.id, totalAmount);
             
             return `
-                <div class="history-item" onclick="viewReceiptDetails('${receipt.id}')">
-                    <div class="history-item-info">
+                <div class="history-item">
+                    <div class="history-item-info" onclick="viewReceiptDetails('${receipt.id}')">
                         <h4>${receipt.receiptNumber}</h4>
                         <p><strong>${receipt.clientName}</strong> - ${receipt.clientPhone}</p>
                         <p>${utils.formatDate(receipt.receiptDate)} • ${utils.capitalize(receipt.transactionType)}</p>
                         <p>Total: ${utils.formatCurrency(totalAmount)} ${balance > 0 ? `• Saldo: ${utils.formatCurrency(balance)}` : ''}</p>
                     </div>
-                    <div class="history-item-status status-${status.status}">
-                        ${status.label}
+                    <div class="history-item-actions">
+                        <div class="history-item-status status-${status.status}">
+                            ${status.label}
+                        </div>
+                        <div class="history-buttons">
+                            <button onclick="openPaymentModal('${receipt.id}')" class="btn-mini" title="Gestionar pagos y abonos">
+                                💰 Pagos
+                            </button>
+                            <button onclick="viewReceiptDetails('${receipt.id}')" class="btn-mini" title="Ver y editar recibo">
+                                👁️ Ver
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -831,7 +841,8 @@ function renderHistoryList(receipts) {
 function getReceiptStatusInfo(receipt) {
     try {
         const totalPaid = paymentManager.getTotalPaidForReceipt(receipt.id);
-        const balance = receipt.price - totalPaid;
+        const totalAmount = receipt.subtotal || receipt.price;
+        const balance = totalAmount - totalPaid;
         
         if (receipt.status === 'delivered') {
             return { status: 'delivered', label: 'Entregado' };
@@ -879,7 +890,8 @@ function viewReceiptDetails(receiptId) {
         closeModal('historyModal');
         
         // Mostrar modal de pagos si hay saldo pendiente
-        const balance = paymentManager.getBalanceForReceipt(receiptId, receipt.price);
+        const totalAmount = receipt.subtotal || receipt.price;
+        const balance = paymentManager.getBalanceForReceipt(receiptId, totalAmount);
         if (balance > 0) {
             setTimeout(() => showPaymentModal(receiptId), 500);
         }
@@ -952,13 +964,33 @@ function showPaymentModal(receiptId) {
             return;
         }
         
-        const paymentSummary = paymentManager.getPaymentSummary(receiptId, receipt.price);
+        // Usar subtotal si existe, sino precio base
+        const totalAmount = receipt.subtotal || receipt.price;
+        const paymentSummary = paymentManager.getPaymentSummary(receiptId, totalAmount);
         renderPaymentModal(receipt, paymentSummary);
         
         document.getElementById('paymentsModal').style.display = 'block';
     } catch (error) {
         console.error('❌ Error mostrando modal de pagos:', error);
         utils.showNotification('Error cargando pagos', 'error');
+    }
+}
+
+// Función para abrir modal de pagos directamente (sin depender del saldo)
+function openPaymentModal(receiptId) {
+    try {
+        const receipt = receiptDB.getReceiptById(receiptId);
+        if (!receipt) {
+            utils.showNotification('Recibo no encontrado', 'error');
+            return;
+        }
+        
+        // Siempre abrir el modal independientemente del saldo
+        showPaymentModal(receiptId);
+        
+    } catch (error) {
+        console.error('❌ Error abriendo modal de pagos:', error);
+        utils.showNotification('Error abriendo gestión de pagos', 'error');
     }
 }
 
@@ -1445,6 +1477,7 @@ window.showAddPaymentForm = showAddPaymentForm;
 window.hidePaymentForm = hidePaymentForm;
 window.generatePaymentReceipt = generatePaymentReceipt;
 window.sharePaymentWhatsApp = sharePaymentWhatsApp;
+window.openPaymentModal = openPaymentModal;
 
 // Funciones de limpieza al cerrar la aplicación
 window.addEventListener('beforeunload', function() {
