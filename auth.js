@@ -39,10 +39,16 @@ class AuthManager {
 
     showLoginScreen() {
         try {
-            // Ocultar aplicación principal
+            // Ocultar aplicación principal (puede ser container o mode-selector-container)
             const mainContainer = document.querySelector('.container');
+            const selectorContainer = document.querySelector('.mode-selector-container');
+            
             if (mainContainer) {
                 mainContainer.style.display = 'none';
+            }
+            
+            if (selectorContainer) {
+                selectorContainer.style.display = 'none';
             }
 
             // Crear pantalla de login si no existe
@@ -68,7 +74,7 @@ class AuthManager {
                     <div class="login-header">
                         <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" class="login-logo">
                         <h1>Acceso Restringido</h1>
-                        <p>Sistema de Recibos - ciaociao.mx</p>
+                        <p>Sistema de Gestión - ciaociao.mx</p>
                     </div>
                     
                     <form id="loginForm" class="login-form">
@@ -263,17 +269,34 @@ class AuthManager {
                 loginScreen.style.display = 'none';
             }
 
-            // Mostrar aplicación principal
+            // Mostrar aplicación principal (puede ser selector de modo o página específica)
             const mainContainer = document.querySelector('.container');
+            const selectorContainer = document.querySelector('.mode-selector-container');
+            
             if (mainContainer) {
                 mainContainer.style.display = 'block';
             }
+            
+            if (selectorContainer) {
+                selectorContainer.style.display = 'flex';
+            }
 
-            // Inicializar aplicación principal si no está inicializada
-            if (typeof initializeApp === 'function' && !window.appInitialized) {
+            // Inicializar aplicación según el tipo de página
+            if (selectorContainer && typeof initializeModeSelector === 'function' && !window.selectorInitialized) {
+                // Página del selector de modo
+                initializeModeSelector();
+                window.selectorInitialized = true;
+            } else if (mainContainer && typeof initializeApp === 'function' && !window.appInitialized) {
+                // Página de recibos o cotizaciones
                 initializeApp();
                 window.appInitialized = true;
+            } else if (typeof initializeQuotationSystem === 'function' && !window.quotationInitialized) {
+                // Página de cotizaciones
+                initializeQuotationSystem();
+                window.quotationInitialized = true;
             }
+
+            console.log('✅ Aplicación principal mostrada y inicializada');
 
         } catch (error) {
             console.error('❌ Error mostrando aplicación principal:', error);

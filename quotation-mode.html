@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Cotizaciones - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container quotation-mode">
+        <header class="main-header">
+            <button onclick="window.location.href='index.html'" class="btn-back">← Volver al Inicio</button>
+            <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" class="logo">
+            <h1>Generador de Cotizaciones</h1>
+        </header>
+
+        <div class="form-container">
+            <form id="quotationForm">
+                <!-- Información de la Cotización -->
+                <section class="form-section">
+                    <h2>Información de la Cotización</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quotationNumber">Número de Cotización</label>
+                            <input type="text" id="quotationNumber" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="quotationDate">Fecha</label>
+                            <input type="date" id="quotationDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="validity">Validez (días)</label>
+                            <select id="validity" required>
+                                <option value="15">15 días</option>
+                                <option value="30" selected>30 días</option>
+                                <option value="60">60 días</option>
+                                <option value="90">90 días</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Datos del Cliente -->
+                <section class="form-section">
+                    <h2>Datos del Cliente</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientNameQuote">Nombre Completo *</label>
+                            <input type="text" id="clientNameQuote" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientPhoneQuote">Teléfono *</label>
+                            <input type="tel" id="clientPhoneQuote" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientEmailQuote">Email</label>
+                            <input type="email" id="clientEmailQuote">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Lista de Productos -->
+                <section class="form-section">
+                    <h2>Productos</h2>
+                    <div class="products-header">
+                        <button type="button" id="addProductBtn" class="btn-add-product">➕ Agregar Producto</button>
+                    </div>
+                    
+                    <div id="productsList" class="products-list">
+                        <!-- Los productos se agregarán dinámicamente aquí -->
+                    </div>
+
+                    <!-- Resumen Financiero -->
+                    <div class="quotation-summary">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="quotationSubtotal">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Descuento Global:</span>
+                            <div class="discount-input">
+                                <input type="number" id="globalDiscount" min="0" max="100" value="0" step="1">
+                                <span>%</span>
+                            </div>
+                        </div>
+                        <div class="summary-row">
+                            <span>Descuento:</span>
+                            <span id="discountAmount">-$0.00</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>TOTAL:</span>
+                            <span id="quotationTotal">$0.00</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Términos y Condiciones -->
+                <section class="form-section">
+                    <h2>Términos y Condiciones</h2>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <textarea id="terms" rows="4" placeholder="Ingrese términos y condiciones...">
+• Los precios están sujetos a cambios sin previo aviso después de la fecha de vencimiento
+• Esta cotización no garantiza la disponibilidad del producto
+• Los tiempos de entrega están sujetos a disponibilidad de materiales
+• Se requiere un anticipo del 50% para confirmar el pedido
+• Garantía de 1 año en mano de obra</textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Observaciones -->
+                <section class="form-section">
+                    <h2>Observaciones</h2>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <textarea id="quotationObservations" rows="3" placeholder="Notas adicionales..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Botones de Acción -->
+                <div class="action-buttons">
+                    <button type="button" id="previewQuotationBtn" class="btn-primary">Vista Previa</button>
+                    <button type="button" id="generateQuotationPdfBtn" class="btn-success">Generar PDF</button>
+                    <button type="button" id="shareQuotationWhatsappBtn" class="btn-whatsapp">Compartir por WhatsApp</button>
+                    <button type="button" id="quotationHistoryBtn" class="btn-info">📚 Historial</button>
+                    <button type="button" id="convertToReceiptBtn" class="btn-convert">🔄 Convertir a Recibo</button>
+                    <button type="button" id="resetQuotationBtn" class="btn-secondary">Limpiar Formulario</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal de Vista Previa de Cotización -->
+        <div id="quotationPreviewModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="quotationPreview" class="quotation-preview"></div>
+                <div class="modal-actions">
+                    <button id="confirmGenerateQuotationPdf" class="btn-success">Confirmar y Generar PDF</button>
+                    <button id="closeQuotationPreview" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Historial de Cotizaciones -->
+        <div id="quotationHistoryModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📚 Historial de Cotizaciones</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="history-controls">
+                    <input type="text" id="quotationHistorySearch" placeholder="🔍 Buscar por cliente, número...">
+                    <select id="quotationStatusFilter">
+                        <option value="">Todos los estados</option>
+                        <option value="pending">Pendientes</option>
+                        <option value="accepted">Aceptadas</option>
+                        <option value="rejected">Rechazadas</option>
+                        <option value="expired">Vencidas</option>
+                    </select>
+                    <button id="exportQuotationsBtn" class="btn-secondary">📊 Exportar</button>
+                </div>
+                <div id="quotationHistoryList" class="history-list">
+                    <!-- Lista de cotizaciones aparecerá aquí -->
+                </div>
+                <div class="modal-actions">
+                    <button id="closeQuotationHistory" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Agregar Producto -->
+        <div id="addProductModal" class="modal">
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h3>➕ Agregar Producto</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="product-form">
+                    <div class="form-group">
+                        <label for="productType">Tipo de Pieza *</label>
+                        <select id="productType" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="anillo">Anillo</option>
+                            <option value="collar">Collar</option>
+                            <option value="pulsera">Pulsera</option>
+                            <option value="aretes">Aretes</option>
+                            <option value="reloj">Reloj</option>
+                            <option value="dije">Dije</option>
+                            <option value="brazalete">Brazalete</option>
+                            <option value="broche">Broche</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productMaterial">Material *</label>
+                        <select id="productMaterial" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="oro-10k">Oro 10k</option>
+                            <option value="oro-14k">Oro 14k</option>
+                            <option value="oro-18k">Oro 18k</option>
+                            <option value="oro-24k">Oro 24k</option>
+                            <option value="plata-925">Plata .925</option>
+                            <option value="platino">Platino</option>
+                            <option value="oro-blanco">Oro Blanco</option>
+                            <option value="acero">Acero Inoxidable</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">Descripción *</label>
+                        <input type="text" id="productDescription" placeholder="Ej: con diamante de 0.5ct" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="productSKU">SKU/Código</label>
+                        <input type="text" id="productSKU" placeholder="Código del producto">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productQuantity">Cantidad *</label>
+                            <input type="number" id="productQuantity" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productPrice">Precio Unitario *</label>
+                            <input type="number" id="productPrice" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="productDiscount">Descuento (%)</label>
+                        <input type="number" id="productDiscount" min="0" max="100" value="0">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="saveProductBtn" class="btn-success">Guardar Producto</button>
+                    <button id="cancelProductBtn" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="auth.js"></script>
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    <script src="quotations.js"></script>
+</body>
+</html>

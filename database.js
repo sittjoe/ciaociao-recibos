@@ -3,7 +3,9 @@ class ReceiptDatabase {
     constructor() {
         this.dbName = 'ciaociao_receipts';
         this.clientsDbName = 'ciaociao_clients';
+        this.quotationsDbName = 'ciaociao_quotations';
         this.maxReceipts = 1000;
+        this.maxQuotations = 500;
         this.backupInterval = 5;
         this.initializeDatabase();
     }
@@ -23,6 +25,10 @@ class ReceiptDatabase {
             if (!localStorage.getItem(this.clientsDbName)) {
                 localStorage.setItem(this.clientsDbName, JSON.stringify([]));
             }
+            
+            if (!localStorage.getItem(this.quotationsDbName)) {
+                localStorage.setItem(this.quotationsDbName, JSON.stringify([]));
+            }
 
             // Verificar integridad de datos
             this.validateDatabase();
@@ -41,9 +47,10 @@ class ReceiptDatabase {
         try {
             const receipts = JSON.parse(localStorage.getItem(this.dbName) || '[]');
             const clients = JSON.parse(localStorage.getItem(this.clientsDbName) || '[]');
+            const quotations = JSON.parse(localStorage.getItem(this.quotationsDbName) || '[]');
             
             // Validar que sean arrays
-            if (!Array.isArray(receipts) || !Array.isArray(clients)) {
+            if (!Array.isArray(receipts) || !Array.isArray(clients) || !Array.isArray(quotations)) {
                 throw new Error('Formato de base de datos corrupto');
             }
             
@@ -52,6 +59,7 @@ class ReceiptDatabase {
             console.error('❌ Base de datos corrupta, reiniciando...', error);
             localStorage.setItem(this.dbName, JSON.stringify([]));
             localStorage.setItem(this.clientsDbName, JSON.stringify([]));
+            localStorage.setItem(this.quotationsDbName, JSON.stringify([]));
             return false;
         }
     }
@@ -542,16 +550,254 @@ class ReceiptDatabase {
         }
     }
 
-    // Método para obtener espacio usado
+    // ===================================
+    // MÉTODOS PARA COTIZACIONES
+    // ===================================
+    
+    saveQuotation(quotationData) {
+        try {
+            // Validar datos de la cotización
+            if (!this.validateQuotationData(quotationData)) {
+                throw new Error('Datos de la cotización inválidos');
+            }
+
+            const quotations = this.getAllQuotations();
+            
+            // Agregar timestamp y ID único
+            quotationData.id = this.generateUniqueId();
+            quotationData.createdAt = new Date().toISOString();
+            quotationData.updatedAt = new Date().toISOString();
+            quotationData.status = quotationData.status || 'pending';
+            
+            // Verificar si ya existe para actualizar
+            const existingIndex = quotations.findIndex(q => q.quotationNumber === quotationData.quotationNumber);
+            
+            if (existingIndex >= 0) {
+                quotations[existingIndex] = quotationData;
+            } else {
+                // Agregar al inicio del array (más recientes primero)
+                quotations.unshift(quotationData);
+            }
+            
+            // Guardar en localStorage
+            localStorage.setItem(this.quotationsDbName, JSON.stringify(quotations));
+            
+            // Guardar cliente si es nuevo
+            this.saveClientIfNew({
+                clientName: quotationData.clientName,
+                clientPhone: quotationData.clientPhone,
+                clientEmail: quotationData.clientEmail
+            });
+            
+            // Limpiar cotizaciones antiguas si excede el límite
+            this.cleanOldQuotations();
+            
+            console.log('✅ Cotización guardada:', quotationData.quotationNumber);
+            return { success: true, data: quotationData };
+            
+        } catch (error) {
+            console.error('❌ Error guardando cotización:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    validateQuotationData(data) {
+        // Campos obligatorios para cotizaciones
+        const requiredFields = ['quotationNumber', 'clientName', 'clientPhone', 'products'];
+        
+        for (let field of requiredFields) {
+            if (!data[field] || data[field] === '') {
+                console.error(`❌ Campo requerido faltante: ${field}`);
+                return false;
+            }
+        }
+        
+        // Validar que tenga productos
+        if (!Array.isArray(data.products) || data.products.length === 0) {
+            console.error('❌ La cotización debe tener al menos un producto');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    getAllQuotations() {
+        try {
+            return JSON.parse(localStorage.getItem(this.quotationsDbName) || '[]');
+        } catch (error) {
+            console.error('❌ Error obteniendo cotizaciones:', error);
+            return [];
+        }
+    }
+    
+    getQuotation(quotationNumber) {
+        try {
+            const quotations = this.getAllQuotations();
+            return quotations.find(q => q.quotationNumber === quotationNumber) || null;
+        } catch (error) {
+            console.error('❌ Error obteniendo cotización:', error);
+            return null;
+        }
+    }
+    
+    updateQuotationStatus(quotationNumber, status) {
+        try {
+            const quotations = this.getAllQuotations();
+            const quotationIndex = quotations.findIndex(q => q.quotationNumber === quotationNumber);
+            
+            if (quotationIndex >= 0) {
+                quotations[quotationIndex].status = status;
+                quotations[quotationIndex].updatedAt = new Date().toISOString();
+                
+                localStorage.setItem(this.quotationsDbName, JSON.stringify(quotations));
+                
+                console.log(`✅ Estado de cotización actualizado: ${quotationNumber} -> ${status}`);
+                return { success: true };
+            } else {
+                throw new Error('Cotización no encontrada');
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando estado de cotización:', error);
+            return { success: false, error: error.message };
+        }
+    }
+    
+    searchQuotations(searchTerm) {
+        try {
+            const quotations = this.getAllQuotations();
+            const term = searchTerm.toLowerCase();
+            
+            return quotations.filter(quotation => 
+                quotation.clientName.toLowerCase().includes(term) ||
+                quotation.clientPhone.includes(term) ||
+                quotation.quotationNumber.toLowerCase().includes(term) ||
+                (quotation.products && quotation.products.some(p => 
+                    p.description.toLowerCase().includes(term) ||
+                    p.type.toLowerCase().includes(term) ||
+                    p.material.toLowerCase().includes(term)
+                ))
+            );
+        } catch (error) {
+            console.error('❌ Error buscando cotizaciones:', error);
+            return [];
+        }
+    }
+    
+    cleanOldQuotations() {
+        try {
+            const quotations = this.getAllQuotations();
+            
+            if (quotations.length > this.maxQuotations) {
+                // Mantener solo las más recientes
+                const cleanedQuotations = quotations.slice(0, this.maxQuotations);
+                localStorage.setItem(this.quotationsDbName, JSON.stringify(cleanedQuotations));
+                
+                console.log(`✅ Limpieza automática: eliminadas ${quotations.length - this.maxQuotations} cotizaciones antiguas`);
+            }
+        } catch (error) {
+            console.error('❌ Error limpiando cotizaciones antiguas:', error);
+        }
+    }
+    
+    exportQuotationsToExcel() {
+        try {
+            const quotations = this.getAllQuotations();
+            
+            if (quotations.length === 0) {
+                alert('No hay cotizaciones para exportar');
+                return;
+            }
+            
+            // Headers para CSV
+            const headers = [
+                'Número de Cotización',
+                'Fecha',
+                'Cliente',
+                'Teléfono',
+                'Email',
+                'Productos',
+                'Subtotal',
+                'Descuento',
+                'Total',
+                'Estado',
+                'Validez',
+                'Fecha de Creación'
+            ];
+            
+            // Preparar datos
+            const rows = quotations.map(q => [
+                q.quotationNumber,
+                q.quotationDate,
+                q.clientName,
+                q.clientPhone,
+                q.clientEmail || '',
+                q.products ? q.products.length + ' productos' : '0 productos',
+                q.subtotal || 0,
+                q.discountAmount || 0,
+                q.total || 0,
+                q.status || 'pending',
+                q.validity + ' días',
+                new Date(q.createdAt).toLocaleDateString('es-MX')
+            ]);
+            
+            // Convertir a CSV
+            let csvContent = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+            
+            // Descargar archivo
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `cotizaciones_ciaociao_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            console.log('✅ Archivo de cotizaciones exportado');
+            
+        } catch (error) {
+            console.error('❌ Error exportando cotizaciones a Excel:', error);
+        }
+    }
+    
+    getQuotationStats() {
+        try {
+            const quotations = this.getAllQuotations();
+            const today = new Date().toISOString().split('T')[0];
+            
+            const stats = {
+                total: quotations.length,
+                pending: quotations.filter(q => q.status === 'pending').length,
+                accepted: quotations.filter(q => q.status === 'accepted').length,
+                rejected: quotations.filter(q => q.status === 'rejected').length,
+                expired: quotations.filter(q => q.status === 'expired').length,
+                today: quotations.filter(q => q.quotationDate === today).length,
+                totalValue: quotations.reduce((sum, q) => sum + (q.total || 0), 0),
+                averageValue: quotations.length > 0 ? quotations.reduce((sum, q) => sum + (q.total || 0), 0) / quotations.length : 0,
+                conversionRate: quotations.length > 0 ? (quotations.filter(q => q.status === 'accepted').length / quotations.length * 100).toFixed(2) : 0
+            };
+            
+            return stats;
+        } catch (error) {
+            console.error('❌ Error obteniendo estadísticas de cotizaciones:', error);
+            return null;
+        }
+    }
+
+    // Método para obtener espacio usado (actualizado para incluir cotizaciones)
     getStorageInfo() {
         try {
             const receiptsSize = new Blob([localStorage.getItem(this.dbName) || '']).size;
             const clientsSize = new Blob([localStorage.getItem(this.clientsDbName) || '']).size;
-            const totalSize = receiptsSize + clientsSize;
+            const quotationsSize = new Blob([localStorage.getItem(this.quotationsDbName) || '']).size;
+            const totalSize = receiptsSize + clientsSize + quotationsSize;
             
             return {
                 receipts: (receiptsSize / 1024).toFixed(2) + ' KB',
                 clients: (clientsSize / 1024).toFixed(2) + ' KB',
+                quotations: (quotationsSize / 1024).toFixed(2) + ' KB',
                 total: (totalSize / 1024).toFixed(2) + ' KB',
                 percentage: ((totalSize / (5 * 1024 * 1024)) * 100).toFixed(2) + '%' // 5MB límite típico
             };
@@ -562,5 +808,110 @@ class ReceiptDatabase {
     }
 }
 
+// Clase específica para cotizaciones (hereda de ReceiptDatabase)
+class QuotationDatabase extends ReceiptDatabase {
+    constructor() {
+        super();
+        this.quotationsStorageKey = 'quotations_ciaociao';
+    }
+    
+    saveQuotation(quotationData) {
+        return super.saveQuotation(quotationData);
+    }
+    
+    getAllQuotations() {
+        return super.getAllQuotations();
+    }
+    
+    getQuotation(quotationNumber) {
+        return super.getQuotation(quotationNumber);
+    }
+    
+    searchQuotations(searchTerm) {
+        return super.searchQuotations(searchTerm);
+    }
+    
+    updateQuotationStatus(quotationNumber, status) {
+        return super.updateQuotationStatus(quotationNumber, status);
+    }
+    
+    exportToExcel() {
+        return super.exportQuotationsToExcel();
+    }
+    
+    getStats() {
+        return super.getQuotationStats();
+    }
+    
+    // Método específico para verificar cotizaciones vencidas
+    checkExpiredQuotations() {
+        try {
+            const quotations = this.getAllQuotations();
+            const today = new Date();
+            let updatedCount = 0;
+            
+            quotations.forEach((quotation, index) => {
+                if (quotation.status === 'pending') {
+                    const quotationDate = new Date(quotation.quotationDate);
+                    const validUntil = new Date(quotationDate);
+                    validUntil.setDate(validUntil.getDate() + parseInt(quotation.validity || 30));
+                    
+                    if (today > validUntil) {
+                        quotations[index].status = 'expired';
+                        quotations[index].updatedAt = new Date().toISOString();
+                        updatedCount++;
+                    }
+                }
+            });
+            
+            if (updatedCount > 0) {
+                localStorage.setItem(this.quotationsDbName, JSON.stringify(quotations));
+                console.log(`✅ ${updatedCount} cotizaciones marcadas como vencidas`);
+            }
+            
+            return updatedCount;
+        } catch (error) {
+            console.error('❌ Error verificando cotizaciones vencidas:', error);
+            return 0;
+        }
+    }
+    
+    // Método para obtener cotizaciones por estado
+    getQuotationsByStatus(status) {
+        try {
+            const quotations = this.getAllQuotations();
+            return quotations.filter(q => q.status === status);
+        } catch (error) {
+            console.error('❌ Error filtrando cotizaciones por estado:', error);
+            return [];
+        }
+    }
+    
+    // Método para obtener resumen de cotizaciones del mes
+    getMonthlySummary(year, month) {
+        try {
+            const quotations = this.getAllQuotations();
+            const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+            
+            const monthlyQuotations = quotations.filter(q => 
+                q.quotationDate && q.quotationDate.startsWith(monthStr)
+            );
+            
+            return {
+                count: monthlyQuotations.length,
+                totalValue: monthlyQuotations.reduce((sum, q) => sum + (q.total || 0), 0),
+                pending: monthlyQuotations.filter(q => q.status === 'pending').length,
+                accepted: monthlyQuotations.filter(q => q.status === 'accepted').length,
+                rejected: monthlyQuotations.filter(q => q.status === 'rejected').length,
+                expired: monthlyQuotations.filter(q => q.status === 'expired').length
+            };
+        } catch (error) {
+            console.error('❌ Error obteniendo resumen mensual:', error);
+            return null;
+        }
+    }
+}
+
 // Exportar para uso global
 window.ReceiptDatabase = ReceiptDatabase;
+window.QuotationDatabase = QuotationDatabase;
