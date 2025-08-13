@@ -52,6 +52,18 @@ function loadStatistics() {
             `;
         }
         
+        // Cargar estadísticas de calculadora
+        const calculatorProjects = JSON.parse(localStorage.getItem('calculator_projects') || '[]');
+        const savedProjects = calculatorProjects.length;
+        
+        const calculatorStats = document.getElementById('calculatorStats');
+        if (calculatorStats) {
+            calculatorStats.innerHTML = `
+                <span class="stat-item">Proyectos: <strong>${calculatorProjects.length}</strong></span>
+                <span class="stat-item">Guardados: <strong>${savedProjects}</strong></span>
+            `;
+        }
+        
     } catch (error) {
         console.error('❌ Error cargando estadísticas:', error);
     }
@@ -95,6 +107,8 @@ function selectMode(mode) {
             window.location.href = 'receipt-mode.html';
         } else if (mode === 'quotation') {
             window.location.href = 'quotation-mode.html';
+        } else if (mode === 'calculator') {
+            window.location.href = 'calculator-mode.html';
         }
         
     } catch (error) {

@@ -13,6 +13,8 @@
     --blue: #2196F3;              /* Azul (mantenido para compatibilidad) */
     --dark-blue: #1976D2;         /* Azul oscuro */
     --purple: #9C27B0;            /* Morado */
+    --calculator-green: #2E7D32;  /* Verde calculadora */
+    --calculator-light: #A5D6A7;  /* Verde claro calculadora */
     
     /* Colores adicionales para diseño premium */
     --gold-light: #F4E4BC;        /* Oro muy claro para backgrounds */
@@ -1811,6 +1813,211 @@ input[type="file"]:hover {
 
 .quotation-mode .main-header {
     background: linear-gradient(135deg, var(--blue) 0%, var(--dark-blue) 100%);
+}
+
+/* ===== ESTILOS PARA CALCULADORA ===== */
+
+.calculator-mode {
+    background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+}
+
+.calculator-mode .main-header {
+    background: linear-gradient(135deg, var(--calculator-green) 0%, #1B5E20 100%);
+}
+
+.calculator-mode .form-section h2 {
+    color: var(--calculator-green);
+    border-bottom: 2px solid var(--calculator-light);
+}
+
+.calculator-mode .btn-primary {
+    background: linear-gradient(135deg, var(--calculator-green) 0%, #1B5E20 100%);
+    border-color: var(--calculator-green);
+}
+
+.calculator-mode .btn-primary:hover {
+    background: linear-gradient(135deg, #1B5E20 0%, var(--calculator-green) 100%);
+    box-shadow: 0 6px 20px rgba(46, 125, 50, 0.3);
+}
+
+.calculator-mode .btn-success {
+    background: linear-gradient(135deg, #4CAF50 0%, var(--calculator-green) 100%);
+}
+
+.calculator-mode .btn-success:hover {
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+}
+
+.calculator-mode .collapsible-header {
+    background: linear-gradient(135deg, var(--calculator-light) 0%, #C8E6C9 100%);
+    color: var(--calculator-green);
+}
+
+.calculator-mode .result-section {
+    background: linear-gradient(135deg, var(--calculator-light) 0%, #C8E6C9 100%);
+    border: 2px solid var(--calculator-green);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.calculator-mode .result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(46, 125, 50, 0.2);
+}
+
+.calculator-mode .result-item:last-child {
+    border-bottom: none;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--calculator-green);
+}
+
+.calculator-mode .result-label {
+    font-weight: 600;
+    color: var(--calculator-green);
+}
+
+.calculator-mode .result-value {
+    font-weight: 700;
+    color: #1B5E20;
+}
+
+.calculator-mode .mode-card:hover {
+    box-shadow: 0 15px 40px rgba(46, 125, 50, 0.15);
+    transform: translateY(-5px);
+}
+
+.collapsible {
+    border: 1px solid var(--calculator-light);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.collapsible-header {
+    background: var(--calculator-light);
+    padding: 15px 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.collapsible-header:hover {
+    background: #C8E6C9;
+}
+
+.collapsible-content {
+    padding: 20px;
+    background: var(--white);
+    border-top: 1px solid rgba(46, 125, 50, 0.1);
+}
+
+.collapsible.collapsed .collapsible-content {
+    display: none;
+}
+
+.collapse-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--calculator-green);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.collapsible.collapsed .collapse-btn {
+    transform: rotate(180deg);
+}
+
+.metal-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.metal-option {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid var(--calculator-light);
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.metal-option.active {
+    border-color: var(--calculator-green);
+    background: var(--calculator-light);
+    color: var(--calculator-green);
+    font-weight: 600;
+}
+
+.karat-selector {
+    display: none;
+    margin-top: 15px;
+}
+
+.karat-selector.show {
+    display: block;
+}
+
+.price-display {
+    background: rgba(46, 125, 50, 0.1);
+    border: 1px solid var(--calculator-green);
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 10px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--calculator-green);
+}
+
+.diamond-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.gemstone-quality-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.quality-option {
+    padding: 10px;
+    border: 2px solid var(--calculator-light);
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quality-option.active {
+    border-color: var(--calculator-green);
+    background: var(--calculator-light);
+    color: var(--calculator-green);
+    font-weight: 600;
+}
+
+.project-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.project-actions .btn {
+    flex: 1;
+    min-width: 150px;
 }
 
 .btn-back {
