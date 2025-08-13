@@ -299,14 +299,14 @@ class AuthManager {
                                    document.title.includes('Cotizaciones') ||
                                    document.querySelector('.quotation-mode');
                                    
-            if (isQuotationPage && typeof initializeQuotationSystem === 'function' && !window.quotationInitialized) {
+            if (isQuotationPage && typeof initializeQuotationSystem === 'function') {
                 console.log('💰 Inicializando sistema de cotizaciones...');
-                // Usar setTimeout para asegurar que DOM esté completamente visible
+                // Timeout aumentado para mayor estabilidad del DOM
                 setTimeout(() => {
                     initializeQuotationSystem();
                     window.quotationInitialized = true;
                     console.log('✅ Sistema de cotizaciones inicializado exitosamente');
-                }, 200);
+                }, 500);
             }
 
             console.log('✅ Aplicación principal mostrada y inicializada');

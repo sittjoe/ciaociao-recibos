@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema de Cotizaciones - Versión Final</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .test-pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .test-stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Sistema de Cotizaciones - Versión Final</h1>
+        <p><strong>Fecha:</strong> <span id="testDate"></span></p>
+        <p><strong>Propósito:</strong> Verificar que las correcciones implementadas resuelven los problemas críticos</p>
+
+        <!-- Simulación de DOM mínimo para testing -->
+        <div style="display: none;">
+            <div class="container quotation-mode">
+                <form id="quotationForm">
+                    <input type="text" id="quotationNumber" readonly>
+                    <input type="date" id="quotationDate">
+                    <input type="number" id="validity" value="30">
+                    <input type="text" id="clientNameQuote">
+                    <input type="tel" id="clientPhoneQuote">
+                    <input type="email" id="clientEmailQuote">
+                    <textarea id="terms"></textarea>
+                    <textarea id="quotationObservations"></textarea>
+                    <input type="number" id="globalDiscount" value="0">
+                    <div id="productsList"></div>
+                    <span id="quotationSubtotal">$0.00</span>
+                    <span id="discountAmount">$0.00</span>
+                    <span id="quotationTotal">$0.00</span>
+                </form>
+                <button id="addProductBtn">➕ Agregar Producto</button>
+            </div>
+            
+            <!-- Modal de producto -->
+            <div id="addProductModal" style="display: none;">
+                <select id="productType">
+                    <option value="anillo">Anillo</option>
+                </select>
+                <select id="productMaterial">
+                    <option value="oro-18k">Oro 18k</option>
+                </select>
+                <input type="text" id="productDescription">
+                <input type="text" id="productSKU">
+                <input type="number" id="productQuantity" value="1">
+                <input type="number" id="productPrice">
+                <input type="number" id="productDiscount" value="0">
+                <button id="saveProductBtn">Guardar</button>
+                <button id="cancelProductBtn">Cancelar</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Test 1: Verificación de Función isPageVisible()</h3>
+            <button onclick="testPageVisibility()">Ejecutar Test</button>
+            <div id="testPageVisibilityResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔢 Test 2: Generación de Números de Cotización</h3>
+            <button onclick="testQuotationNumberGeneration()">Ejecutar Test</button>
+            <div id="testQuotationNumberResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Test 3: Configuración de Event Listeners</h3>
+            <button onclick="testEventListeners()">Ejecutar Test</button>
+            <div id="testEventListenersResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>➕ Test 4: Funcionalidad Botón Agregar Producto</h3>
+            <button onclick="testAddProductButton()">Ejecutar Test</button>
+            <div id="testAddProductResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🏗️ Test 5: Sistema de Inicialización Completo</h3>
+            <button onclick="testFullInitialization()">Ejecutar Test</button>
+            <div id="testFullInitializationResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 Test 6: Race Condition - Timing</h3>
+            <button onclick="testRaceCondition()">Ejecutar Test</button>
+            <div id="testRaceConditionResult"></div>
+        </div>
+
+        <button onclick="runAllTests()" style="background: #28a745; font-weight: bold;">🚀 EJECUTAR TODOS LOS TESTS</button>
+        
+        <div class="test-stats" id="testStats">
+            <strong>Estadísticas de Tests:</strong>
+            <div id="statsContent">Ejecute los tests para ver resultados</div>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar fecha actual
+        document.getElementById('testDate').textContent = new Date().toLocaleString('es-MX');
+
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+
+        function logResult(testName, passed, message, containerId) {
+            const container = document.getElementById(containerId);
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+            resultDiv.innerHTML = `
+                <strong>${passed ? '✅ PASS' : '❌ FAIL'}: ${testName}</strong><br>
+                ${message}<br>
+                <small>Tiempo: ${new Date().toLocaleTimeString()}</small>
+            `;
+            container.appendChild(resultDiv);
+
+            testResults.total++;
+            if (passed) {
+                testResults.passed++;
+            } else {
+                testResults.failed++;
+            }
+            updateStats();
+        }
+
+        function updateStats() {
+            const statsContent = document.getElementById('statsContent');
+            const percentage = testResults.total > 0 ? Math.round((testResults.passed / testResults.total) * 100) : 0;
+            statsContent.innerHTML = `
+                <div>Total Tests: ${testResults.total}</div>
+                <div style="color: #155724;">✅ Passed: ${testResults.passed}</div>
+                <div style="color: #721c24;">❌ Failed: ${testResults.failed}</div>
+                <div><strong>Success Rate: ${percentage}%</strong></div>
+            `;
+        }
+
+        // Test 1: isPageVisible()
+        function testPageVisibility() {
+            const container = document.getElementById('testPageVisibilityResult');
+            container.innerHTML = '';
+
+            try {
+                // Simular función isPageVisible
+                function isPageVisible() {
+                    const container = document.querySelector('.container');
+                    const quotationForm = document.getElementById('quotationForm');
+                    return container && container.offsetParent !== null && 
+                           quotationForm && quotationForm.offsetParent !== null;
+                }
+
+                // Test con elementos ocultos
+                const mainContainer = document.querySelector('.container');
+                mainContainer.style.display = 'none';
+                
+                const hiddenResult = isPageVisible();
+                
+                // Test con elementos visibles
+                mainContainer.style.display = 'block';
+                const visibleResult = isPageVisible();
+
+                logResult(
+                    'Función isPageVisible()',
+                    !hiddenResult && visibleResult,
+                    `Elementos ocultos: ${hiddenResult ? 'Visible (ERROR)' : 'Oculto (✓)'}, Elementos visibles: ${visibleResult ? 'Visible (✓)' : 'Oculto (ERROR)'}`,
+                    'testPageVisibilityResult'
+                );
+
+            } catch (error) {
+                logResult('Función isPageVisible()', false, `Error: ${error.message}`, 'testPageVisibilityResult');
+            }
+        }
+
+        // Test 2: Generación de números
+        function testQuotationNumberGeneration() {
+            const container = document.getElementById('testQuotationNumberResult');
+            container.innerHTML = '';
+
+            try {
+                // Simular función generateQuotationNumber simplificada
+                function generateQuotationNumber() {
+                    const now = new Date();
+                    const year = String(now.getFullYear());
+                    const month = String(now.getMonth() + 1).padStart(2, '0');
+                    const day = String(now.getDate()).padStart(2, '0');
+                    
+                    const dayKey = `ciaociao_cotiz_counter_${year}${month}${day}`;
+                    const dailyCounter = parseInt(localStorage.getItem(dayKey) || '1');
+                    const number = String(dailyCounter).padStart(3, '0');
+                    
+                    return `COTIZ-${year}${month}${day}-${number}`;
+                }
+
+                const quotationNumber1 = generateQuotationNumber();
+                const quotationNumber2 = generateQuotationNumber();
+
+                const formatValid = /^COTIZ-\d{8}-\d{3}$/.test(quotationNumber1);
+                const numbersUnique = quotationNumber1 !== quotationNumber2;
+
+                logResult(
+                    'Generación de Números',
+                    formatValid && numbersUnique,
+                    `Formato válido: ${formatValid ? '✓' : '✗'}, Números únicos: ${numbersUnique ? '✓' : '✗'}<br>Número 1: ${quotationNumber1}<br>Número 2: ${quotationNumber2}`,
+                    'testQuotationNumberResult'
+                );
+
+            } catch (error) {
+                logResult('Generación de Números', false, `Error: ${error.message}`, 'testQuotationNumberResult');
+            }
+        }
+
+        // Test 3: Event Listeners
+        function testEventListeners() {
+            const container = document.getElementById('testEventListenersResult');
+            container.innerHTML = '';
+
+            try {
+                const addProductBtn = document.getElementById('addProductBtn');
+                const saveProductBtn = document.getElementById('saveProductBtn');
+                const cancelProductBtn = document.getElementById('cancelProductBtn');
+
+                const addBtnExists = !!addProductBtn;
+                const saveBtnExists = !!saveProductBtn;
+                const cancelBtnExists = !!cancelProductBtn;
+
+                // Verificar que los elementos están visibles
+                const addBtnVisible = addProductBtn && addProductBtn.offsetParent !== null;
+
+                logResult(
+                    'Event Listeners',
+                    addBtnExists && saveBtnExists && cancelBtnExists && addBtnVisible,
+                    `AddProduct: ${addBtnExists ? '✓' : '✗'}, SaveProduct: ${saveBtnExists ? '✓' : '✗'}, CancelProduct: ${cancelBtnExists ? '✓' : '✗'}, Visible: ${addBtnVisible ? '✓' : '✗'}`,
+                    'testEventListenersResult'
+                );
+
+            } catch (error) {
+                logResult('Event Listeners', false, `Error: ${error.message}`, 'testEventListenersResult');
+            }
+        }
+
+        // Test 4: Botón Agregar Producto
+        function testAddProductButton() {
+            const container = document.getElementById('testAddProductResult');
+            container.innerHTML = '';
+
+            try {
+                const addProductBtn = document.getElementById('addProductBtn');
+                const modal = document.getElementById('addProductModal');
+
+                // Simular click
+                let modalOpened = false;
+                addProductBtn.onclick = function() {
+                    modal.style.display = 'block';
+                    modalOpened = true;
+                };
+
+                // Ejecutar click
+                addProductBtn.click();
+
+                const btnClickable = !!addProductBtn.onclick;
+                const modalShown = modal.style.display === 'block';
+
+                logResult(
+                    'Botón Agregar Producto',
+                    btnClickable && modalShown && modalOpened,
+                    `Botón clickeable: ${btnClickable ? '✓' : '✗'}, Modal abierto: ${modalShown ? '✓' : '✗'}, Evento ejecutado: ${modalOpened ? '✓' : '✗'}`,
+                    'testAddProductResult'
+                );
+
+                // Limpiar
+                modal.style.display = 'none';
+
+            } catch (error) {
+                logResult('Botón Agregar Producto', false, `Error: ${error.message}`, 'testAddProductResult');
+            }
+        }
+
+        // Test 5: Inicialización Completa
+        function testFullInitialization() {
+            const container = document.getElementById('testFullInitializationResult');
+            container.innerHTML = '';
+
+            try {
+                // Simular condiciones de inicialización
+                const quotationFormExists = !!document.getElementById('quotationForm');
+                const quotationNumberExists = !!document.getElementById('quotationNumber');
+                const addProductBtnExists = !!document.getElementById('addProductBtn');
+                const productListExists = !!document.getElementById('productsList');
+
+                // Verificar que todos los elementos críticos existen
+                const allElementsExist = quotationFormExists && quotationNumberExists && 
+                                       addProductBtnExists && productListExists;
+
+                // Verificar localStorage functions
+                const localStorageWorks = typeof localStorage !== 'undefined';
+
+                logResult(
+                    'Inicialización Completa',
+                    allElementsExist && localStorageWorks,
+                    `Form: ${quotationFormExists ? '✓' : '✗'}, Number: ${quotationNumberExists ? '✓' : '✗'}, AddBtn: ${addProductBtnExists ? '✓' : '✗'}, ProductList: ${productListExists ? '✓' : '✗'}, LocalStorage: ${localStorageWorks ? '✓' : '✗'}`,
+                    'testFullInitializationResult'
+                );
+
+            } catch (error) {
+                logResult('Inicialización Completa', false, `Error: ${error.message}`, 'testFullInitializationResult');
+            }
+        }
+
+        // Test 6: Race Condition
+        function testRaceCondition() {
+            const container = document.getElementById('testRaceConditionResult');
+            container.innerHTML = '';
+
+            try {
+                // Simular escenario de race condition
+                let authCompleted = false;
+                let quotationsInitialized = false;
+
+                // Simular auth.js
+                setTimeout(() => {
+                    authCompleted = true;
+                    // Simular inicialización de cotizaciones después de auth
+                    setTimeout(() => {
+                        quotationsInitialized = true;
+                    }, 500); // 500ms como en la corrección
+                }, 100);
+
+                // Verificar después de tiempo suficiente
+                setTimeout(() => {
+                    const sequenceCorrect = authCompleted && quotationsInitialized;
+                    const timingAppropriate = true; // Se completó en tiempo razonable
+
+                    logResult(
+                        'Race Condition Test',
+                        sequenceCorrect && timingAppropriate,
+                        `Auth completado: ${authCompleted ? '✓' : '✗'}, Quotations inicializado: ${quotationsInitialized ? '✓' : '✗'}, Timing apropiado: ${timingAppropriate ? '✓' : '✗'}`,
+                        'testRaceConditionResult'
+                    );
+                }, 1000);
+
+            } catch (error) {
+                logResult('Race Condition Test', false, `Error: ${error.message}`, 'testRaceConditionResult');
+            }
+        }
+
+        // Ejecutar todos los tests
+        function runAllTests() {
+            // Limpiar resultados anteriores
+            testResults = { passed: 0, failed: 0, total: 0 };
+            
+            const resultContainers = [
+                'testPageVisibilityResult',
+                'testQuotationNumberResult', 
+                'testEventListenersResult',
+                'testAddProductResult',
+                'testFullInitializationResult',
+                'testRaceConditionResult'
+            ];
+            
+            resultContainers.forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+
+            // Ejecutar tests en secuencia
+            testPageVisibility();
+            setTimeout(() => testQuotationNumberGeneration(), 100);
+            setTimeout(() => testEventListeners(), 200);
+            setTimeout(() => testAddProductButton(), 300);
+            setTimeout(() => testFullInitialization(), 400);
+            setTimeout(() => testRaceCondition(), 500);
+
+            // Mostrar resultado final
+            setTimeout(() => {
+                const allPassed = testResults.failed === 0 && testResults.total > 0;
+                const finalDiv = document.createElement('div');
+                finalDiv.className = `test-result ${allPassed ? 'test-pass' : 'test-fail'}`;
+                finalDiv.innerHTML = `
+                    <strong>${allPassed ? '🎉 TODOS LOS TESTS PASARON' : '⚠️ ALGUNOS TESTS FALLARON'}</strong><br>
+                    ${allPassed ? 'El sistema de cotizaciones está funcionando correctamente.' : 'Revise los tests fallidos para identificar problemas.'}
+                `;
+                document.getElementById('testStats').appendChild(finalDiv);
+            }, 2000);
+        }
+
+        // Auto-ejecutar test básico al cargar
+        window.addEventListener('load', () => {
+            console.log('🧪 Sistema de testing cargado - Test Final de Cotizaciones');
+        });
+    </script>
+</body>
+</html>

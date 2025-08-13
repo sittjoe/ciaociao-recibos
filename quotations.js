@@ -60,10 +60,10 @@ function generateQuotationNumber() {
     try {
         console.log('🔄 Iniciando generación de número de cotización...');
         
-        // VERIFICACIÓN CRÍTICA: Asegurar que la página está autenticada y visible
-        if (!window.quotationInitialized) {
-            console.warn('⚠️ Sistema de cotizaciones no inicializado, reintentando...');
-            setTimeout(generateQuotationNumber, 500);
+        // VERIFICACIÓN CRÍTICA: Solo verificar que la página esté visible
+        if (!isPageVisible()) {
+            console.warn('⚠️ Página no visible, reintentando generación de número...');
+            setTimeout(generateQuotationNumber, 300);
             return null;
         }
         
@@ -121,25 +121,34 @@ function setupQuotationEventListeners() {
         // VERIFICACIÓN CRÍTICA: Asegurar que DOM está visible y disponible
         if (!isPageVisible()) {
             console.warn('⚠️ Página no visible, reintentando event listeners...');
-            setTimeout(setupQuotationEventListeners, 300);
+            setTimeout(setupQuotationEventListeners, 500);
             return;
         }
         
-        // Botones principales (con verificación robusta de existencia y visibilidad)
+        // CRÍTICO: Configuración robusta del botón "Agregar Producto"
         const addProductBtn = document.getElementById('addProductBtn');
         if (addProductBtn && addProductBtn.offsetParent !== null) {
             addProductBtn.addEventListener('click', showAddProductModal);
             console.log('✅ Event listener para addProductBtn configurado');
         } else if (addProductBtn) {
-            console.warn('⚠️ addProductBtn existe pero no es visible, reintentando...');
-            setTimeout(() => {
+            console.warn('⚠️ addProductBtn existe pero no es visible, forzando retry...');
+            // Retry más agresivo para el botón crítico
+            let retryCount = 0;
+            const retryAddProduct = () => {
+                retryCount++;
                 if (addProductBtn.offsetParent !== null) {
                     addProductBtn.addEventListener('click', showAddProductModal);
-                    console.log('✅ Event listener para addProductBtn configurado (retry)');
+                    console.log('✅ Event listener para addProductBtn configurado (retry exitoso)');
+                } else if (retryCount < 5) {
+                    console.warn(`⚠️ Retry ${retryCount} para addProductBtn...`);
+                    setTimeout(retryAddProduct, 300);
+                } else {
+                    console.error('❌ Falló configuración de addProductBtn después de 5 intentos');
                 }
-            }, 200);
+            };
+            setTimeout(retryAddProduct, 200);
         } else {
-            console.error('❌ Elemento addProductBtn no encontrado');
+            console.error('❌ Elemento addProductBtn no encontrado en DOM');
         }
         
         // Configurar resto de botones principales con verificación simplificada
