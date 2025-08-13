@@ -300,13 +300,40 @@ class AuthManager {
                                    document.querySelector('.quotation-mode');
                                    
             if (isQuotationPage && typeof initializeQuotationSystem === 'function') {
-                console.log('💰 Inicializando sistema de cotizaciones...');
-                // Timeout aumentado para mayor estabilidad del DOM
+                console.log('💰 Detectada página de cotizaciones, iniciando sistema...');
+                
+                // Verificar si el DOM está completamente cargado
+                const ensureInitialization = () => {
+                    const criticalElements = [
+                        document.getElementById('quotationForm'),
+                        document.getElementById('quotationNumber'),
+                        document.getElementById('addProductBtn')
+                    ];
+                    
+                    const allElementsReady = criticalElements.every(el => el !== null);
+                    
+                    if (allElementsReady) {
+                        console.log('✅ Elementos críticos detectados, inicializando sistema...');
+                        initializeQuotationSystem();
+                        window.quotationInitialized = true;
+                        console.log('✅ Sistema de cotizaciones inicializado exitosamente');
+                    } else {
+                        console.warn('⚠️ Elementos críticos aún no disponibles, reintentando en 200ms...');
+                        setTimeout(ensureInitialization, 200);
+                    }
+                };
+                
+                // Iniciar verificación inmediatamente, luego con timeout como respaldo
+                ensureInitialization();
+                
+                // Timeout de respaldo por si el método anterior falla
                 setTimeout(() => {
-                    initializeQuotationSystem();
-                    window.quotationInitialized = true;
-                    console.log('✅ Sistema de cotizaciones inicializado exitosamente');
-                }, 500);
+                    if (!window.quotationInitialized) {
+                        console.log('🔧 Timeout de respaldo activado para cotizaciones');
+                        initializeQuotationSystem();
+                        window.quotationInitialized = true;
+                    }
+                }, 1000);
             }
 
             console.log('✅ Aplicación principal mostrada y inicializada');

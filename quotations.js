@@ -4,6 +4,67 @@
 let quotationProducts = [];
 let editingProductIndex = -1;
 let quotationDB;
+let quotationSystemInitialized = false;
+
+// ================================
+// EXPOSICIÓN GLOBAL DE LA FUNCIÓN
+// ================================
+// CRITICAL: Exponer la función globalmente para que auth.js pueda accederla
+window.initializeQuotationSystem = function() {
+    console.log('🌍 initializeQuotationSystem llamada desde ventana global');
+    return initializeQuotationSystemInternal();
+};
+
+// Sistema de inicialización de respaldo robusto
+// Múltiples puntos de entrada para garantizar inicialización
+if (typeof window !== 'undefined') {
+    // Método 1: Disponible inmediatamente
+    window.initializeQuotationSystem = window.initializeQuotationSystem || function() {
+        console.log('🔄 Método de respaldo 1: window.initializeQuotationSystem');
+        return initializeQuotationSystemInternal();
+    };
+    
+    // Método 2: Auto-inicialización si elementos están presentes
+    const autoInitCheck = () => {
+        if (!quotationSystemInitialized && document.querySelector('.quotation-mode')) {
+            const quotationForm = document.getElementById('quotationForm');
+            const quotationNumber = document.getElementById('quotationNumber');
+            const addProductBtn = document.getElementById('addProductBtn');
+            
+            if (quotationForm && quotationNumber && addProductBtn) {
+                console.log('🚀 Auto-inicialización: elementos detectados');
+                setTimeout(() => {
+                    if (!quotationSystemInitialized) {
+                        initializeQuotationSystemInternal();
+                    }
+                }, 100);
+            }
+        }
+    };
+    
+    // Verificar cada 500ms durante los primeros 10 segundos
+    let autoInitAttempts = 0;
+    const autoInitInterval = setInterval(() => {
+        autoInitAttempts++;
+        autoInitCheck();
+        
+        if (quotationSystemInitialized || autoInitAttempts >= 20) {
+            clearInterval(autoInitInterval);
+        }
+    }, 500);
+    
+    // Método 3: Event listener para DOMContentLoaded como último recurso
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (!quotationSystemInitialized && document.querySelector('.quotation-mode')) {
+                    console.log('🔄 Método de respaldo 3: DOMContentLoaded');
+                    initializeQuotationSystemInternal();
+                }
+            }, 200);
+        });
+    }
+}
 
 // Inicialización DESPUÉS de autenticación exitosa
 // NOTA: Esta función será llamada por auth.js después del login exitoso
@@ -13,41 +74,226 @@ let quotationDB;
 function isPageVisible() {
     const container = document.querySelector('.container');
     const quotationForm = document.getElementById('quotationForm');
-    return container && container.offsetParent !== null && 
-           quotationForm && quotationForm.offsetParent !== null;
+    const quotationNumber = document.getElementById('quotationNumber');
+    const addProductBtn = document.getElementById('addProductBtn');
+    
+    // Verificar que los elementos críticos existan
+    if (!container || !quotationForm || !quotationNumber || !addProductBtn) {
+        console.log('⚠️ Elementos críticos faltantes:', {
+            container: !!container,
+            quotationForm: !!quotationForm,
+            quotationNumber: !!quotationNumber,
+            addProductBtn: !!addProductBtn
+        });
+        return false;
+    }
+    
+    // Verificar visibilidad (más flexible)
+    const containerVisible = container.style.display !== 'none' && 
+                           getComputedStyle(container).display !== 'none';
+    
+    return containerVisible;
 }
 
-function initializeQuotationSystem() {
+function initializeQuotationSystemInternal() {
+    // Prevenir inicialización duplicada
+    if (quotationSystemInitialized) {
+        console.log('✅ Sistema de cotizaciones ya inicializado, omitiendo...');
+        return true;
+    }
+    
     try {
         console.log('🚀 Iniciando sistema de cotizaciones...');
+        quotationSystemInitialized = true; // Marcar como inicializado inmediatamente
         
-        // Configurar formulario básico primero
-        setCurrentQuotationDate();
-        generateQuotationNumber();
+        // Verificación robusta antes de inicializar
+        let retryCount = 0;
+        const maxRetries = 10;
         
-        // Inicializar base de datos (con verificación)
-        try {
-            if (typeof QuotationDatabase !== 'undefined') {
-                quotationDB = new QuotationDatabase();
-                window.quotationDB = quotationDB;
-                console.log('✅ Base de datos de cotizaciones inicializada');
+        const attemptInitialization = () => {
+            retryCount++;
+            console.log(`🔄 Intento de inicialización ${retryCount}/${maxRetries}`);
+            
+            if (isPageVisible()) {
+                console.log('✅ Página visible, continuando con inicialización...');
+                
+                // Configurar formulario básico primero
+                setCurrentQuotationDate();
+                generateQuotationNumber();
+                
+                // Inicializar base de datos (con verificación)
+                try {
+                    if (typeof QuotationDatabase !== 'undefined') {
+                        quotationDB = new QuotationDatabase();
+                        window.quotationDB = quotationDB;
+                        console.log('✅ Base de datos de cotizaciones inicializada');
+                    } else {
+                        console.warn('⚠️ QuotationDatabase no disponible, usando funciones básicas');
+                    }
+                } catch (dbError) {
+                    console.error('❌ Error inicializando base de datos:', dbError);
+                }
+                
+                // Configurar event listeners
+                setupQuotationEventListeners();
+                
+                // Cargar clientes para autocompletado
+                setupClientAutoComplete();
+                
+                console.log('✅ Sistema de cotizaciones inicializado exitosamente');
+                
+                // Verificación final de elementos críticos
+                setTimeout(() => {
+                    verifyQuotationSystemState();
+                }, 500);
+                
+                return true;
             } else {
-                console.warn('⚠️ QuotationDatabase no disponible, usando funciones básicas');
+                if (retryCount < maxRetries) {
+                    console.warn(`⚠️ Página no lista, reintentando en ${200 * retryCount}ms...`);
+                    setTimeout(attemptInitialization, 200 * retryCount);
+                } else {
+                    console.error('❌ Falló la inicialización después de', maxRetries, 'intentos');
+                    // Intentar inicialización forzada como último recurso
+                    console.log('🔧 Intentando inicialización forzada...');
+                    forceInitialization();
+                }
+                return false;
             }
-        } catch (dbError) {
-            console.error('❌ Error inicializando base de datos:', dbError);
-        }
+        };
         
-        // Configurar event listeners
-        setupQuotationEventListeners();
-        
-        // Cargar clientes para autocompletado
-        setupClientAutoComplete();
-        
-        console.log('✅ Sistema de cotizaciones inicializado');
+        attemptInitialization();
         
     } catch (error) {
         console.error('❌ Error inicializando sistema de cotizaciones:', error);
+        quotationSystemInitialized = false; // Reset en caso de error
+        forceInitialization();
+    }
+}
+
+// ================================
+// VERIFICACIÓN DEL ESTADO DEL SISTEMA
+// ================================
+function verifyQuotationSystemState() {
+    try {
+        console.log('🔍 Verificando estado del sistema de cotizaciones...');
+        
+        const criticalElements = {
+            quotationForm: document.getElementById('quotationForm'),
+            quotationNumber: document.getElementById('quotationNumber'),
+            addProductBtn: document.getElementById('addProductBtn')
+        };
+        
+        const missingElements = [];
+        Object.entries(criticalElements).forEach(([name, element]) => {
+            if (!element) {
+                missingElements.push(name);
+            }
+        });
+        
+        if (missingElements.length > 0) {
+            console.error('❌ Elementos críticos faltantes:', missingElements);
+            return false;
+        }
+        
+        // Verificar número de cotización
+        const quotationNumber = criticalElements.quotationNumber.value;
+        if (!quotationNumber || quotationNumber.trim() === '') {
+            console.warn('⚠️ Número de cotización vacío, regenerando...');
+            generateQuotationNumber();
+        }
+        
+        // Verificar event listener del botón agregar producto
+        const addProductBtn = criticalElements.addProductBtn;
+        const hasClickListener = addProductBtn.onclick || 
+                                addProductBtn.getAttribute('onclick') ||
+                                (addProductBtn._listeners && addProductBtn._listeners.click);
+        
+        if (!hasClickListener) {
+            console.warn('⚠️ Event listener faltante en addProductBtn, reconfigurando...');
+            addProductBtn.removeEventListener('click', showAddProductModal);
+            addProductBtn.addEventListener('click', showAddProductModal);
+        }
+        
+        console.log('✅ Verificación del sistema completada exitosamente');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Error verificando estado del sistema:', error);
+        return false;
+    }
+}
+
+// Función de inicialización forzada como último recurso
+function forceInitialization() {
+    try {
+        console.log('🔧 Ejecutando inicialización forzada...');
+        
+        // Forzar configuración básica
+        setTimeout(() => {
+            const quotationDate = document.getElementById('quotationDate');
+            const quotationNumber = document.getElementById('quotationNumber');
+            
+            if (quotationDate) {
+                const today = new Date().toISOString().split('T')[0];
+                quotationDate.value = today;
+                console.log('✅ Fecha configurada (forzado)');
+            }
+            
+            if (quotationNumber) {
+                const now = new Date();
+                const year = String(now.getFullYear());
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const dayKey = `ciaociao_cotiz_counter_${year}${month}${day}`;
+                const dailyCounter = parseInt(localStorage.getItem(dayKey) || '1');
+                const number = String(dailyCounter).padStart(3, '0');
+                const quotationNumberValue = `COTIZ-${year}${month}${day}-${number}`;
+                
+                quotationNumber.value = quotationNumberValue;
+                localStorage.setItem(dayKey, (dailyCounter + 1).toString());
+                console.log('✅ Número de cotización generado (forzado):', quotationNumberValue);
+            }
+        }, 100);
+        
+        // Forzar event listeners críticos
+        setTimeout(() => {
+            const addProductBtn = document.getElementById('addProductBtn');
+            if (addProductBtn) {
+                // Verificar múltiples formas de asignar evento
+                addProductBtn.removeEventListener('click', showAddProductModal); // Remover duplicados
+                addProductBtn.addEventListener('click', showAddProductModal);
+                
+                // Respaldo con onclick directo
+                addProductBtn.onclick = function(e) {
+                    e.preventDefault();
+                    showAddProductModal();
+                };
+                
+                console.log('✅ Event listener del botón agregar producto configurado (forzado + onclick)');
+            }
+            
+            // Configurar otros event listeners críticos
+            const criticalButtons = [
+                { id: 'previewQuotationBtn', handler: showQuotationPreview },
+                { id: 'generateQuotationPdfBtn', handler: generateQuotationPDF },
+                { id: 'resetQuotationBtn', handler: resetQuotationForm }
+            ];
+            
+            criticalButtons.forEach(button => {
+                const element = document.getElementById(button.id);
+                if (element) {
+                    element.removeEventListener('click', button.handler);
+                    element.addEventListener('click', button.handler);
+                    console.log(`✅ Event listener para ${button.id} configurado (forzado)`);
+                }
+            });
+        }, 200);
+        
+        console.log('✅ Inicialización forzada completada');
+        
+    } catch (error) {
+        console.error('❌ Error en inicialización forzada:', error);
     }
 }
 
@@ -59,13 +305,6 @@ function setCurrentQuotationDate() {
 function generateQuotationNumber() {
     try {
         console.log('🔄 Iniciando generación de número de cotización...');
-        
-        // VERIFICACIÓN CRÍTICA: Solo verificar que la página esté visible
-        if (!isPageVisible()) {
-            console.warn('⚠️ Página no visible, reintentando generación de número...');
-            setTimeout(generateQuotationNumber, 300);
-            return null;
-        }
         
         const now = new Date();
         const year = String(now.getFullYear());
@@ -79,38 +318,55 @@ function generateQuotationNumber() {
         const number = String(dailyCounter).padStart(3, '0');
         const quotationNumber = `COTIZ-${year}${month}${day}-${number}`;
         
-        // VERIFICACIÓN ROBUSTA del elemento DOM con retry
-        const quotationNumberElement = document.getElementById('quotationNumber');
-        if (quotationNumberElement && quotationNumberElement.offsetParent !== null) {
-            // Elemento existe Y es visible
-            quotationNumberElement.value = quotationNumber;
-            console.log('✅ Número de cotización generado y asignado:', quotationNumber);
+        // Función MEJORADA para intentar asignar el número
+        const tryAssignNumber = (retryCount = 0) => {
+            const quotationNumberElement = document.getElementById('quotationNumber');
             
-            // Guardar contador actualizado SOLO si fue exitoso
-            localStorage.setItem(dayKey, (dailyCounter + 1).toString());
-            
-            return quotationNumber;
-        } else if (quotationNumberElement) {
-            console.warn('⚠️ Elemento quotationNumber existe pero no es visible, reintentando...');
-            setTimeout(generateQuotationNumber, 300);
-            return null;
-        } else {
-            console.error('❌ Elemento quotationNumber no encontrado en DOM');
-            // Intentar una vez más después de un breve delay
-            setTimeout(() => {
-                const retryElement = document.getElementById('quotationNumber');
-                if (retryElement) {
-                    retryElement.value = quotationNumber;
-                    localStorage.setItem(dayKey, (dailyCounter + 1).toString());
-                    console.log('✅ Número de cotización generado en retry:', quotationNumber);
+            if (quotationNumberElement) {
+                // Verificar si ya tiene un valor válido
+                const currentValue = quotationNumberElement.value;
+                if (currentValue && currentValue.startsWith('COTIZ-') && currentValue.length > 10) {
+                    console.log('ℹ️ Número de cotización ya existe:', currentValue);
+                    return currentValue;
                 }
-            }, 100);
+                
+                quotationNumberElement.value = quotationNumber;
+                localStorage.setItem(dayKey, (dailyCounter + 1).toString());
+                console.log('✅ Número de cotización generado y asignado:', quotationNumber);
+                
+                // Verificación adicional
+                setTimeout(() => {
+                    const verifyElement = document.getElementById('quotationNumber');
+                    if (verifyElement && (!verifyElement.value || verifyElement.value.trim() === '')) {
+                        console.warn('⚠️ Número se perdió, reasignando...');
+                        verifyElement.value = quotationNumber;
+                    }
+                }, 100);
+                
+                return quotationNumber;
+            } else if (retryCount < 10) {
+                console.warn(`⚠️ Elemento quotationNumber no encontrado, reintento ${retryCount + 1}/10`);
+                setTimeout(() => tryAssignNumber(retryCount + 1), 200);
+            } else {
+                console.error('❌ No se pudo encontrar el elemento quotationNumber después de 10 intentos');
+                // Crear elemento temporal como último recurso
+                console.log('🔧 Creando referencia temporal para número de cotización');
+                window.pendingQuotationNumber = quotationNumber;
+                localStorage.setItem(dayKey, (dailyCounter + 1).toString());
+            }
+            
             return quotationNumber;
-        }
+        };
+        
+        return tryAssignNumber();
         
     } catch (error) {
         console.error('❌ Error generando número de cotización:', error);
-        return null;
+        // Generar número básico como fallback
+        const timestamp = Date.now().toString().slice(-6);
+        const fallbackNumber = `COTIZ-${timestamp}`;
+        console.log('🔧 Número de cotización fallback:', fallbackNumber);
+        return fallbackNumber;
     }
 }
 
@@ -118,40 +374,70 @@ function setupQuotationEventListeners() {
     try {
         console.log('🔄 Configurando event listeners para cotizaciones...');
         
-        // VERIFICACIÓN CRÍTICA: Asegurar que DOM está visible y disponible
-        if (!isPageVisible()) {
-            console.warn('⚠️ Página no visible, reintentando event listeners...');
-            setTimeout(setupQuotationEventListeners, 500);
-            return;
+        // Función helper para configurar event listeners de forma robusta
+        const setupEventListener = (elementId, eventType, handler, description) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                // Remover listener anterior si existe para evitar duplicados
+                element.removeEventListener(eventType, handler);
+                element.addEventListener(eventType, handler);
+                console.log(`✅ Event listener para ${description} configurado`);
+                return true;
+            } else {
+                console.warn(`⚠️ Elemento ${elementId} no encontrado`);
+                return false;
+            }
+        };
+        
+        // Configurar botón "Agregar Producto" (CRÍTICO)
+        const addProductSuccess = setupEventListener('addProductBtn', 'click', showAddProductModal, 'addProductBtn');
+        
+        // CONFIGURACIÓN ADICIONAL FORZADA para garantizar que funcione
+        const addProductBtn = document.getElementById('addProductBtn');
+        if (addProductBtn) {
+            // Método 1: addEventListener (ya configurado arriba)
+            // Método 2: onclick directo como respaldo
+            addProductBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🖱️ Click detectado en addProductBtn (onclick)');
+                showAddProductModal();
+            };
+            
+            // Método 3: Atributo onclick en el elemento
+            addProductBtn.setAttribute('onclick', 'showAddProductModal(); return false;');
+            
+            // Hacer función disponible globalmente
+            window.showAddProductModal = showAddProductModal;
+            
+            console.log('✅ Botón Agregar Producto configurado con MÚLTIPLES métodos');
         }
         
-        // CRÍTICO: Configuración robusta del botón "Agregar Producto"
-        const addProductBtn = document.getElementById('addProductBtn');
-        if (addProductBtn && addProductBtn.offsetParent !== null) {
-            addProductBtn.addEventListener('click', showAddProductModal);
-            console.log('✅ Event listener para addProductBtn configurado');
-        } else if (addProductBtn) {
-            console.warn('⚠️ addProductBtn existe pero no es visible, forzando retry...');
+        if (!addProductSuccess) {
             // Retry más agresivo para el botón crítico
             let retryCount = 0;
             const retryAddProduct = () => {
                 retryCount++;
-                if (addProductBtn.offsetParent !== null) {
-                    addProductBtn.addEventListener('click', showAddProductModal);
-                    console.log('✅ Event listener para addProductBtn configurado (retry exitoso)');
-                } else if (retryCount < 5) {
-                    console.warn(`⚠️ Retry ${retryCount} para addProductBtn...`);
+                const success = setupEventListener('addProductBtn', 'click', showAddProductModal, 'addProductBtn (retry)');
+                
+                if (!success && retryCount < 15) {
+                    console.warn(`⚠️ Retry ${retryCount}/15 para addProductBtn...`);
                     setTimeout(retryAddProduct, 300);
-                } else {
-                    console.error('❌ Falló configuración de addProductBtn después de 5 intentos');
+                } else if (!success) {
+                    console.error('❌ Falló configuración de addProductBtn después de 15 intentos');
+                    // Último recurso: forzar con onclick
+                    const btn = document.getElementById('addProductBtn');
+                    if (btn) {
+                        btn.onclick = () => showAddProductModal();
+                        window.showAddProductModal = showAddProductModal;
+                        console.log('🔧 Configuración forzada final aplicada');
+                    }
                 }
             };
-            setTimeout(retryAddProduct, 200);
-        } else {
-            console.error('❌ Elemento addProductBtn no encontrado en DOM');
+            setTimeout(retryAddProduct, 100);
         }
         
-        // Configurar resto de botones principales con verificación simplificada
+        // Configurar resto de botones principales
         const mainButtons = [
             { id: 'previewQuotationBtn', handler: showQuotationPreview, name: 'Vista Previa' },
             { id: 'generateQuotationPdfBtn', handler: generateQuotationPDF, name: 'Generar PDF' },
@@ -162,13 +448,7 @@ function setupQuotationEventListeners() {
         ];
         
         mainButtons.forEach(button => {
-            const element = document.getElementById(button.id);
-            if (element) {
-                element.addEventListener('click', button.handler);
-                console.log(`✅ Event listener para ${button.name} configurado`);
-            } else {
-                console.warn(`⚠️ Elemento ${button.id} no encontrado`);
-            }
+            setupEventListener(button.id, 'click', button.handler, button.name);
         });
         
         // Modal de producto (CRÍTICO: verificación robusta)
@@ -1061,9 +1341,56 @@ class QuotationDatabase {
     }
 }
 
-// Funciones globales para onclick
+// ================================
+// EXPOSICIÓN GLOBAL DE FUNCIONES CRÍTICAS
+// ================================
+// Hacer todas las funciones críticas disponibles globalmente
 window.editProduct = editProduct;
 window.removeProduct = removeProduct;
+window.showAddProductModal = showAddProductModal;
+window.saveProduct = saveProduct;
+window.closeModal = closeModal;
+window.generateQuotationNumber = generateQuotationNumber;
+window.calculateQuotationTotals = calculateQuotationTotals;
+window.showQuotationPreview = showQuotationPreview;
+window.generateQuotationPDF = generateQuotationPDF;
+window.resetQuotationForm = resetQuotationForm;
+
+// Exportar el estado del sistema
+window.getQuotationSystemState = function() {
+    return {
+        initialized: quotationSystemInitialized,
+        productsCount: quotationProducts.length,
+        hasDatabase: !!quotationDB
+    };
+};
+
+// Función de debug para verificar estado
+window.debugQuotationSystem = function() {
+    console.log('=== DEBUG QUOTATION SYSTEM ===');
+    console.log('Initialized:', quotationSystemInitialized);
+    console.log('Products:', quotationProducts.length);
+    console.log('Database:', !!quotationDB);
+    
+    const elements = {
+        quotationForm: !!document.getElementById('quotationForm'),
+        quotationNumber: !!document.getElementById('quotationNumber'),
+        addProductBtn: !!document.getElementById('addProductBtn')
+    };
+    console.log('Elements:', elements);
+    
+    const quotationNumber = document.getElementById('quotationNumber');
+    if (quotationNumber) {
+        console.log('Quotation Number Value:', quotationNumber.value);
+    }
+    
+    return {
+        initialized: quotationSystemInitialized,
+        products: quotationProducts.length,
+        database: !!quotationDB,
+        elements
+    };
+};
 window.loadQuotation = function(quotationNumber) {
     const quotation = quotationDB.getQuotation(quotationNumber);
     if (quotation) {
@@ -1185,3 +1512,95 @@ function handleClientQuoteInput(event) {
         }
     }
 }
+
+// ==========================================
+// EXPORTACIONES GLOBALES CRÍTICAS
+// ==========================================
+
+// CRÍTICO: Exponer la función principal globalmente para que auth.js pueda accederla
+window.initializeQuotationSystem = initializeQuotationSystem;
+
+// Funciones globales para onclick
+window.editProduct = editProduct;
+window.removeProduct = removeProduct;
+window.showAddProductModal = showAddProductModal;
+window.saveProduct = saveProduct;
+window.generateQuotationNumber = generateQuotationNumber;
+
+// Funciones de gestión globales
+window.loadQuotation = function(quotationNumber) {
+    const quotation = quotationDB.getQuotation(quotationNumber);
+    if (quotation) {
+        // Cargar datos en el formulario
+        document.getElementById('quotationNumber').value = quotation.quotationNumber;
+        document.getElementById('quotationDate').value = quotation.quotationDate;
+        document.getElementById('validity').value = quotation.validity;
+        document.getElementById('clientNameQuote').value = quotation.clientName;
+        document.getElementById('clientPhoneQuote').value = quotation.clientPhone;
+        document.getElementById('clientEmailQuote').value = quotation.clientEmail || '';
+        document.getElementById('terms').value = quotation.terms || '';
+        document.getElementById('quotationObservations').value = quotation.observations || '';
+        document.getElementById('globalDiscount').value = quotation.globalDiscount || 0;
+        
+        quotationProducts = quotation.products || [];
+        renderProductsList();
+        calculateQuotationTotals();
+        
+        closeModal('quotationHistoryModal');
+        showNotification('Cotización cargada', 'success');
+    }
+};
+
+window.markQuotationAccepted = function(quotationNumber) {
+    quotationDB.updateQuotationStatus(quotationNumber, 'accepted');
+    loadQuotationHistory();
+    showNotification('Cotización marcada como aceptada', 'success');
+};
+
+window.markQuotationRejected = function(quotationNumber) {
+    quotationDB.updateQuotationStatus(quotationNumber, 'rejected');
+    loadQuotationHistory();
+    showNotification('Cotización marcada como rechazada', 'info');
+};
+
+// ==========================================
+// SISTEMA DE INICIALIZACIÓN DE RESPALDO
+// ==========================================
+
+// Sistema de respaldo para asegurar inicialización
+let quotationSystemInitialized = false;
+
+// Verificar periódicamente si necesita inicialización
+const checkQuotationInitialization = () => {
+    if (!quotationSystemInitialized && 
+        document.querySelector('.quotation-mode') && 
+        document.querySelector('.quotation-mode').offsetParent !== null &&
+        window.authManager && window.authManager.isValidSession()) {
+        
+        console.log('🔄 Inicialización de respaldo para cotizaciones...');
+        try {
+            initializeQuotationSystem();
+            quotationSystemInitialized = true;
+            console.log('✅ Sistema inicializado por respaldo');
+        } catch (error) {
+            console.error('❌ Error en inicialización de respaldo:', error);
+        }
+    }
+};
+
+// Verificar cada 500ms si no está inicializado
+const quotationCheckInterval = setInterval(() => {
+    if (quotationSystemInitialized) {
+        clearInterval(quotationCheckInterval);
+    } else {
+        checkQuotationInitialization();
+    }
+}, 500);
+
+// Auto-limpiar después de 10 segundos si no se inicializa
+setTimeout(() => {
+    if (!quotationSystemInitialized) {
+        clearInterval(quotationCheckInterval);
+        console.warn('⚠️ Timeout de inicialización de cotizaciones');
+    }
+}, 10000);
