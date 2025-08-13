@@ -27,6 +27,7 @@ let editingProductIndex = -1;
 let currentQuotation = null;
 let quotationsHistory = [];
 let discountType = 'percentage'; // 'percentage' o 'amount'
+let companySignaturePad = null; // Firma de la empresa
 
 // ===========================================
 // INICIALIZACIÓN DEL SISTEMA
@@ -195,6 +196,9 @@ function setupEventListeners() {
         });
     });
     
+    // Configurar firma de la empresa
+    setupCompanySignature();
+    
     console.log('✅ Event listeners configurados correctamente');
 }
 
@@ -214,6 +218,57 @@ function updateDiscountInputType() {
         discountSymbol.textContent = '$';
         discountInput.removeAttribute('max');
         discountInput.setAttribute('placeholder', 'Ej: 500');
+    }
+}
+
+// ===========================================
+// CONFIGURACIÓN DE FIRMA
+// ===========================================
+
+function setupCompanySignature() {
+    console.log('🖊️ Configurando firma de empresa...');
+    
+    try {
+        const canvas = document.getElementById('companySignatureCanvas');
+        if (!canvas) {
+            console.warn('⚠️ Canvas de firma no encontrado');
+            return;
+        }
+        
+        // Configurar tamaño del canvas
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * ratio;
+            canvas.height = rect.height * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Inicializar SignaturePad
+        companySignaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgba(255, 255, 255, 0)',
+            penColor: 'rgb(0, 0, 0)',
+            velocityFilterWeight: 0.7,
+            minWidth: 0.5,
+            maxWidth: 2.5,
+        });
+        
+        // Botón limpiar firma
+        const clearBtn = document.getElementById('clearCompanySignature');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                companySignaturePad.clear();
+                console.log('🧹 Firma de empresa limpiada');
+            });
+        }
+        
+        console.log('✅ Firma de empresa configurada correctamente');
+        
+    } catch (error) {
+        console.error('❌ Error configurando firma de empresa:', error);
     }
 }
 
@@ -503,7 +558,8 @@ function collectQuotationData() {
         globalDiscountAmount: globalDiscountAmount,
         total: total,
         terms: document.getElementById('terms')?.value || '',
-        observations: document.getElementById('quotationObservations')?.value || ''
+        observations: document.getElementById('quotationObservations')?.value || '',
+        companySignature: companySignaturePad && !companySignaturePad.isEmpty() ? companySignaturePad.toDataURL() : null
     };
 }
 
@@ -606,6 +662,15 @@ function generateQuotationHTML(data) {
             <div style="margin: 20px 0; padding: 20px; background: #f8f8f8; border-radius: 8px; border-left: 4px solid #D4AF37;">
                 <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Observaciones</h3>
                 <div style="color: #666666; font-size: 14px; line-height: 1.6;">${data.observations}</div>
+            </div>
+            ` : ''}
+            
+            ${data.companySignature ? `
+            <div style="margin: 30px 0; padding: 20px; background: #f8f8f8; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Firma de Joyería Ciao Ciao MX</h3>
+                <div style="text-align: center; padding: 10px;">
+                    <img src="${data.companySignature}" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
             </div>
             ` : ''}
         </div>
@@ -924,6 +989,34 @@ Garantía de por vida en mano de obra.`;
             
             doc.text(observationsLines, 25, yPos + 2);
             yPos += obsHeight + 10;
+        }
+        
+        // Firma de la empresa si está presente
+        if (quotationData.companySignature) {
+            yPos += 15;
+            
+            // Verificar si hay espacio suficiente para la firma
+            if (yPos > 220) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            doc.setFillColor(...colors.gold);
+            doc.rect(20, yPos, 170, 8, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('FIRMA DE JOYERÍA CIAO CIAO MX', 105, yPos + 5.5, { align: 'center' });
+            
+            yPos += 15;
+            
+            // Agregar imagen de firma
+            const signatureHeight = 30;
+            const signatureWidth = 80;
+            const signatureX = (210 - signatureWidth) / 2; // Centrar
+            
+            doc.addImage(quotationData.companySignature, 'PNG', signatureX, yPos, signatureWidth, signatureHeight);
+            yPos += signatureHeight + 10;
         }
         
         // Línea de cierre elegante

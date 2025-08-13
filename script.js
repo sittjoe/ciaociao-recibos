@@ -1,6 +1,7 @@
 // script.js - Archivo principal integrado con todos los módulos
 // Variables globales
 let signaturePad;
+let companySignaturePad; // Firma de la empresa
 let receiptCounter = parseInt(localStorage.getItem('receiptCounter') || '1');
 let receiptDB;
 let cameraManager;
@@ -88,14 +89,28 @@ function generateReceiptNumber() {
 
 function initializeSignaturePad() {
     try {
-        const canvas = document.getElementById('signatureCanvas');
-        signaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'rgb(255, 255, 255)',
-            penColor: 'rgb(0, 0, 0)'
-        });
+        // Firma del cliente
+        const clientCanvas = document.getElementById('signatureCanvas');
+        if (clientCanvas) {
+            signaturePad = new SignaturePad(clientCanvas, {
+                backgroundColor: 'rgb(255, 255, 255)',
+                penColor: 'rgb(0, 0, 0)'
+            });
+        }
+        
+        // Firma de la empresa
+        const companyCanvas = document.getElementById('companySignatureCanvas');
+        if (companyCanvas) {
+            companySignaturePad = new SignaturePad(companyCanvas, {
+                backgroundColor: 'rgb(255, 255, 255)',
+                penColor: 'rgb(0, 0, 0)'
+            });
+        }
         
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
+        
+        console.log('✅ Firmas digitales inicializadas');
     } catch (error) {
         console.error('❌ Error inicializando firma digital:', error);
     }
@@ -103,13 +118,28 @@ function initializeSignaturePad() {
 
 function resizeCanvas() {
     try {
-        const canvas = document.getElementById('signatureCanvas');
         const ratio = Math.max(window.devicePixelRatio || 1, 1);
-        canvas.width = canvas.offsetWidth * ratio;
-        canvas.height = canvas.offsetHeight * ratio;
-        canvas.getContext('2d').scale(ratio, ratio);
-        if (signaturePad) {
-            signaturePad.clear();
+        
+        // Redimensionar canvas del cliente
+        const clientCanvas = document.getElementById('signatureCanvas');
+        if (clientCanvas) {
+            clientCanvas.width = clientCanvas.offsetWidth * ratio;
+            clientCanvas.height = clientCanvas.offsetHeight * ratio;
+            clientCanvas.getContext('2d').scale(ratio, ratio);
+            if (signaturePad) {
+                signaturePad.clear();
+            }
+        }
+        
+        // Redimensionar canvas de la empresa
+        const companyCanvas = document.getElementById('companySignatureCanvas');
+        if (companyCanvas) {
+            companyCanvas.width = companyCanvas.offsetWidth * ratio;
+            companyCanvas.height = companyCanvas.offsetHeight * ratio;
+            companyCanvas.getContext('2d').scale(ratio, ratio);
+            if (companySignaturePad) {
+                companySignaturePad.clear();
+            }
         }
     } catch (error) {
         console.error('❌ Error redimensionando canvas:', error);
@@ -135,6 +165,14 @@ function setupEventListeners() {
             if (signaturePad) {
                 signaturePad.clear();
                 utils.showNotification('Firma limpiada', 'info');
+            }
+        });
+
+        // Botón limpiar firma de empresa
+        document.getElementById('clearCompanySignature').addEventListener('click', function() {
+            if (companySignaturePad) {
+                companySignaturePad.clear();
+                utils.showNotification('Firma de empresa limpiada', 'info');
             }
         });
         
@@ -345,11 +383,11 @@ function calculateBalance() {
         
         // Calcular subtotal (precio + aportación)
         const subtotal = price + contribution;
-        document.getElementById('subtotal').value = subtotal.toFixed(2);
+        document.getElementById('subtotal').value = utils.formatNumber(subtotal);
         
         // Calcular saldo pendiente
         const balance = Math.max(0, subtotal - deposit);
-        document.getElementById('balance').value = balance.toFixed(2);
+        document.getElementById('balance').value = utils.formatNumber(balance);
     } catch (error) {
         console.error('❌ Error calculando saldo:', error);
     }
@@ -468,6 +506,7 @@ function collectFormData() {
             observations: document.getElementById('observations').value,
             images: cameraManager.getImages(),
             signature: signaturePad && !signaturePad.isEmpty() ? signaturePad.toDataURL() : null,
+            companySignature: companySignaturePad && !companySignaturePad.isEmpty() ? companySignaturePad.toDataURL() : null,
             paymentPlan: currentPaymentPlan
         };
     } catch (error) {
@@ -659,9 +698,12 @@ function generateReceiptHTML() {
                     </div>
                 </div>
                 <div class="signature-box">
-                    <div style="height: 80px;"></div>
+                    ${formData.companySignature ? 
+                        `<img src="${formData.companySignature}" style="max-width: 200px; height: 80px;">` : 
+                        '<div style="height: 80px;"></div>'
+                    }
                     <div class="signature-line">
-                        <div class="signature-label">Firma Autorizada</div>
+                        <div class="signature-label">Joyería Ciao Ciao MX</div>
                     </div>
                 </div>
             </div>
