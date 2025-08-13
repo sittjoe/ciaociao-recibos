@@ -1970,6 +1970,44 @@ input[type="file"]:hover {
     text-align: center;
 }
 
+/* Selector de tipo de descuento */
+.discount-type-selector {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.discount-type-selector label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: color 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: rgba(0, 123, 255, 0.1);
+}
+
+.discount-type-selector label:hover {
+    background: rgba(0, 123, 255, 0.2);
+}
+
+.discount-type-selector input[type="radio"] {
+    margin-right: 8px;
+    accent-color: var(--blue);
+    transform: scale(1.1);
+}
+
+.discount-type-selector input[type="radio"]:checked + span {
+    font-weight: 600;
+    color: var(--blue);
+}
+
+.discount-type-selector span {
+    user-select: none;
+    font-size: 13px;
+}
+
 .btn-convert {
     background: linear-gradient(135deg, var(--purple) 0%, #7B1FA2 100%);
     color: var(--white);

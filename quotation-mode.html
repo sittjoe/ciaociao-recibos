@@ -73,10 +73,23 @@
                             <span id="quotationSubtotal">$0.00</span>
                         </div>
                         <div class="summary-row">
+                            <span>Tipo de Descuento:</span>
+                            <div class="discount-type-selector">
+                                <label>
+                                    <input type="radio" name="discountType" value="percentage" checked>
+                                    <span>Porcentaje (%)</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="discountType" value="amount">
+                                    <span>Monto ($)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="summary-row">
                             <span>Descuento Global:</span>
                             <div class="discount-input">
-                                <input type="number" id="globalDiscount" min="0" max="100" value="0" step="1">
-                                <span>%</span>
+                                <input type="number" id="globalDiscount" min="0" value="0" step="0.01">
+                                <span id="discountSymbol">%</span>
                             </div>
                         </div>
                         <div class="summary-row">
