@@ -1568,7 +1568,7 @@ window.markQuotationRejected = function(quotationNumber) {
 // ==========================================
 
 // Sistema de respaldo para asegurar inicialización
-let quotationSystemInitialized = false;
+// NOTA: quotationSystemInitialized ya está declarada al inicio del archivo
 
 // Verificar periódicamente si necesita inicialización
 const checkQuotationInitialization = () => {
