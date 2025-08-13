@@ -294,46 +294,26 @@ class AuthManager {
                 window.appInitialized = true;
             }
             
-            // CORRECCIÓN CRÍTICA: Detectar página de cotizaciones específicamente
-            const isQuotationPage = window.location.pathname.includes('quotation-mode.html') || 
-                                   document.title.includes('Cotizaciones') ||
-                                   document.querySelector('.quotation-mode');
-                                   
-            if (isQuotationPage && typeof initializeQuotationSystem === 'function') {
-                console.log('💰 Detectada página de cotizaciones, iniciando sistema...');
+            // NUEVO SISTEMA BULLETPROOF: Usar SystemInitializationManager
+            if (window.systemManager) {
+                console.log('🎯 [AUTH] Delegando inicialización al SystemManager...');
                 
-                // Verificar si el DOM está completamente cargado
-                const ensureInitialization = () => {
-                    const criticalElements = [
-                        document.getElementById('quotationForm'),
-                        document.getElementById('quotationNumber'),
-                        document.getElementById('addProductBtn')
-                    ];
-                    
-                    const allElementsReady = criticalElements.every(el => el !== null);
-                    
-                    if (allElementsReady) {
-                        console.log('✅ Elementos críticos detectados, inicializando sistema...');
-                        initializeQuotationSystem();
-                        window.quotationInitialized = true;
-                        console.log('✅ Sistema de cotizaciones inicializado exitosamente');
-                    } else {
-                        console.warn('⚠️ Elementos críticos aún no disponibles, reintentando en 200ms...');
-                        setTimeout(ensureInitialization, 200);
-                    }
-                };
+                // Registrar sistemas disponibles según la página
+                this.registerAvailableSystems();
                 
-                // Iniciar verificación inmediatamente, luego con timeout como respaldo
-                ensureInitialization();
-                
-                // Timeout de respaldo por si el método anterior falla
-                setTimeout(() => {
-                    if (!window.quotationInitialized) {
-                        console.log('🔧 Timeout de respaldo activado para cotizaciones');
-                        initializeQuotationSystem();
-                        window.quotationInitialized = true;
-                    }
-                }, 1000);
+                // Inicializar página específica de forma robusta
+                window.systemManager.initializePage()
+                    .then(() => {
+                        console.log('✅ [AUTH] Inicialización de página completada exitosamente');
+                        window.authSystemInitialized = true;
+                    })
+                    .catch((error) => {
+                        console.error('❌ [AUTH] Error en inicialización de página:', error);
+                        this.handleInitializationFailure(error);
+                    });
+            } else {
+                console.error('❌ [AUTH] SystemManager no disponible - fallback requerido');
+                this.fallbackInitialization();
             }
 
             console.log('✅ Aplicación principal mostrada y inicializada');
@@ -341,6 +321,218 @@ class AuthManager {
         } catch (error) {
             console.error('❌ Error mostrando aplicación principal:', error);
         }
+    }
+
+    // ==========================================
+    // MÉTODOS AUXILIARES PARA BULLETPROOF SYSTEM
+    // ==========================================
+
+    registerAvailableSystems() {
+        console.log('📋 [AUTH] Registrando sistemas disponibles...');
+        
+        try {
+            // Registrar sistema de cotizaciones si está disponible
+            if (typeof window.initializeQuotationSystem === 'function') {
+                window.systemManager.register(
+                    'quotationSystem',
+                    window.initializeQuotationSystem,
+                    ['database'], // Dependencias
+                    {
+                        timeout: 15000,
+                        retryOnFailure: true,
+                        critical: true
+                    }
+                );
+                console.log('✅ [AUTH] Sistema de cotizaciones registrado');
+            }
+
+            // Registrar sistema de recibos si está disponible  
+            if (typeof window.initializeApp === 'function') {
+                window.systemManager.register(
+                    'receiptSystem',
+                    window.initializeApp,
+                    ['database'],
+                    {
+                        timeout: 10000,
+                        retryOnFailure: true,
+                        critical: true
+                    }
+                );
+                console.log('✅ [AUTH] Sistema de recibos registrado');
+            }
+
+            // Registrar selector de modo si está disponible
+            if (typeof window.initializeModeSelector === 'function') {
+                window.systemManager.register(
+                    'modeSelector',
+                    window.initializeModeSelector,
+                    [],
+                    {
+                        timeout: 5000,
+                        retryOnFailure: false,
+                        critical: false
+                    }
+                );
+                console.log('✅ [AUTH] Selector de modo registrado');
+            }
+
+            // Registrar base de datos como dependencia común
+            window.systemManager.register(
+                'database',
+                () => {
+                    console.log('🗄️ [AUTH] Inicializando dependencias de base de datos...');
+                    return Promise.resolve(true);
+                },
+                [],
+                {
+                    timeout: 3000,
+                    retryOnFailure: true,
+                    critical: true
+                }
+            );
+
+        } catch (error) {
+            console.error('❌ [AUTH] Error registrando sistemas:', error);
+        }
+    }
+
+    handleInitializationFailure(error) {
+        console.error('🚨 [AUTH] Manejando falla de inicialización:', error);
+        
+        // Mostrar mensaje de error al usuario
+        this.showUserErrorMessage(error);
+        
+        // Intentar recuperación después de 3 segundos
+        setTimeout(() => {
+            console.log('🔄 [AUTH] Intentando recuperación automática...');
+            this.attemptRecovery();
+        }, 3000);
+    }
+
+    showUserErrorMessage(error) {
+        const errorContainer = document.createElement('div');
+        errorContainer.className = 'auth-error-message';
+        errorContainer.innerHTML = `
+            <div class="error-content">
+                <h3>⚠️ Error de Inicialización</h3>
+                <p>El sistema está experimentando dificultades técnicas.</p>
+                <button onclick="window.location.reload()" class="retry-btn">🔄 Reintentar</button>
+                <details style="margin-top: 10px;">
+                    <summary>Detalles técnicos</summary>
+                    <small>${error.message}</small>
+                </details>
+            </div>
+        `;
+
+        const style = document.createElement('style');
+        style.textContent = `
+            .auth-error-message {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #ffe6e6;
+                border: 2px solid #ffcccc;
+                border-radius: 8px;
+                padding: 15px;
+                max-width: 300px;
+                z-index: 10000;
+                font-family: Arial, sans-serif;
+            }
+            .retry-btn {
+                background: #007bff;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-top: 10px;
+            }
+            .retry-btn:hover { background: #0056b3; }
+        `;
+
+        document.head.appendChild(style);
+        document.body.appendChild(errorContainer);
+
+        // Auto-remover después de 10 segundos
+        setTimeout(() => {
+            if (errorContainer.parentNode) {
+                errorContainer.remove();
+            }
+        }, 10000);
+    }
+
+    attemptRecovery() {
+        console.log('🔧 [AUTH] Ejecutando procedimiento de recuperación...');
+        
+        try {
+            // Re-verificar disponibilidad del SystemManager
+            if (window.systemManager) {
+                console.log('✅ [AUTH] SystemManager disponible para recuperación');
+                
+                // Intentar re-registro y inicialización
+                this.registerAvailableSystems();
+                
+                window.systemManager.initializePage()
+                    .then(() => {
+                        console.log('✅ [AUTH] Recuperación exitosa');
+                        // Limpiar mensajes de error
+                        const errorMsg = document.querySelector('.auth-error-message');
+                        if (errorMsg) errorMsg.remove();
+                    })
+                    .catch((recoveryError) => {
+                        console.error('❌ [AUTH] Recuperación fallida:', recoveryError);
+                    });
+            } else {
+                console.warn('⚠️ [AUTH] SystemManager no disponible para recuperación');
+                this.fallbackInitialization();
+            }
+        } catch (error) {
+            console.error('❌ [AUTH] Error en procedimiento de recuperación:', error);
+        }
+    }
+
+    fallbackInitialization() {
+        console.log('🆘 [AUTH] Ejecutando inicialización de respaldo...');
+        
+        // Inicialización básica sin SystemManager
+        const pageType = this.detectPageType();
+        
+        switch (pageType) {
+            case 'quotation':
+                if (typeof window.initializeQuotationSystem === 'function') {
+                    console.log('🔄 [AUTH] Fallback: Inicializando cotizaciones directamente...');
+                    setTimeout(() => {
+                        try {
+                            window.initializeQuotationSystem();
+                        } catch (e) {
+                            console.error('❌ [AUTH] Fallback falló:', e);
+                        }
+                    }, 1000);
+                }
+                break;
+            case 'receipt':
+                if (typeof window.initializeApp === 'function') {
+                    console.log('🔄 [AUTH] Fallback: Inicializando recibos directamente...');
+                    window.initializeApp();
+                }
+                break;
+            default:
+                console.log('ℹ️ [AUTH] Fallback: Sin inicialización específica requerida');
+        }
+    }
+
+    detectPageType() {
+        const path = window.location.pathname;
+        const title = document.title;
+        const body = document.body.className;
+
+        if (path.includes('quotation') || title.includes('Cotizaciones') || body.includes('quotation-mode')) {
+            return 'quotation';
+        }
+        if (path.includes('receipt') || title.includes('Recibos') || body.includes('receipt-mode')) {
+            return 'receipt';
+        }
+        return 'selector';
     }
 
     logout() {
