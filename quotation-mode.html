@@ -236,31 +236,7 @@
         </div>
     </div>
 
-    <!-- Scripts - BULLETPROOF LOADING ORDER -->
-    <!-- 1. CDN Dependencies (async para no-blocking) -->
-    <script async src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script async src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
-    <!-- 2. Initialization Manager (FIRST - elimina race conditions) -->
-    <script src="initialization-manager.js"></script>
-    
-    <!-- 3. Real-time Monitoring System -->
-    <script src="monitoring-system.js"></script>
-    
-    <!-- 4. Rollback & Recovery System -->
-    <script src="rollback-recovery-system.js"></script>
-    
-    <!-- 5. Core Dependencies -->
-    <script src="database.js"></script>
-    <script src="utils.js"></script>
-    
-    <!-- 6. Business Logic -->
-    <script src="quotations.js"></script>
-    
-    <!-- 7. Authentication (LAST - triggera inicialización) -->
-    <script src="auth.js"></script>
-    
-    <!-- 8. Integrated Testing Widget (DEV/QA) -->
-    <script src="integrated-testing-widget.js"></script>
+    <!-- Scripts - SIMPLE Y FUNCIONAL -->
+    <script src="simple-quotations.js"></script>
 </body>
 </html>
