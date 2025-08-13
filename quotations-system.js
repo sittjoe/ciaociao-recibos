@@ -513,15 +513,22 @@ function generateQuotationHTML(data) {
     
     let productsHTML = '';
     data.products.forEach((product, index) => {
+        const rowStyle = index % 2 === 0 
+            ? 'background: #ffffff;' 
+            : 'background: #f9f9f9;';
+        
         productsHTML += `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${product.type} ${product.material} - ${product.description}</td>
-                <td>${product.sku || '-'}</td>
-                <td>${formatNumber(product.quantity)}</td>
-                <td>${formatCurrency(product.price)}</td>
-                <td>${product.discount}%</td>
-                <td>${formatCurrency(product.total)}</td>
+            <tr style="${rowStyle}">
+                <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #E5E4E2; font-weight: 600; color: #1a1a1a;">${index + 1}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #E5E4E2; color: #1a1a1a;">
+                    <div style="font-weight: 600; margin-bottom: 3px;">${product.type} ${product.material}</div>
+                    <div style="font-size: 12px; color: #666666;">${product.description}</div>
+                </td>
+                <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #E5E4E2; color: #666666; font-size: 12px;">${product.sku || '-'}</td>
+                <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #E5E4E2; font-weight: 600; color: #1a1a1a;">${formatNumber(product.quantity)}</td>
+                <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #E5E4E2; color: #1a1a1a;">${formatCurrency(product.price)}</td>
+                <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #E5E4E2; color: ${product.discount > 0 ? '#d32f2f' : '#666666'};">${product.discount}%</td>
+                <td style="padding: 12px 8px; text-align: center; border-bottom: 1px solid #E5E4E2; font-weight: 700; color: #D4AF37; font-size: 14px;">${formatCurrency(product.total)}</td>
             </tr>
         `;
     });
@@ -532,41 +539,45 @@ function generateQuotationHTML(data) {
         : `Descuento:`;
     
     return `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-                <img src="${CONFIG.companyInfo.logo}" alt="Logo" style="height: 60px; margin-bottom: 10px;">
-                <h2 style="color: #007bff; margin: 10px 0;">COTIZACIÓN</h2>
-                <p style="margin: 5px 0;">${CONFIG.companyInfo.name}</p>
-                <p style="margin: 5px 0;">Tel: ${CONFIG.companyInfo.phone}</p>
+        <div style="font-family: 'Inter', Arial, sans-serif; padding: 30px; background: #ffffff; max-width: 800px; margin: 0 auto;">
+            <!-- Encabezado elegante -->
+            <div style="text-align: center; margin-bottom: 40px; border-bottom: 2px solid #D4AF37; padding-bottom: 20px;">
+                <img src="${CONFIG.companyInfo.logo}" alt="Logo" style="height: 70px; margin-bottom: 15px;">
+                <h1 style="color: #1a1a1a; margin: 15px 0; font-size: 28px; font-weight: 700;">${CONFIG.companyInfo.name.toUpperCase()}</h1>
+                <p style="margin: 5px 0; color: #666666; font-size: 16px;">Joyería Fina</p>
+                <p style="margin: 5px 0; color: #666666;">Tel: ${CONFIG.companyInfo.phone}</p>
+                <div style="margin-top: 15px; background: #D4AF37; color: white; padding: 8px 20px; display: inline-block; border-radius: 4px;">
+                    <strong style="font-size: 18px;">COTIZACIÓN</strong>
+                </div>
             </div>
             
-            <div style="margin-bottom: 20px;">
-                <table style="width: 100%;">
-                    <tr>
-                        <td><strong>Número:</strong> ${data.number}</td>
-                        <td style="text-align: right;"><strong>Fecha:</strong> ${formatDate(data.date)}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Cliente:</strong> ${data.clientName}</td>
-                        <td style="text-align: right;"><strong>Válida hasta:</strong> ${formatDate(validityDate)}</td>
-                    </tr>
-                    <tr>
-                        <td><strong>Teléfono:</strong> ${data.clientPhone}</td>
-                        <td style="text-align: right;"><strong>Email:</strong> ${data.clientEmail || 'N/A'}</td>
-                    </tr>
-                </table>
+            <!-- Información de la cotización -->
+            <div style="background: #F4E4BC; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; align-items: start;">
+                    <div>
+                        <p style="margin: 8px 0; color: #1a1a1a;"><strong>Número:</strong> ${data.number}</p>
+                        <p style="margin: 8px 0; color: #1a1a1a;"><strong>Cliente:</strong> ${data.clientName}</p>
+                        <p style="margin: 8px 0; color: #1a1a1a;"><strong>Teléfono:</strong> ${data.clientPhone}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="margin: 8px 0; color: #1a1a1a;"><strong>Fecha:</strong> ${formatDate(data.date)}</p>
+                        <p style="margin: 8px 0; color: #1a1a1a;"><strong>Válida hasta:</strong> ${formatDate(validityDate)}</p>
+                        <p style="margin: 8px 0; color: #1a1a1a;"><strong>Email:</strong> ${data.clientEmail || 'N/A'}</p>
+                    </div>
+                </div>
             </div>
             
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <!-- Tabla de productos elegante -->
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <thead>
-                    <tr style="background-color: #007bff; color: white;">
-                        <th style="padding: 10px; border: 1px solid #ddd;">#</th>
-                        <th style="padding: 10px; border: 1px solid #ddd;">Descripción</th>
-                        <th style="padding: 10px; border: 1px solid #ddd;">SKU</th>
-                        <th style="padding: 10px; border: 1px solid #ddd;">Cant.</th>
-                        <th style="padding: 10px; border: 1px solid #ddd;">P. Unit.</th>
-                        <th style="padding: 10px; border: 1px solid #ddd;">Desc.</th>
-                        <th style="padding: 10px; border: 1px solid #ddd;">Total</th>
+                    <tr style="background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%); color: white;">
+                        <th style="padding: 15px 10px; text-align: center; font-size: 11px; font-weight: 600;">#</th>
+                        <th style="padding: 15px; text-align: left; font-size: 11px; font-weight: 600;">DESCRIPCIÓN</th>
+                        <th style="padding: 15px 10px; text-align: center; font-size: 11px; font-weight: 600;">SKU</th>
+                        <th style="padding: 15px 10px; text-align: center; font-size: 11px; font-weight: 600;">CANT.</th>
+                        <th style="padding: 15px 10px; text-align: center; font-size: 11px; font-weight: 600;">P. UNIT.</th>
+                        <th style="padding: 15px 10px; text-align: center; font-size: 11px; font-weight: 600;">DESC.</th>
+                        <th style="padding: 15px 10px; text-align: center; font-size: 11px; font-weight: 600;">TOTAL</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -574,23 +585,27 @@ function generateQuotationHTML(data) {
                 </tbody>
             </table>
             
-            <div style="text-align: right; margin-bottom: 20px;">
-                <p><strong>Subtotal:</strong> ${formatCurrency(data.subtotal)}</p>
-                ${data.globalDiscountAmount > 0 ? `<p><strong>${discountLabel}</strong> -${formatCurrency(data.globalDiscountAmount)}</p>` : ''}
-                <p style="font-size: 1.2em; color: #007bff;"><strong>TOTAL:</strong> ${formatCurrency(data.total)}</p>
+            <!-- Sección de totales con diseño profesional -->
+            <div style="background: #F7E7CE; padding: 25px; border-radius: 8px; border: 2px solid #D4AF37; margin-bottom: 30px;">
+                <div style="text-align: right;">
+                    <p style="margin: 8px 0; font-size: 16px; color: #1a1a1a;"><strong>Subtotal:</strong> <span style="margin-left: 20px;">${formatCurrency(data.subtotal)}</span></p>
+                    ${data.globalDiscountAmount > 0 ? `<p style="margin: 8px 0; font-size: 16px; color: #1a1a1a;"><strong>${discountLabel}</strong> <span style="margin-left: 20px; color: #d32f2f;">-${formatCurrency(data.globalDiscountAmount)}</span></p>` : ''}
+                    <hr style="border: none; border-top: 2px solid #D4AF37; margin: 15px 0;">
+                    <p style="font-size: 20px; color: #1a1a1a; margin: 15px 0;"><strong>TOTAL: <span style="background: #D4AF37; color: white; padding: 5px 15px; border-radius: 4px; margin-left: 20px;">${formatCurrency(data.total)}</span></strong></p>
+                </div>
             </div>
             
             ${data.terms ? `
-            <div style="margin-top: 30px; padding: 15px; background-color: #f8f9fa;">
-                <h4>Términos y Condiciones:</h4>
-                <p style="white-space: pre-wrap;">${data.terms}</p>
+            <div style="margin: 30px 0; padding: 20px; background: #f8f8f8; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Términos y Condiciones</h3>
+                <div style="color: #666666; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${data.terms}</div>
             </div>
             ` : ''}
             
             ${data.observations ? `
-            <div style="margin-top: 20px;">
-                <h4>Observaciones:</h4>
-                <p>${data.observations}</p>
+            <div style="margin: 20px 0; padding: 20px; background: #f8f8f8; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Observaciones</h3>
+                <div style="color: #666666; font-size: 14px; line-height: 1.6;">${data.observations}</div>
             </div>
             ` : ''}
         </div>
@@ -628,128 +643,294 @@ async function generateQuotationPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // Configurar fuente y colores
-        doc.setFontSize(20);
-        doc.setTextColor(0, 123, 255);
-        doc.text('COTIZACIÓN', 105, 20, { align: 'center' });
+        // Colores profesionales para joyería
+        const colors = {
+            gold: [212, 175, 55],        // #D4AF37
+            darkGold: [184, 148, 31],    // #B8941F
+            black: [26, 26, 26],         // #1a1a1a
+            gray: [102, 102, 102],       // #666666
+            lightGray: [229, 228, 226]   // #E5E4E2
+        };
         
-        // Información de la empresa
+        // ======= ENCABEZADO ELEGANTE =======
+        // Logo y nombre de empresa
+        doc.setFontSize(24);
+        doc.setTextColor(...colors.black);
+        doc.setFont('helvetica', 'bold');
+        doc.text('CIAOCIAO.MX', 105, 25, { align: 'center' });
+        
         doc.setFontSize(12);
-        doc.setTextColor(0, 0, 0);
-        doc.text(CONFIG.companyInfo.name, 105, 30, { align: 'center' });
-        doc.text('Tel: ' + CONFIG.companyInfo.phone, 105, 36, { align: 'center' });
+        doc.setTextColor(...colors.gray);
+        doc.setFont('helvetica', 'normal');
+        doc.text('Joyería Fina', 105, 32, { align: 'center' });
+        doc.text('Tel: ' + CONFIG.companyInfo.phone, 105, 38, { align: 'center' });
         
-        // Línea separadora
-        doc.setDrawColor(0, 123, 255);
-        doc.line(20, 45, 190, 45);
+        // Línea dorada elegante
+        doc.setDrawColor(...colors.gold);
+        doc.setLineWidth(1);
+        doc.line(40, 45, 170, 45);
         
-        // Información de la cotización
+        // Título "COTIZACIÓN"
+        doc.setFontSize(18);
+        doc.setTextColor(...colors.black);
+        doc.setFont('helvetica', 'bold');
+        doc.text('COTIZACIÓN', 105, 58, { align: 'center' });
+        
+        // Línea dorada debajo del título
+        doc.setDrawColor(...colors.gold);
+        doc.setLineWidth(0.5);
+        doc.line(70, 62, 140, 62);
+        
+        // ======= INFORMACIÓN DE LA COTIZACIÓN =======
+        let yPos = 75;
+        
+        // Información en dos columnas elegantes
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(10);
-        doc.text(`Número: ${quotationData.number}`, 20, 55);
-        doc.text(`Fecha: ${formatDate(quotationData.date)}`, 120, 55);
+        doc.setTextColor(...colors.black);
         
-        doc.text(`Cliente: ${quotationData.clientName}`, 20, 62);
-        doc.text(`Teléfono: ${quotationData.clientPhone}`, 120, 62);
+        // Columna izquierda
+        doc.text('N°', 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(quotationData.number, 35, yPos);
         
-        if (quotationData.clientEmail) {
-            doc.text(`Email: ${quotationData.clientEmail}`, 20, 69);
-        }
+        doc.setFont('helvetica', 'bold');
+        doc.text('Cliente:', 20, yPos + 7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(quotationData.clientName, 35, yPos + 7);
         
+        doc.setFont('helvetica', 'bold');
+        doc.text('Teléfono:', 20, yPos + 14);
+        doc.setFont('helvetica', 'normal');
+        doc.text(quotationData.clientPhone, 40, yPos + 14);
+        
+        // Columna derecha
         const validityDate = new Date(quotationData.date);
         validityDate.setDate(validityDate.getDate() + parseInt(quotationData.validity));
-        doc.text(`Válida hasta: ${formatDate(validityDate)}`, 120, 69);
         
-        // Tabla de productos
-        let yPosition = 85;
+        doc.setFont('helvetica', 'bold');
+        doc.text('Fecha:', 120, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(formatDate(quotationData.date), 135, yPos);
         
-        // Encabezados de tabla
-        doc.setFillColor(0, 123, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Válida hasta:', 120, yPos + 7);
+        doc.setFont('helvetica', 'normal');
+        doc.text(formatDate(validityDate), 145, yPos + 7);
+        
+        if (quotationData.clientEmail) {
+            doc.setFont('helvetica', 'bold');
+            doc.text('Email:', 120, yPos + 14);
+            doc.setFont('helvetica', 'normal');
+            doc.text(quotationData.clientEmail, 135, yPos + 14);
+        }
+        
+        // ======= TABLA DE PRODUCTOS ELEGANTE =======
+        yPos = 105;
+        
+        // Encabezado de tabla con estilo dorado elegante
+        doc.setFillColor(...colors.gold);
         doc.setTextColor(255, 255, 255);
-        doc.rect(20, yPosition, 170, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.rect(20, yPos, 170, 10, 'F');
         
-        doc.text('#', 25, yPosition + 6);
-        doc.text('Descripción', 35, yPosition + 6);
-        doc.text('Cant.', 120, yPosition + 6);
-        doc.text('P. Unit.', 140, yPosition + 6);
-        doc.text('Total', 170, yPosition + 6);
+        // Encabezados con mejor espaciado
+        doc.text('#', 23, yPos + 7);
+        doc.text('DESCRIPCIÓN', 30, yPos + 7);
+        doc.text('CANT.', 120, yPos + 7);
+        doc.text('PRECIO UNIT.', 135, yPos + 7);
+        doc.text('TOTAL', 170, yPos + 7);
         
-        // Productos
-        doc.setTextColor(0, 0, 0);
-        yPosition += 10;
+        yPos += 12;
+        
+        // Línea separadora dorada
+        doc.setDrawColor(...colors.gold);
+        doc.setLineWidth(0.3);
+        doc.line(20, yPos, 190, yPos);
+        yPos += 3;
+        
+        // Productos con diseño alternado
+        doc.setTextColor(...colors.black);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
         
         quotationData.products.forEach((product, index) => {
-            doc.text(String(index + 1), 25, yPosition);
+            // Background alternado para mejor legibilidad
+            if (index % 2 === 1) {
+                doc.setFillColor(...colors.lightGray);
+                doc.rect(20, yPos - 2, 170, 8, 'F');
+            }
             
-            // Descripción puede ser larga, la cortamos si es necesario
-            const description = `${product.type} ${product.material} - ${product.description}`;
-            const maxLength = 60;
-            const shortDesc = description.length > maxLength 
-                ? description.substring(0, maxLength) + '...' 
-                : description;
-            doc.text(shortDesc, 35, yPosition);
+            // Número de ítem
+            doc.setTextColor(...colors.black);
+            doc.text(String(index + 1), 23, yPos + 4);
             
-            doc.text(formatNumber(product.quantity), 120, yPosition);
-            doc.text(formatCurrency(product.price), 140, yPosition);
-            doc.text(formatCurrency(product.total), 170, yPosition);
+            // Descripción completa y elegante
+            const description = `${product.type} ${product.material}`;
+            const details = product.description;
             
-            yPosition += 7;
+            doc.setFont('helvetica', 'bold');
+            doc.text(description, 30, yPos + 2);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            
+            // Truncar detalles si es muy largo
+            const maxLength = 45;
+            const shortDetails = details.length > maxLength 
+                ? details.substring(0, maxLength) + '...' 
+                : details;
+            doc.text(shortDetails, 30, yPos + 6);
+            
+            // Cantidad, precio y total alineados
+            doc.setFontSize(9);
+            doc.text(formatNumber(product.quantity), 123, yPos + 4, { align: 'center' });
+            doc.text(formatCurrency(product.price), 150, yPos + 4, { align: 'center' });
+            
+            // Total en negrita
+            doc.setFont('helvetica', 'bold');
+            doc.text(formatCurrency(product.total), 178, yPos + 4, { align: 'center' });
+            doc.setFont('helvetica', 'normal');
+            
+            yPos += 10;
             
             // Verificar si necesitamos nueva página
-            if (yPosition > 250) {
+            if (yPos > 240) {
                 doc.addPage();
-                yPosition = 20;
+                yPos = 20;
             }
         });
         
-        // Línea antes de totales
-        yPosition += 5;
-        doc.line(120, yPosition, 190, yPosition);
-        yPosition += 7;
+        // Línea final de la tabla
+        doc.setDrawColor(...colors.gold);
+        doc.setLineWidth(0.8);
+        doc.line(20, yPos + 2, 190, yPos + 2);
         
-        // Totales
-        doc.text('Subtotal:', 140, yPosition);
-        doc.text(formatCurrency(quotationData.subtotal), 170, yPosition);
+        // ======= SECCIÓN DE TOTALES PROFESIONAL =======
+        yPos += 10;
         
+        // Marco dorado elegante para totales
+        doc.setDrawColor(...colors.gold);
+        doc.setLineWidth(1);
+        doc.rect(120, yPos, 70, 35);
+        
+        // Background sutil para la sección de totales
+        doc.setFillColor(252, 249, 240);
+        doc.rect(121, yPos + 1, 68, 33, 'F');
+        
+        yPos += 8;
+        
+        // Subtotal
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(...colors.black);
+        doc.text('Subtotal:', 125, yPos);
+        doc.text(formatCurrency(quotationData.subtotal), 180, yPos, { align: 'right' });
+        
+        // Descuento si aplica
         if (quotationData.globalDiscountAmount > 0) {
-            yPosition += 7;
+            yPos += 6;
             const discountText = quotationData.discountType === 'percentage' 
                 ? `Descuento (${formatNumber(quotationData.globalDiscountValue)}%):` 
                 : 'Descuento:';
-            doc.text(discountText, 140, yPosition);
-            doc.text('-' + formatCurrency(quotationData.globalDiscountAmount), 170, yPosition);
+            doc.text(discountText, 125, yPos);
+            doc.text('-' + formatCurrency(quotationData.globalDiscountAmount), 180, yPos, { align: 'right' });
+            
+            // Línea separadora antes del total
+            yPos += 4;
+            doc.setDrawColor(...colors.gold);
+            doc.setLineWidth(0.5);
+            doc.line(125, yPos, 185, yPos);
         }
         
-        yPosition += 7;
+        // Total final con estilo destacado
+        yPos += 8;
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(12);
-        doc.setTextColor(0, 123, 255);
-        doc.text('TOTAL:', 140, yPosition);
-        doc.text(formatCurrency(quotationData.total), 170, yPosition);
+        doc.setTextColor(...colors.black);
+        doc.text('TOTAL:', 125, yPos);
         
-        // Términos y condiciones
-        if (quotationData.terms) {
-            yPosition += 20;
-            
-            if (yPosition > 230) {
-                doc.addPage();
-                yPosition = 20;
-            }
-            
-            doc.setFontSize(10);
-            doc.setTextColor(0, 0, 0);
-            doc.text('Términos y Condiciones:', 20, yPosition);
-            yPosition += 7;
-            
-            // Dividir términos en líneas
-            const lines = doc.splitTextToSize(quotationData.terms, 170);
-            lines.forEach(line => {
-                if (yPosition > 270) {
-                    doc.addPage();
-                    yPosition = 20;
-                }
-                doc.text(line, 20, yPosition);
-                yPosition += 5;
-            });
+        // Total con fondo dorado sutil
+        doc.setFillColor(...colors.gold);
+        doc.rect(155, yPos - 4, 30, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.text(formatCurrency(quotationData.total), 180, yPos, { align: 'right' });
+        
+        // ======= TÉRMINOS Y CONDICIONES PROFESIONALES =======
+        yPos += 20;
+        
+        if (yPos > 230) {
+            doc.addPage();
+            yPos = 20;
         }
+        
+        // Encabezado de términos con diseño elegante
+        doc.setFillColor(...colors.gold);
+        doc.rect(20, yPos, 170, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TÉRMINOS Y CONDICIONES', 105, yPos + 5.5, { align: 'center' });
+        
+        yPos += 15;
+        doc.setTextColor(...colors.black);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        
+        const termsText = quotationData.terms || 
+        `Los precios están sujetos a cambios sin previo aviso después de la fecha de vencimiento.
+Esta cotización no garantiza la disponibilidad del producto.
+Los tiempos de entrega están sujetos a disponibilidad de materiales.
+Se requiere un anticipo del 30% para confirmar el pedido.
+Puede apartar su producto con el 30% de anticipo.
+Garantía de por vida en mano de obra.`;
+        
+        const termsLines = doc.splitTextToSize(termsText, 150);
+        
+        // Background sutil para términos
+        const termsHeight = termsLines.length * 4 + 6;
+        doc.setFillColor(248, 248, 248);
+        doc.rect(20, yPos - 3, 170, termsHeight, 'F');
+        doc.setDrawColor(...colors.lightGray);
+        doc.setLineWidth(0.5);
+        doc.rect(20, yPos - 3, 170, termsHeight);
+        
+        doc.text(termsLines, 25, yPos + 2);
+        yPos += termsHeight + 10;
+        
+        // Observaciones si están presentes
+        if (quotationData.observations && quotationData.observations.trim()) {
+            doc.setFillColor(...colors.gold);
+            doc.rect(20, yPos, 170, 8, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.text('OBSERVACIONES', 105, yPos + 5.5, { align: 'center' });
+            
+            yPos += 15;
+            doc.setTextColor(...colors.black);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            
+            const observationsLines = doc.splitTextToSize(quotationData.observations, 150);
+            
+            // Background para observaciones
+            const obsHeight = observationsLines.length * 4 + 6;
+            doc.setFillColor(248, 248, 248);
+            doc.rect(20, yPos - 3, 170, obsHeight, 'F');
+            doc.setDrawColor(...colors.lightGray);
+            doc.setLineWidth(0.5);
+            doc.rect(20, yPos - 3, 170, obsHeight);
+            
+            doc.text(observationsLines, 25, yPos + 2);
+            yPos += obsHeight + 10;
+        }
+        
+        // Línea de cierre elegante
+        yPos += 5;
+        doc.setDrawColor(...colors.gold);
+        doc.setLineWidth(0.8);
+        doc.line(40, yPos, 170, yPos);
         
         // Guardar PDF
         const fileName = `Cotizacion_${quotationData.number}_${quotationData.clientName.replace(/\s/g, '_')}.pdf`;
@@ -785,38 +966,45 @@ function shareQuotationWhatsApp() {
         return;
     }
     
-    // Formatear mensaje
-    let message = `💎 *COTIZACIÓN - ${CONFIG.companyInfo.name}*\n`;
-    message += `━━━━━━━━━━━━━━━━━\n`;
-    message += `📋 N° ${data.number}\n`;
-    message += `📅 Fecha: ${formatDate(data.date)}\n`;
-    message += `👤 Cliente: ${data.clientName}\n\n`;
+    // Formatear mensaje profesional sin emojis
+    let message = `*COTIZACIÓN - ${CONFIG.companyInfo.name.toUpperCase()}*\n`;
+    message += `Joyería Fina\n`;
+    message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+    message += `*DETALLES DE LA COTIZACIÓN:*\n`;
+    message += `Número: ${data.number}\n`;
+    message += `Fecha: ${formatDate(data.date)}\n`;
+    message += `Cliente: ${data.clientName}\n\n`;
     
-    message += `*PRODUCTOS:*\n`;
+    message += `*PRODUCTOS COTIZADOS:*\n`;
     data.products.forEach((product, index) => {
-        message += `${index + 1}. ${product.type} ${product.material}\n`;
+        message += `${index + 1}. *${product.type} ${product.material}*\n`;
         message += `   ${product.description}\n`;
-        message += `   Cant: ${formatNumber(product.quantity)} | Precio: ${formatCurrency(product.price)}\n`;
+        message += `   Cantidad: ${formatNumber(product.quantity)}\n`;
+        message += `   Precio unitario: ${formatCurrency(product.price)}\n`;
         if (product.discount > 0) {
-            message += `   Desc: ${product.discount}%\n`;
+            message += `   Descuento aplicado: ${product.discount}%\n`;
         }
-        message += `   Total: ${formatCurrency(product.total)}\n\n`;
+        message += `   Subtotal: ${formatCurrency(product.total)}\n\n`;
     });
     
-    message += `━━━━━━━━━━━━━━━━━\n`;
+    message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+    message += `*RESUMEN FINANCIERO:*\n`;
     message += `Subtotal: ${formatCurrency(data.subtotal)}\n`;
     if (data.globalDiscountAmount > 0) {
         const discountText = data.discountType === 'percentage' 
-            ? `Descuento (${formatNumber(data.globalDiscountValue)}%)` 
-            : 'Descuento';
+            ? `Descuento global (${formatNumber(data.globalDiscountValue)}%)` 
+            : 'Descuento global';
         message += `${discountText}: -${formatCurrency(data.globalDiscountAmount)}\n`;
     }
     message += `*TOTAL: ${formatCurrency(data.total)}*\n\n`;
     
     const validityDate = new Date(data.date);
     validityDate.setDate(validityDate.getDate() + parseInt(data.validity));
-    message += `✓ Válida hasta: ${formatDate(validityDate)}\n`;
-    message += `📞 ${CONFIG.companyInfo.phone}\n`;
+    message += `*VALIDEZ:*\n`;
+    message += `Esta cotización es válida hasta: ${formatDate(validityDate)}\n\n`;
+    message += `*CONTACTO:*\n`;
+    message += `${CONFIG.companyInfo.phone}\n`;
+    message += `${CONFIG.companyInfo.name}`;
     
     // Limpiar número de teléfono
     let phoneNumber = data.clientPhone.replace(/\D/g, '');

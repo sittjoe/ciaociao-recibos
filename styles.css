@@ -1,17 +1,26 @@
 :root {
-    --gold: #D4AF37;
-    --dark-gold: #B8941F;
-    --black: #1a1a1a;
-    --white: #FFFFFF;
-    --light-gray: #F5F5F5;
-    --medium-gray: #E0E0E0;
-    --dark-gray: #666666;
-    --success: #27AE60;
-    --whatsapp: #25D366;
-    --danger: #E74C3C;
-    --blue: #2196F3;
-    --dark-blue: #1976D2;
-    --purple: #9C27B0;
+    /* Paleta de colores para joyería fina */
+    --gold: #D4AF37;              /* Oro elegante principal */
+    --dark-gold: #B8941F;         /* Oro oscuro */
+    --black: #1a1a1a;             /* Negro profesional */
+    --white: #FFFFFF;             /* Blanco puro */
+    --light-gray: #F5F5F5;        /* Gris muy claro */
+    --medium-gray: #E5E4E2;       /* Gris platino refinado */
+    --dark-gray: #666666;         /* Gris medio */
+    --success: #27AE60;           /* Verde éxito */
+    --whatsapp: #25D366;          /* WhatsApp verde */
+    --danger: #E74C3C;            /* Rojo error */
+    --blue: #2196F3;              /* Azul (mantenido para compatibilidad) */
+    --dark-blue: #1976D2;         /* Azul oscuro */
+    --purple: #9C27B0;            /* Morado */
+    
+    /* Colores adicionales para diseño premium */
+    --gold-light: #F4E4BC;        /* Oro muy claro para backgrounds */
+    --champagne: #F7E7CE;         /* Champagne elegante */
+    --platinum: #E5E4E2;          /* Platino */
+    --luxury-black: #1a1a1a;      /* Negro de lujo */
+    --luxury-gray: #2c2c2c;       /* Gris de lujo */
+    --border-gold: #D4AF37;       /* Bordes dorados */
 }
 
 * {
@@ -1932,11 +1941,12 @@ input[type="file"]:hover {
 }
 
 .quotation-summary {
-    background: linear-gradient(135deg, var(--light-gray) 0%, #f0f0f0 100%);
-    padding: 25px;
-    border-radius: 15px;
-    margin-top: 20px;
-    border: 2px solid var(--blue);
+    background: linear-gradient(135deg, var(--white) 0%, var(--champagne) 100%);
+    padding: 30px;
+    border-radius: 12px;
+    margin-top: 25px;
+    border: 2px solid var(--gold);
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15);
 }
 
 .summary-row {
@@ -1948,12 +1958,15 @@ input[type="file"]:hover {
 }
 
 .summary-row.total {
-    border-top: 2px solid var(--blue);
-    padding-top: 15px;
-    margin-top: 20px;
-    font-size: 1.3rem;
+    border-top: 2px solid var(--gold);
+    padding-top: 20px;
+    margin-top: 25px;
+    font-size: 1.4rem;
     font-weight: 700;
-    color: var(--blue);
+    color: var(--luxury-black);
+    background: linear-gradient(90deg, var(--gold-light) 0%, transparent 100%);
+    padding: 20px 15px;
+    border-radius: 8px;
 }
 
 .discount-input {
@@ -1982,25 +1995,28 @@ input[type="file"]:hover {
     align-items: center;
     cursor: pointer;
     font-size: 14px;
-    transition: color 0.3s ease;
-    padding: 5px 10px;
-    border-radius: 5px;
-    background: rgba(0, 123, 255, 0.1);
+    transition: all 0.3s ease;
+    padding: 8px 15px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--champagne) 100%);
+    border: 1px solid var(--gold);
 }
 
 .discount-type-selector label:hover {
-    background: rgba(0, 123, 255, 0.2);
+    background: linear-gradient(135deg, var(--champagne) 0%, var(--gold-light) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
 }
 
 .discount-type-selector input[type="radio"] {
     margin-right: 8px;
-    accent-color: var(--blue);
+    accent-color: var(--gold);
     transform: scale(1.1);
 }
 
 .discount-type-selector input[type="radio"]:checked + span {
     font-weight: 600;
-    color: var(--blue);
+    color: var(--luxury-black);
 }
 
 .discount-type-selector span {
