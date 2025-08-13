@@ -31,12 +31,7 @@
                         </div>
                         <div class="form-group">
                             <label for="validity">Validez (días)</label>
-                            <select id="validity" required>
-                                <option value="15">15 días</option>
-                                <option value="30" selected>30 días</option>
-                                <option value="60">60 días</option>
-                                <option value="90">90 días</option>
-                            </select>
+                            <input type="number" id="validity" min="1" max="365" value="30" required placeholder="Ej: 30">
                         </div>
                     </div>
                 </section>
@@ -100,12 +95,13 @@
                     <h2>Términos y Condiciones</h2>
                     <div class="form-row">
                         <div class="form-group full-width">
-                            <textarea id="terms" rows="4" placeholder="Ingrese términos y condiciones...">
+                            <textarea id="terms" rows="5" placeholder="Ingrese términos y condiciones...">
 • Los precios están sujetos a cambios sin previo aviso después de la fecha de vencimiento
 • Esta cotización no garantiza la disponibilidad del producto
 • Los tiempos de entrega están sujetos a disponibilidad de materiales
-• Se requiere un anticipo del 50% para confirmar el pedido
-• Garantía de 1 año en mano de obra</textarea>
+• Se requiere un anticipo del 30% para confirmar el pedido
+• Puede apartar su producto con el 30% de anticipo
+• Garantía de por vida en mano de obra</textarea>
                         </div>
                     </div>
                 </section>

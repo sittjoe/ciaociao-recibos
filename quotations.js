@@ -14,13 +14,22 @@ function initializeQuotationSystem() {
     try {
         console.log('🚀 Iniciando sistema de cotizaciones...');
         
-        // Inicializar base de datos
-        quotationDB = new QuotationDatabase();
-        window.quotationDB = quotationDB;
-        
-        // Configurar formulario
+        // Configurar formulario básico primero
         setCurrentQuotationDate();
         generateQuotationNumber();
+        
+        // Inicializar base de datos (con verificación)
+        try {
+            if (typeof QuotationDatabase !== 'undefined') {
+                quotationDB = new QuotationDatabase();
+                window.quotationDB = quotationDB;
+                console.log('✅ Base de datos de cotizaciones inicializada');
+            } else {
+                console.warn('⚠️ QuotationDatabase no disponible, usando funciones básicas');
+            }
+        } catch (dbError) {
+            console.error('❌ Error inicializando base de datos:', dbError);
+        }
         
         // Configurar event listeners
         setupQuotationEventListeners();
@@ -41,61 +50,157 @@ function setCurrentQuotationDate() {
 }
 
 function generateQuotationNumber() {
-    const now = new Date();
-    const year = String(now.getFullYear());
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    
-    // Obtener contador del día actual para cotizaciones
-    const dayKey = `quotation_${year}${month}${day}`;
-    const dailyCounter = parseInt(localStorage.getItem(`counter_${dayKey}`) || '1');
-    
-    const number = String(dailyCounter).padStart(3, '0');
-    const quotationNumber = `COTIZ-${year}${month}${day}-${number}`;
-    
-    document.getElementById('quotationNumber').value = quotationNumber;
-    
-    // Guardar contador actualizado
-    localStorage.setItem(`counter_${dayKey}`, (dailyCounter + 1).toString());
+    try {
+        const now = new Date();
+        const year = String(now.getFullYear());
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        
+        // Obtener contador del día actual para cotizaciones
+        const dayKey = `quotation_${year}${month}${day}`;
+        const dailyCounter = parseInt(localStorage.getItem(`counter_${dayKey}`) || '1');
+        
+        const number = String(dailyCounter).padStart(3, '0');
+        const quotationNumber = `COTIZ-${year}${month}${day}-${number}`;
+        
+        // Verificar que el elemento existe antes de asignar valor
+        const quotationNumberElement = document.getElementById('quotationNumber');
+        if (quotationNumberElement) {
+            quotationNumberElement.value = quotationNumber;
+            console.log('✅ Número de cotización generado:', quotationNumber);
+        } else {
+            console.error('❌ Elemento quotationNumber no encontrado');
+        }
+        
+        // Guardar contador actualizado
+        localStorage.setItem(`counter_${dayKey}`, (dailyCounter + 1).toString());
+        
+        return quotationNumber;
+    } catch (error) {
+        console.error('❌ Error generando número de cotización:', error);
+        return null;
+    }
 }
 
 function setupQuotationEventListeners() {
     try {
-        // Botones principales
-        document.getElementById('addProductBtn').addEventListener('click', showAddProductModal);
-        document.getElementById('previewQuotationBtn').addEventListener('click', showQuotationPreview);
-        document.getElementById('generateQuotationPdfBtn').addEventListener('click', generateQuotationPDF);
-        document.getElementById('shareQuotationWhatsappBtn').addEventListener('click', shareQuotationWhatsApp);
-        document.getElementById('quotationHistoryBtn').addEventListener('click', showQuotationHistory);
-        document.getElementById('convertToReceiptBtn').addEventListener('click', convertToReceipt);
-        document.getElementById('resetQuotationBtn').addEventListener('click', resetQuotationForm);
+        // Botones principales (con verificación de existencia)
+        const addProductBtn = document.getElementById('addProductBtn');
+        if (addProductBtn) {
+            addProductBtn.addEventListener('click', showAddProductModal);
+            console.log('✅ Event listener para addProductBtn configurado');
+        } else {
+            console.error('❌ Elemento addProductBtn no encontrado');
+        }
         
-        // Modal de producto
-        document.querySelector('#addProductModal .close').addEventListener('click', () => closeModal('addProductModal'));
-        document.getElementById('saveProductBtn').addEventListener('click', saveProduct);
-        document.getElementById('cancelProductBtn').addEventListener('click', () => closeModal('addProductModal'));
+        const previewBtn = document.getElementById('previewQuotationBtn');
+        if (previewBtn) {
+            previewBtn.addEventListener('click', showQuotationPreview);
+        }
         
-        // Modal de vista previa
-        document.querySelector('#quotationPreviewModal .close').addEventListener('click', () => closeModal('quotationPreviewModal'));
-        document.getElementById('closeQuotationPreview').addEventListener('click', () => closeModal('quotationPreviewModal'));
-        document.getElementById('confirmGenerateQuotationPdf').addEventListener('click', function() {
-            closeModal('quotationPreviewModal');
-            generateQuotationPDF();
-        });
+        const generatePdfBtn = document.getElementById('generateQuotationPdfBtn');
+        if (generatePdfBtn) {
+            generatePdfBtn.addEventListener('click', generateQuotationPDF);
+        }
         
-        // Modal de historial
-        document.querySelector('#quotationHistoryModal .close').addEventListener('click', () => closeModal('quotationHistoryModal'));
-        document.getElementById('closeQuotationHistory').addEventListener('click', () => closeModal('quotationHistoryModal'));
-        document.getElementById('quotationHistorySearch').addEventListener('input', searchQuotationHistory);
-        document.getElementById('quotationStatusFilter').addEventListener('change', filterQuotationHistory);
-        document.getElementById('exportQuotationsBtn').addEventListener('click', exportQuotations);
+        const shareWhatsappBtn = document.getElementById('shareQuotationWhatsappBtn');
+        if (shareWhatsappBtn) {
+            shareWhatsappBtn.addEventListener('click', shareQuotationWhatsApp);
+        }
         
-        // Cálculo automático
-        document.getElementById('globalDiscount').addEventListener('input', calculateQuotationTotals);
+        const historyBtn = document.getElementById('quotationHistoryBtn');
+        if (historyBtn) {
+            historyBtn.addEventListener('click', showQuotationHistory);
+        }
         
-        // Autocompletado de clientes
-        document.getElementById('clientNameQuote').addEventListener('input', handleClientQuoteInput);
-        document.getElementById('clientPhoneQuote').addEventListener('input', handleClientQuoteInput);
+        const convertBtn = document.getElementById('convertToReceiptBtn');
+        if (convertBtn) {
+            convertBtn.addEventListener('click', convertToReceipt);
+        }
+        
+        const resetBtn = document.getElementById('resetQuotationBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', resetQuotationForm);
+        }
+        
+        // Modal de producto (con verificación)
+        const addProductModalClose = document.querySelector('#addProductModal .close');
+        if (addProductModalClose) {
+            addProductModalClose.addEventListener('click', () => closeModal('addProductModal'));
+        }
+        
+        const saveProductBtn = document.getElementById('saveProductBtn');
+        if (saveProductBtn) {
+            saveProductBtn.addEventListener('click', saveProduct);
+            console.log('✅ Event listener para saveProductBtn configurado');
+        }
+        
+        const cancelProductBtn = document.getElementById('cancelProductBtn');
+        if (cancelProductBtn) {
+            cancelProductBtn.addEventListener('click', () => closeModal('addProductModal'));
+        }
+        
+        // Modal de vista previa (con verificación)
+        const previewModalClose = document.querySelector('#quotationPreviewModal .close');
+        if (previewModalClose) {
+            previewModalClose.addEventListener('click', () => closeModal('quotationPreviewModal'));
+        }
+        
+        const closePreviewBtn = document.getElementById('closeQuotationPreview');
+        if (closePreviewBtn) {
+            closePreviewBtn.addEventListener('click', () => closeModal('quotationPreviewModal'));
+        }
+        
+        const confirmPdfBtn = document.getElementById('confirmGenerateQuotationPdf');
+        if (confirmPdfBtn) {
+            confirmPdfBtn.addEventListener('click', function() {
+                closeModal('quotationPreviewModal');
+                generateQuotationPDF();
+            });
+        }
+        
+        // Modal de historial (con verificación)
+        const historyModalClose = document.querySelector('#quotationHistoryModal .close');
+        if (historyModalClose) {
+            historyModalClose.addEventListener('click', () => closeModal('quotationHistoryModal'));
+        }
+        
+        const closeHistoryBtn = document.getElementById('closeQuotationHistory');
+        if (closeHistoryBtn) {
+            closeHistoryBtn.addEventListener('click', () => closeModal('quotationHistoryModal'));
+        }
+        
+        const historySearch = document.getElementById('quotationHistorySearch');
+        if (historySearch) {
+            historySearch.addEventListener('input', searchQuotationHistory);
+        }
+        
+        const statusFilter = document.getElementById('quotationStatusFilter');
+        if (statusFilter) {
+            statusFilter.addEventListener('change', filterQuotationHistory);
+        }
+        
+        const exportBtn = document.getElementById('exportQuotationsBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', exportQuotations);
+        }
+        
+        // Cálculo automático (con verificación)
+        const globalDiscountInput = document.getElementById('globalDiscount');
+        if (globalDiscountInput) {
+            globalDiscountInput.addEventListener('input', calculateQuotationTotals);
+        }
+        
+        // Autocompletado de clientes (con verificación)
+        const clientNameInput = document.getElementById('clientNameQuote');
+        if (clientNameInput) {
+            clientNameInput.addEventListener('input', handleClientQuoteInput);
+        }
+        
+        const clientPhoneInput = document.getElementById('clientPhoneQuote');
+        if (clientPhoneInput) {
+            clientPhoneInput.addEventListener('input', handleClientQuoteInput);
+        }
         
     } catch (error) {
         console.error('❌ Error configurando event listeners:', error);
@@ -104,42 +209,90 @@ function setupQuotationEventListeners() {
 
 // Gestión de Productos
 function showAddProductModal() {
-    document.getElementById('addProductModal').style.display = 'block';
-    clearProductForm();
+    try {
+        console.log('🔄 Abriendo modal de agregar producto...');
+        const modal = document.getElementById('addProductModal');
+        if (modal) {
+            modal.style.display = 'block';
+            clearProductForm();
+            console.log('✅ Modal de producto abierto');
+        } else {
+            console.error('❌ Modal addProductModal no encontrado');
+            alert('Error: No se pudo abrir el modal de productos');
+        }
+    } catch (error) {
+        console.error('❌ Error abriendo modal de producto:', error);
+        alert('Error al abrir el modal de productos');
+    }
 }
 
 function clearProductForm() {
-    document.getElementById('productType').value = '';
-    document.getElementById('productMaterial').value = '';
-    document.getElementById('productDescription').value = '';
-    document.getElementById('productSKU').value = '';
-    document.getElementById('productQuantity').value = '1';
-    document.getElementById('productPrice').value = '';
-    document.getElementById('productDiscount').value = '0';
-    editingProductIndex = -1;
+    try {
+        const fields = [
+            { id: 'productType', value: '' },
+            { id: 'productMaterial', value: '' },
+            { id: 'productDescription', value: '' },
+            { id: 'productSKU', value: '' },
+            { id: 'productQuantity', value: '1' },
+            { id: 'productPrice', value: '' },
+            { id: 'productDiscount', value: '0' }
+        ];
+        
+        fields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (element) {
+                element.value = field.value;
+            } else {
+                console.warn(`⚠️ Campo ${field.id} no encontrado en el formulario`);
+            }
+        });
+        
+        editingProductIndex = -1;
+        console.log('✅ Formulario de producto limpiado');
+    } catch (error) {
+        console.error('❌ Error limpiando formulario de producto:', error);
+    }
 }
 
 function saveProduct() {
     try {
-        // Validar campos requeridos
-        const type = document.getElementById('productType').value;
-        const material = document.getElementById('productMaterial').value;
-        const description = document.getElementById('productDescription').value;
-        const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
-        const price = parseFloat(document.getElementById('productPrice').value) || 0;
-        const discount = parseFloat(document.getElementById('productDiscount').value) || 0;
-        const sku = document.getElementById('productSKU').value;
+        console.log('🔄 Guardando producto...');
         
-        if (!type || !material || !description || price <= 0) {
-            alert('Por favor complete todos los campos requeridos');
+        // Validar campos requeridos con verificación de existencia
+        const typeElement = document.getElementById('productType');
+        const materialElement = document.getElementById('productMaterial');
+        const descriptionElement = document.getElementById('productDescription');
+        const quantityElement = document.getElementById('productQuantity');
+        const priceElement = document.getElementById('productPrice');
+        const discountElement = document.getElementById('productDiscount');
+        const skuElement = document.getElementById('productSKU');
+        
+        if (!typeElement || !materialElement || !descriptionElement || !quantityElement || !priceElement) {
+            console.error('❌ Elementos del formulario no encontrados');
+            alert('Error: Formulario de producto no disponible');
             return;
         }
         
+        const type = typeElement.value;
+        const material = materialElement.value;
+        const description = descriptionElement.value;
+        const quantity = parseInt(quantityElement.value) || 1;
+        const price = parseFloat(priceElement.value) || 0;
+        const discount = parseFloat(discountElement ? discountElement.value : '0') || 0;
+        const sku = skuElement ? skuElement.value : '';
+        
+        // Validar datos
+        if (!type || !material || !description || price <= 0) {
+            alert('Por favor complete todos los campos requeridos (Tipo, Material, Descripción y Precio)');
+            return;
+        }
+        
+        // Crear objeto producto
         const product = {
             type,
             material,
             description,
-            sku,
+            sku: sku || '',
             quantity,
             price,
             discount,
@@ -148,30 +301,47 @@ function saveProduct() {
             total: (quantity * price) - ((quantity * price * discount) / 100)
         };
         
+        console.log('✅ Producto creado:', product);
+        
+        // Agregar o actualizar producto
         if (editingProductIndex >= 0) {
             quotationProducts[editingProductIndex] = product;
+            console.log('✅ Producto actualizado en índice:', editingProductIndex);
         } else {
             quotationProducts.push(product);
+            console.log('✅ Nuevo producto agregado. Total productos:', quotationProducts.length);
         }
         
+        // Actualizar interfaz
         renderProductsList();
         calculateQuotationTotals();
         closeModal('addProductModal');
-        showNotification('Producto agregado', 'success');
+        showNotification(editingProductIndex >= 0 ? 'Producto actualizado' : 'Producto agregado', 'success');
+        
+        console.log('✅ Producto guardado exitosamente');
         
     } catch (error) {
         console.error('❌ Error guardando producto:', error);
-        alert('Error al guardar el producto');
+        alert('Error al guardar el producto: ' + error.message);
     }
 }
 
 function renderProductsList() {
-    const productsList = document.getElementById('productsList');
-    
-    if (quotationProducts.length === 0) {
-        productsList.innerHTML = '<p class="no-products">No hay productos agregados. Haz clic en "➕ Agregar Producto" para comenzar.</p>';
-        return;
-    }
+    try {
+        const productsList = document.getElementById('productsList');
+        
+        if (!productsList) {
+            console.error('❌ Elemento productsList no encontrado');
+            return;
+        }
+        
+        console.log('🔄 Renderizando lista de productos. Total:', quotationProducts.length);
+        
+        if (quotationProducts.length === 0) {
+            productsList.innerHTML = '<p class="no-products">No hay productos agregados. Haz clic en "➕ Agregar Producto" para comenzar.</p>';
+            console.log('ℹ️ Lista de productos vacía mostrada');
+            return;
+        }
     
     let html = '<div class="products-table">';
     html += '<table class="product-list-table">';
@@ -217,6 +387,12 @@ function renderProductsList() {
     
     html += '</tbody></table></div>';
     productsList.innerHTML = html;
+    
+    console.log('✅ Lista de productos renderizada exitosamente');
+    
+    } catch (error) {
+        console.error('❌ Error renderizando lista de productos:', error);
+    }
 }
 
 function editProduct(index) {
