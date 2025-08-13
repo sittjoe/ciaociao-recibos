@@ -5,10 +5,17 @@ let quotationProducts = [];
 let editingProductIndex = -1;
 let quotationDB;
 
-// Inicialización cuando el DOM está listo
-document.addEventListener('DOMContentLoaded', function() {
-    initializeQuotationSystem();
-});
+// Inicialización DESPUÉS de autenticación exitosa
+// NOTA: Esta función será llamada por auth.js después del login exitoso
+// NO usar DOMContentLoaded aquí para evitar conflictos de timing
+
+// Función auxiliar para verificar si la página está visible y lista
+function isPageVisible() {
+    const container = document.querySelector('.container');
+    const quotationForm = document.getElementById('quotationForm');
+    return container && container.offsetParent !== null && 
+           quotationForm && quotationForm.offsetParent !== null;
+}
 
 function initializeQuotationSystem() {
     try {
@@ -51,31 +58,56 @@ function setCurrentQuotationDate() {
 
 function generateQuotationNumber() {
     try {
+        console.log('🔄 Iniciando generación de número de cotización...');
+        
+        // VERIFICACIÓN CRÍTICA: Asegurar que la página está autenticada y visible
+        if (!window.quotationInitialized) {
+            console.warn('⚠️ Sistema de cotizaciones no inicializado, reintentando...');
+            setTimeout(generateQuotationNumber, 500);
+            return null;
+        }
+        
         const now = new Date();
         const year = String(now.getFullYear());
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const day = String(now.getDate()).padStart(2, '0');
         
-        // Obtener contador del día actual para cotizaciones
-        const dayKey = `quotation_${year}${month}${day}`;
-        const dailyCounter = parseInt(localStorage.getItem(`counter_${dayKey}`) || '1');
+        // SISTEMA DE CONTADORES ÚNICO para cotizaciones (evitar colisiones)
+        const dayKey = `ciaociao_cotiz_counter_${year}${month}${day}`;
+        const dailyCounter = parseInt(localStorage.getItem(dayKey) || '1');
         
         const number = String(dailyCounter).padStart(3, '0');
         const quotationNumber = `COTIZ-${year}${month}${day}-${number}`;
         
-        // Verificar que el elemento existe antes de asignar valor
+        // VERIFICACIÓN ROBUSTA del elemento DOM con retry
         const quotationNumberElement = document.getElementById('quotationNumber');
-        if (quotationNumberElement) {
+        if (quotationNumberElement && quotationNumberElement.offsetParent !== null) {
+            // Elemento existe Y es visible
             quotationNumberElement.value = quotationNumber;
-            console.log('✅ Número de cotización generado:', quotationNumber);
+            console.log('✅ Número de cotización generado y asignado:', quotationNumber);
+            
+            // Guardar contador actualizado SOLO si fue exitoso
+            localStorage.setItem(dayKey, (dailyCounter + 1).toString());
+            
+            return quotationNumber;
+        } else if (quotationNumberElement) {
+            console.warn('⚠️ Elemento quotationNumber existe pero no es visible, reintentando...');
+            setTimeout(generateQuotationNumber, 300);
+            return null;
         } else {
-            console.error('❌ Elemento quotationNumber no encontrado');
+            console.error('❌ Elemento quotationNumber no encontrado en DOM');
+            // Intentar una vez más después de un breve delay
+            setTimeout(() => {
+                const retryElement = document.getElementById('quotationNumber');
+                if (retryElement) {
+                    retryElement.value = quotationNumber;
+                    localStorage.setItem(dayKey, (dailyCounter + 1).toString());
+                    console.log('✅ Número de cotización generado en retry:', quotationNumber);
+                }
+            }, 100);
+            return quotationNumber;
         }
         
-        // Guardar contador actualizado
-        localStorage.setItem(`counter_${dayKey}`, (dailyCounter + 1).toString());
-        
-        return quotationNumber;
     } catch (error) {
         console.error('❌ Error generando número de cotización:', error);
         return null;
@@ -84,123 +116,107 @@ function generateQuotationNumber() {
 
 function setupQuotationEventListeners() {
     try {
-        // Botones principales (con verificación de existencia)
+        console.log('🔄 Configurando event listeners para cotizaciones...');
+        
+        // VERIFICACIÓN CRÍTICA: Asegurar que DOM está visible y disponible
+        if (!isPageVisible()) {
+            console.warn('⚠️ Página no visible, reintentando event listeners...');
+            setTimeout(setupQuotationEventListeners, 300);
+            return;
+        }
+        
+        // Botones principales (con verificación robusta de existencia y visibilidad)
         const addProductBtn = document.getElementById('addProductBtn');
-        if (addProductBtn) {
+        if (addProductBtn && addProductBtn.offsetParent !== null) {
             addProductBtn.addEventListener('click', showAddProductModal);
             console.log('✅ Event listener para addProductBtn configurado');
+        } else if (addProductBtn) {
+            console.warn('⚠️ addProductBtn existe pero no es visible, reintentando...');
+            setTimeout(() => {
+                if (addProductBtn.offsetParent !== null) {
+                    addProductBtn.addEventListener('click', showAddProductModal);
+                    console.log('✅ Event listener para addProductBtn configurado (retry)');
+                }
+            }, 200);
         } else {
             console.error('❌ Elemento addProductBtn no encontrado');
         }
         
-        const previewBtn = document.getElementById('previewQuotationBtn');
-        if (previewBtn) {
-            previewBtn.addEventListener('click', showQuotationPreview);
-        }
+        // Configurar resto de botones principales con verificación simplificada
+        const mainButtons = [
+            { id: 'previewQuotationBtn', handler: showQuotationPreview, name: 'Vista Previa' },
+            { id: 'generateQuotationPdfBtn', handler: generateQuotationPDF, name: 'Generar PDF' },
+            { id: 'shareQuotationWhatsappBtn', handler: shareQuotationWhatsApp, name: 'WhatsApp' },
+            { id: 'quotationHistoryBtn', handler: showQuotationHistory, name: 'Historial' },
+            { id: 'convertToReceiptBtn', handler: convertToReceipt, name: 'Convertir' },
+            { id: 'resetQuotationBtn', handler: resetQuotationForm, name: 'Reset' }
+        ];
         
-        const generatePdfBtn = document.getElementById('generateQuotationPdfBtn');
-        if (generatePdfBtn) {
-            generatePdfBtn.addEventListener('click', generateQuotationPDF);
-        }
+        mainButtons.forEach(button => {
+            const element = document.getElementById(button.id);
+            if (element) {
+                element.addEventListener('click', button.handler);
+                console.log(`✅ Event listener para ${button.name} configurado`);
+            } else {
+                console.warn(`⚠️ Elemento ${button.id} no encontrado`);
+            }
+        });
         
-        const shareWhatsappBtn = document.getElementById('shareQuotationWhatsappBtn');
-        if (shareWhatsappBtn) {
-            shareWhatsappBtn.addEventListener('click', shareQuotationWhatsApp);
-        }
+        // Modal de producto (CRÍTICO: verificación robusta)
+        const modalElements = [
+            { selector: '#addProductModal .close', handler: () => closeModal('addProductModal'), name: 'Modal Close' },
+            { id: 'saveProductBtn', handler: saveProduct, name: 'Save Product' },
+            { id: 'cancelProductBtn', handler: () => closeModal('addProductModal'), name: 'Cancel Product' }
+        ];
         
-        const historyBtn = document.getElementById('quotationHistoryBtn');
-        if (historyBtn) {
-            historyBtn.addEventListener('click', showQuotationHistory);
-        }
+        modalElements.forEach(modal => {
+            const element = modal.selector ? 
+                document.querySelector(modal.selector) : 
+                document.getElementById(modal.id);
+                
+            if (element) {
+                element.addEventListener('click', modal.handler);
+                console.log(`✅ Event listener para ${modal.name} configurado`);
+            } else {
+                console.warn(`⚠️ Elemento modal ${modal.name} no encontrado`);
+            }
+        });
         
-        const convertBtn = document.getElementById('convertToReceiptBtn');
-        if (convertBtn) {
-            convertBtn.addEventListener('click', convertToReceipt);
-        }
+        // Resto de elementos con configuración masiva optimizada
+        const allElements = [
+            // Modal de vista previa
+            { selector: '#quotationPreviewModal .close', handler: () => closeModal('quotationPreviewModal'), name: 'Preview Modal Close' },
+            { id: 'closeQuotationPreview', handler: () => closeModal('quotationPreviewModal'), name: 'Close Preview' },
+            { id: 'confirmGenerateQuotationPdf', handler: function() { closeModal('quotationPreviewModal'); generateQuotationPDF(); }, name: 'Confirm PDF' },
+            
+            // Modal de historial
+            { selector: '#quotationHistoryModal .close', handler: () => closeModal('quotationHistoryModal'), name: 'History Modal Close' },
+            { id: 'closeQuotationHistory', handler: () => closeModal('quotationHistoryModal'), name: 'Close History' },
+            { id: 'quotationHistorySearch', handler: searchQuotationHistory, event: 'input', name: 'History Search' },
+            { id: 'quotationStatusFilter', handler: filterQuotationHistory, event: 'change', name: 'Status Filter' },
+            { id: 'exportQuotationsBtn', handler: exportQuotations, name: 'Export' },
+            
+            // Cálculos y clientes
+            { id: 'globalDiscount', handler: calculateQuotationTotals, event: 'input', name: 'Global Discount' },
+            { id: 'clientNameQuote', handler: handleClientQuoteInput, event: 'input', name: 'Client Name' },
+            { id: 'clientPhoneQuote', handler: handleClientQuoteInput, event: 'input', name: 'Client Phone' }
+        ];
         
-        const resetBtn = document.getElementById('resetQuotationBtn');
-        if (resetBtn) {
-            resetBtn.addEventListener('click', resetQuotationForm);
-        }
+        allElements.forEach(item => {
+            const element = item.selector ? 
+                document.querySelector(item.selector) : 
+                document.getElementById(item.id);
+                
+            if (element) {
+                const eventType = item.event || 'click';
+                element.addEventListener(eventType, item.handler);
+                console.log(`✅ Event listener para ${item.name} configurado (${eventType})`);
+            } else {
+                console.warn(`⚠️ Elemento ${item.name} no encontrado`);
+            }
+        });
         
-        // Modal de producto (con verificación)
-        const addProductModalClose = document.querySelector('#addProductModal .close');
-        if (addProductModalClose) {
-            addProductModalClose.addEventListener('click', () => closeModal('addProductModal'));
-        }
-        
-        const saveProductBtn = document.getElementById('saveProductBtn');
-        if (saveProductBtn) {
-            saveProductBtn.addEventListener('click', saveProduct);
-            console.log('✅ Event listener para saveProductBtn configurado');
-        }
-        
-        const cancelProductBtn = document.getElementById('cancelProductBtn');
-        if (cancelProductBtn) {
-            cancelProductBtn.addEventListener('click', () => closeModal('addProductModal'));
-        }
-        
-        // Modal de vista previa (con verificación)
-        const previewModalClose = document.querySelector('#quotationPreviewModal .close');
-        if (previewModalClose) {
-            previewModalClose.addEventListener('click', () => closeModal('quotationPreviewModal'));
-        }
-        
-        const closePreviewBtn = document.getElementById('closeQuotationPreview');
-        if (closePreviewBtn) {
-            closePreviewBtn.addEventListener('click', () => closeModal('quotationPreviewModal'));
-        }
-        
-        const confirmPdfBtn = document.getElementById('confirmGenerateQuotationPdf');
-        if (confirmPdfBtn) {
-            confirmPdfBtn.addEventListener('click', function() {
-                closeModal('quotationPreviewModal');
-                generateQuotationPDF();
-            });
-        }
-        
-        // Modal de historial (con verificación)
-        const historyModalClose = document.querySelector('#quotationHistoryModal .close');
-        if (historyModalClose) {
-            historyModalClose.addEventListener('click', () => closeModal('quotationHistoryModal'));
-        }
-        
-        const closeHistoryBtn = document.getElementById('closeQuotationHistory');
-        if (closeHistoryBtn) {
-            closeHistoryBtn.addEventListener('click', () => closeModal('quotationHistoryModal'));
-        }
-        
-        const historySearch = document.getElementById('quotationHistorySearch');
-        if (historySearch) {
-            historySearch.addEventListener('input', searchQuotationHistory);
-        }
-        
-        const statusFilter = document.getElementById('quotationStatusFilter');
-        if (statusFilter) {
-            statusFilter.addEventListener('change', filterQuotationHistory);
-        }
-        
-        const exportBtn = document.getElementById('exportQuotationsBtn');
-        if (exportBtn) {
-            exportBtn.addEventListener('click', exportQuotations);
-        }
-        
-        // Cálculo automático (con verificación)
-        const globalDiscountInput = document.getElementById('globalDiscount');
-        if (globalDiscountInput) {
-            globalDiscountInput.addEventListener('input', calculateQuotationTotals);
-        }
-        
-        // Autocompletado de clientes (con verificación)
-        const clientNameInput = document.getElementById('clientNameQuote');
-        if (clientNameInput) {
-            clientNameInput.addEventListener('input', handleClientQuoteInput);
-        }
-        
-        const clientPhoneInput = document.getElementById('clientPhoneQuote');
-        if (clientPhoneInput) {
-            clientPhoneInput.addEventListener('input', handleClientQuoteInput);
-        }
+        console.log('✅ Todos los event listeners configurados exitosamente');
         
     } catch (error) {
         console.error('❌ Error configurando event listeners:', error);

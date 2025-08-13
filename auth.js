@@ -284,16 +284,29 @@ class AuthManager {
             // Inicializar aplicación según el tipo de página
             if (selectorContainer && typeof initializeModeSelector === 'function' && !window.selectorInitialized) {
                 // Página del selector de modo
+                console.log('🏠 Inicializando selector de modo...');
                 initializeModeSelector();
                 window.selectorInitialized = true;
             } else if (mainContainer && typeof initializeApp === 'function' && !window.appInitialized) {
-                // Página de recibos o cotizaciones
+                // Página de recibos
+                console.log('📄 Inicializando sistema de recibos...');
                 initializeApp();
                 window.appInitialized = true;
-            } else if (typeof initializeQuotationSystem === 'function' && !window.quotationInitialized) {
-                // Página de cotizaciones
-                initializeQuotationSystem();
-                window.quotationInitialized = true;
+            }
+            
+            // CORRECCIÓN CRÍTICA: Detectar página de cotizaciones específicamente
+            const isQuotationPage = window.location.pathname.includes('quotation-mode.html') || 
+                                   document.title.includes('Cotizaciones') ||
+                                   document.querySelector('.quotation-mode');
+                                   
+            if (isQuotationPage && typeof initializeQuotationSystem === 'function' && !window.quotationInitialized) {
+                console.log('💰 Inicializando sistema de cotizaciones...');
+                // Usar setTimeout para asegurar que DOM esté completamente visible
+                setTimeout(() => {
+                    initializeQuotationSystem();
+                    window.quotationInitialized = true;
+                    console.log('✅ Sistema de cotizaciones inicializado exitosamente');
+                }, 200);
             }
 
             console.log('✅ Aplicación principal mostrada y inicializada');
