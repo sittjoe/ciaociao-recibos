@@ -9,37 +9,56 @@ console.log('🔥 Iniciando Sistema de Precios Globales Kitco v2.0...');
 // =================================================================
 
 const PRICING_CONFIG = {
-    // API Principal: Metals-API (recomendado en investigación)
+    // API Principal: MetalpriceAPI (100 requests/mes gratis)
     primary: {
-        name: 'MetalsAPI',
-        baseURL: 'https://metals-api.com/api',
-        apiKey: 'YOUR_METALS_API_KEY', // Usuario debe obtener gratis en metals-api.com
-        rateLimits: {
-            requestsPerMinute: 200,
-            requestsPerMonth: 100000
-        },
-        updateFrequency: 60000, // 60 segundos
-        endpoints: {
-            latest: '/latest',
-            historical: '/historical',
-            convert: '/convert'
-        }
-    },
-    
-    // API Backup: MetalpriceAPI (fallback automático)
-    fallback: {
         name: 'MetalpriceAPI',
         baseURL: 'https://api.metalpriceapi.com/v1',
-        apiKey: 'YOUR_METALPRICE_API_KEY', // Usuario debe obtener gratis
+        apiKey: 'live_metalpriceapi_demo_key', // Demo key - usuario debe obtener en metalpriceapi.com
         rateLimits: {
-            requestsPerMinute: 60,
+            requestsPerMinute: 10,
             requestsPerMonth: 100
         },
-        updateFrequency: 90000, // 90 segundos
+        updateFrequency: 120000, // 2 minutos para conservar quota
         endpoints: {
             latest: '/latest',
             historical: '/historical'
         }
+    },
+    
+    // API Backup: Metals.dev (100 requests/mes gratis)
+    fallback: {
+        name: 'MetalsDev',
+        baseURL: 'https://api.metals.dev/v1',
+        apiKey: 'metals_dev_demo_key', // Demo key - usuario debe obtener en metals.dev
+        rateLimits: {
+            requestsPerMinute: 10,
+            requestsPerMonth: 100
+        },
+        updateFrequency: 180000, // 3 minutos
+        endpoints: {
+            latest: '/latest',
+            historical: '/historical'
+        }
+    },
+    
+    // API Tertiary: Exchange rates (siempre disponible)
+    tertiary: {
+        name: 'FawazAPI',
+        baseURL: 'https://api.fawazahmed0.com/v1/latest',
+        apiKey: null, // Sin API key requerida
+        rateLimits: {
+            requestsPerMinute: 60,
+            requestsPerMonth: 999999 // Sin límites conocidos
+        },
+        updateFrequency: 300000, // 5 minutos
+        endpoints: {
+            usd: '/usd.json'
+        },
+        parseResponse: (data) => ({
+            success: true,
+            exchangeRate: data.usd?.mxn || 19.8,
+            timestamp: Date.now()
+        })
     },
 
     // Cache TTL estratificado por tipo de dato
@@ -89,7 +108,7 @@ class KitcoPricingManager {
         this.cache = new Map();
         this.rateLimiters = new Map();
         this.circuitBreakers = new Map();
-        this.exchangeRate = 20.0; // USD a MXN por defecto
+        this.exchangeRate = 19.8; // USD a MXN por defecto (actualizado enero 2025)
         this.isInitialized = false;
         this.lastUpdate = null;
         this.priceHistory = [];
@@ -240,11 +259,29 @@ class KitcoPricingManager {
 
         try {
             const url = `${apiConfig.baseURL}${apiConfig.endpoints.latest}`;
-            const params = new URLSearchParams({
-                access_key: apiConfig.apiKey,
-                base: PRICING_CONFIG.currencies.base,
-                symbols: symbols.join(',')
-            });
+            let params;
+            
+            // Configurar parámetros según la API
+            if (apiConfig.name === 'MetalpriceAPI') {
+                params = new URLSearchParams({
+                    api_key: apiConfig.apiKey,
+                    base: PRICING_CONFIG.currencies.base,
+                    currencies: symbols.join(',')
+                });
+            } else if (apiConfig.name === 'MetalsDev') {
+                params = new URLSearchParams({
+                    api_key: apiConfig.apiKey,
+                    base: PRICING_CONFIG.currencies.base,
+                    symbols: symbols.join(',')
+                });
+            } else {
+                // Formato genérico
+                params = new URLSearchParams({
+                    access_key: apiConfig.apiKey,
+                    base: PRICING_CONFIG.currencies.base,
+                    symbols: symbols.join(',')
+                });
+            }
 
             const response = await fetch(`${url}?${params}`, {
                 method: 'GET',

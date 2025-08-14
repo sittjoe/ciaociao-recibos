@@ -530,12 +530,12 @@ class ManualPricingSystem {
         let basePrice = this.marketPrices.get(metal);
         
         if (!basePrice) {
-            // Precios fallback si no hay datos de mercado
+            // Precios fallback actualizados enero 2025 (MXN por gramo)
             const fallbackPrices = {
-                gold: 1200,
-                silver: 15,
-                platinum: 800,
-                palladium: 1000
+                gold: 1710,      // $2,700/oz ÷ 31.1035 * 19.8 = $1,710 MXN/g
+                silver: 24,      // $38/oz ÷ 31.1035 * 19.8 = $24 MXN/g
+                platinum: 620,   // $975/oz ÷ 31.1035 * 19.8 = $620 MXN/g
+                palladium: 890   // $1,400/oz ÷ 31.1035 * 19.8 = $890 MXN/g
             };
             basePrice = fallbackPrices[metal] || 0;
         }

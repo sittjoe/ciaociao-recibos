@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Sistema Integrado de Precios</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #D4AF37;
+            text-align: center;
+        }
+        .test-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #fafafa;
+        }
+        .test-section h3 {
+            color: #1a1a1a;
+            border-bottom: 2px solid #D4AF37;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #D4AF37;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #B8941F;
+        }
+        .result {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            margin: 0 5px;
+            font-weight: bold;
+        }
+        .status.healthy { background: #d4edda; color: #155724; }
+        .status.degraded { background: #fff3cd; color: #856404; }
+        .status.offline { background: #f8d7da; color: #721c24; }
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .price-item:last-child {
+            border-bottom: none;
+        }
+        .price-value {
+            font-weight: bold;
+            color: #D4AF37;
+        }
+        .source-tag {
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 3px;
+            background: #f0f0f0;
+            color: #666;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Sistema Integrado de Precios - Test</h1>
+        <p>Prueba completa del sistema maestro que integra APIs, precios manuales, markup y fallback.</p>
+        
+        <!-- Estado del Sistema -->
+        <div class="test-section">
+            <h3>📊 Estado del Sistema</h3>
+            <button onclick="checkSystemStatus()">Verificar Estado</button>
+            <button onclick="refreshAllPrices()">Actualizar Todos los Precios</button>
+            <div id="systemStatus" class="result">Presiona "Verificar Estado" para ver el estado actual del sistema...</div>
+        </div>
+
+        <!-- Test de Precios Individuales -->
+        <div class="test-section">
+            <h3>💰 Precios Individuales</h3>
+            <button onclick="testGoldPrices()">Probar Precios de Oro</button>
+            <button onclick="testSilverPrice()">Probar Precio de Plata</button>
+            <button onclick="testPlatinumPrice()">Probar Precio de Platino</button>
+            <button onclick="testWithMarkup()">Probar con Markup</button>
+            <div id="individualPrices" class="result">Selecciona una prueba para ver los precios...</div>
+        </div>
+
+        <!-- Test de Cotización Completa -->
+        <div class="test-section">
+            <h3>📋 Cotización Completa</h3>
+            <button onclick="testQuotationCalculation()">Calcular Cotización de Ejemplo</button>
+            <button onclick="testCustomQuotation()">Cotización Personalizada</button>
+            <div id="quotationResult" class="result">Presiona "Calcular Cotización" para ver un ejemplo completo...</div>
+        </div>
+
+        <!-- Monitor de Eventos -->
+        <div class="test-section">
+            <h3>📡 Monitor de Eventos</h3>
+            <button onclick="startEventMonitoring()">Iniciar Monitoreo</button>
+            <button onclick="clearEventLog()">Limpiar Log</button>
+            <div id="eventLog" class="result">Log de eventos del sistema...</div>
+        </div>
+
+        <!-- Información de Cache -->
+        <div class="test-section">
+            <h3>💾 Sistema de Cache</h3>
+            <button onclick="checkCacheStatus()">Ver Estado del Cache</button>
+            <button onclick="clearCache()">Limpiar Cache</button>
+            <div id="cacheInfo" class="result">Información del cache y almacenamiento local...</div>
+        </div>
+    </div>
+
+    <!-- Cargar módulos de precios -->
+    <script src="kitco-pricing-api.js"></script>
+    <script src="manual-pricing-system.js"></script>
+    <script src="global-markup-system.js"></script>
+    <script src="pricing-fallback-system.js"></script>
+    <script src="pricing-integration-system.js"></script>
+
+    <script>
+        let eventMonitoring = false;
+
+        // Esperar a que el sistema se inicialice
+        setTimeout(() => {
+            if (window.jewelryPricingMaster) {
+                console.log('✅ Sistema maestro detectado, configurando monitoring...');
+                setupEventListening();
+            } else {
+                console.log('⚠️ Sistema maestro no detectado, ejecutando en modo de prueba');
+            }
+        }, 3000);
+
+        function setupEventListening() {
+            if (window.jewelryPricingMaster) {
+                window.jewelryPricingMaster.addObserver((event, data) => {
+                    if (eventMonitoring) {
+                        logEvent(event, data);
+                    }
+                    
+                    // Actualizar estado automáticamente
+                    if (event === 'system_health_changed') {
+                        updateSystemStatus(data);
+                    }
+                });
+            }
+        }
+
+        async function checkSystemStatus() {
+            const statusDiv = document.getElementById('systemStatus');
+            statusDiv.innerHTML = '<span class="loading">Verificando estado del sistema...</span>';
+            
+            try {
+                if (window.jewelryPricingMaster) {
+                    const status = window.jewelryPricingMaster.getSystemStatus();
+                    displaySystemStatus(status);
+                } else {
+                    statusDiv.innerHTML = `
+❌ Sistema maestro no disponible
+
+Módulos detectados:
+- kitcoPricing: ${!!window.kitcoPricing ? '✅' : '❌'}
+- manualPricingSystem: ${!!window.manualPricingSystem ? '✅' : '❌'}  
+- globalMarkupSystem: ${!!window.globalMarkupSystem ? '✅' : '❌'}
+- apiFallbackManager: ${!!window.apiFallbackManager ? '✅' : '❌'}
+
+Estado: Modo de prueba independiente
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `❌ Error verificando estado: ${error.message}`;
+            }
+        }
+
+        function displaySystemStatus(status) {
+            const statusDiv = document.getElementById('systemStatus');
+            
+            const healthHTML = Object.entries(status.systemHealth)
+                .map(([key, value]) => {
+                    const statusClass = value === 'healthy' || value === 'connected' ? 'healthy' : 
+                                       value === 'degraded' ? 'degraded' : 'offline';
+                    return `<span class="status ${statusClass}">${key}: ${value}</span>`;
+                }).join(' ');
+            
+            statusDiv.innerHTML = `
+✅ Sistema Maestro Inicializado: ${status.initialized}
+💱 Tipo de Cambio: $${status.exchangeRate} MXN/USD
+⏰ Última Actualización: ${status.lastPriceUpdate ? new Date(status.lastPriceUpdate).toLocaleString() : 'Nunca'}
+👥 Observadores: ${status.observerCount}
+
+🔗 Módulos Conectados:
+${healthHTML}
+
+📊 Estado de Salud:
+${Object.entries(status.connectedModules)
+    .map(([key, connected]) => `- ${key}: ${connected ? '✅ Conectado' : '❌ No disponible'}`)
+    .join('\n')}
+
+💾 Precios Fallback: ${status.fallbackPricesAvailable ? '✅ Disponibles' : '❌ No disponibles'}
+            `;
+        }
+
+        async function testGoldPrices() {
+            const resultDiv = document.getElementById('individualPrices');
+            resultDiv.innerHTML = '<span class="loading">Obteniendo precios de oro...</span>';
+            
+            try {
+                if (window.jewelryPricingMaster) {
+                    const karats = ['10k', '14k', '18k', '22k', '24k'];
+                    let results = '🏆 PRECIOS DE ORO (por gramo):\n\n';
+                    
+                    for (const karat of karats) {
+                        const priceResult = await window.jewelryPricingMaster.getPrice('gold', {
+                            karats: karat,
+                            weight: 1,
+                            includeMarkup: false
+                        });
+                        
+                        results += `${karat}: $${priceResult.pricePerGram.toFixed(2)} MXN/g (${priceResult.source})\n`;
+                    }
+                    
+                    resultDiv.innerHTML = results;
+                } else {
+                    resultDiv.innerHTML = 'Sistema maestro no disponible. Ejecutando test básico...';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testSilverPrice() {
+            const resultDiv = document.getElementById('individualPrices');
+            resultDiv.innerHTML = '<span class="loading">Obteniendo precio de plata...</span>';
+            
+            try {
+                if (window.jewelryPricingMaster) {
+                    const priceResult = await window.jewelryPricingMaster.getPrice('silver', {
+                        weight: 5.2,
+                        includeMarkup: false
+                    });
+                    
+                    resultDiv.innerHTML = `
+🥈 PRECIO DE PLATA:
+
+Por gramo: $${priceResult.pricePerGram.toFixed(2)} MXN
+Peso: ${priceResult.weight}g
+Total: $${priceResult.totalPrice.toFixed(2)} MXN
+Fuente: ${priceResult.source}
+Timestamp: ${new Date(priceResult.timestamp).toLocaleString()}
+                    `;
+                } else {
+                    resultDiv.innerHTML = 'Sistema maestro no disponible.';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testPlatinumPrice() {
+            const resultDiv = document.getElementById('individualPrices');
+            resultDiv.innerHTML = '<span class="loading">Obteniendo precio de platino...</span>';
+            
+            try {
+                if (window.jewelryPricingMaster) {
+                    const priceResult = await window.jewelryPricingMaster.getPrice('platinum', {
+                        weight: 3.8,
+                        includeMarkup: false
+                    });
+                    
+                    resultDiv.innerHTML = `
+⚪ PRECIO DE PLATINO:
+
+Por gramo: $${priceResult.pricePerGram.toFixed(2)} MXN
+Peso: ${priceResult.weight}g
+Total: $${priceResult.totalPrice.toFixed(2)} MXN
+Fuente: ${priceResult.source}
+Timestamp: ${new Date(priceResult.timestamp).toLocaleString()}
+                    `;
+                } else {
+                    resultDiv.innerHTML = 'Sistema maestro no disponible.';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testWithMarkup() {
+            const resultDiv = document.getElementById('individualPrices');
+            resultDiv.innerHTML = '<span class="loading">Calculando precio con markup...</span>';
+            
+            try {
+                if (window.jewelryPricingMaster) {
+                    const priceResult = await window.jewelryPricingMaster.getPrice('gold', {
+                        karats: '18k',
+                        weight: 4.2,
+                        complexity: 'complex',
+                        customerTier: 'retail',
+                        includeMarkup: true
+                    });
+                    
+                    let result = `
+🏆 ORO 18K CON MARKUP:
+
+Peso: ${priceResult.weight}g
+Precio base/gramo: $${priceResult.pricePerGram.toFixed(2)} MXN
+Costo material: $${priceResult.totalPrice.toFixed(2)} MXN
+                    `;
+                    
+                    if (priceResult.markupApplied && priceResult.markup) {
+                        result += `
+\n📊 BREAKDOWN DEL MARKUP:
+Material con markup: $${priceResult.markup.breakdown.materialWithMarkup.toFixed(2)}
+Mano de obra: $${priceResult.markup.breakdown.laborCost.toFixed(2)}
+Gastos generales: $${priceResult.markup.breakdown.overheadCost.toFixed(2)}
+Ganancia: $${priceResult.markup.breakdown.profitAmount.toFixed(2)}
+
+💰 PRECIO FINAL: $${priceResult.finalPrice.toFixed(2)} MXN
+                        `;
+                    }
+                    
+                    result += `\nFuente: ${priceResult.source}`;
+                    
+                    resultDiv.innerHTML = result;
+                } else {
+                    resultDiv.innerHTML = 'Sistema maestro no disponible.';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testQuotationCalculation() {
+            const resultDiv = document.getElementById('quotationResult');
+            resultDiv.innerHTML = '<span class="loading">Calculando cotización de ejemplo...</span>';
+            
+            try {
+                if (window.jewelryPricingMaster) {
+                    const items = [
+                        {
+                            type: 'Anillo',
+                            material: 'gold',
+                            karats: '18k',
+                            weight: 4.2,
+                            quantity: 1,
+                            complexity: 'complex'
+                        },
+                        {
+                            type: 'Collar',
+                            material: 'silver',
+                            weight: 28.5,
+                            quantity: 1,
+                            complexity: 'medium'
+                        },
+                        {
+                            type: 'Aretes',
+                            material: 'gold',
+                            karats: '14k',
+                            weight: 2.8,
+                            quantity: 2,
+                            complexity: 'simple'
+                        }
+                    ];
+                    
+                    const quotation = await window.jewelryPricingMaster.calculateQuotationPrice(items, {
+                        customerTier: 'retail',
+                        includeMarkup: true,
+                        globalDiscount: 10
+                    });
+                    
+                    let result = `
+📋 COTIZACIÓN COMPLETA:
+
+🏆 PRODUCTOS:
+                    `;
+                    
+                    quotation.items.forEach((item, index) => {
+                        result += `
+${index + 1}. ${item.type} (${item.material} ${item.karats || ''})
+   Peso: ${item.weight}g x ${item.quantity}
+   Precio unitario: $${item.unitPrice.toFixed(2)} MXN
+   Total: $${item.totalPrice.toFixed(2)} MXN
+                        `;
+                    });
+                    
+                    result += `
+💰 RESUMEN FINANCIERO:
+Subtotal: $${quotation.subtotal.toFixed(2)} MXN
+Descuento (${quotation.discount}%): -$${(quotation.subtotal - quotation.total).toFixed(2)} MXN
+TOTAL: $${quotation.total.toFixed(2)} MXN
+
+📊 Generado: ${new Date(quotation.timestamp).toLocaleString()}
+🔧 Sistema: ${quotation.source}
+                    `;
+                    
+                    resultDiv.innerHTML = result;
+                } else {
+                    resultDiv.innerHTML = 'Sistema maestro no disponible.';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function testCustomQuotation() {
+            const resultDiv = document.getElementById('quotationResult');
+            const weight = prompt('Ingresa el peso en gramos:', '5.0');
+            const metal = prompt('Metal (gold/silver/platinum):', 'gold');
+            const karats = metal === 'gold' ? prompt('Quilates (10k/14k/18k/22k/24k):', '18k') : null;
+            
+            if (!weight || !metal) {
+                resultDiv.innerHTML = 'Test cancelado.';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<span class="loading">Calculando cotización personalizada...</span>';
+            
+            try {
+                if (window.jewelryPricingMaster) {
+                    const priceResult = await window.jewelryPricingMaster.getPrice(metal, {
+                        karats: karats,
+                        weight: parseFloat(weight),
+                        complexity: 'medium',
+                        customerTier: 'retail',
+                        includeMarkup: true
+                    });
+                    
+                    resultDiv.innerHTML = `
+📋 COTIZACIÓN PERSONALIZADA:
+
+Material: ${metal.toUpperCase()} ${karats || ''}
+Peso: ${weight}g
+Precio base: $${priceResult.totalPrice.toFixed(2)} MXN
+${priceResult.markupApplied ? `Precio final: $${priceResult.finalPrice.toFixed(2)} MXN` : ''}
+Fuente: ${priceResult.source}
+                    `;
+                } else {
+                    resultDiv.innerHTML = 'Sistema maestro no disponible.';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        function startEventMonitoring() {
+            eventMonitoring = !eventMonitoring;
+            const button = event.target;
+            
+            if (eventMonitoring) {
+                button.textContent = 'Detener Monitoreo';
+                button.style.background = '#dc3545';
+                logEvent('monitoring_started', { message: 'Monitoreo de eventos iniciado' });
+            } else {
+                button.textContent = 'Iniciar Monitoreo';
+                button.style.background = '#D4AF37';
+                logEvent('monitoring_stopped', { message: 'Monitoreo de eventos detenido' });
+            }
+        }
+
+        function logEvent(event, data) {
+            const logDiv = document.getElementById('eventLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const eventLine = `[${timestamp}] 📡 ${event}: ${JSON.stringify(data, null, 2)}\n\n`;
+            logDiv.innerHTML = eventLine + logDiv.innerHTML;
+            
+            // Mantener solo los últimos 50 eventos
+            const lines = logDiv.innerHTML.split('\n');
+            if (lines.length > 200) {
+                logDiv.innerHTML = lines.slice(0, 200).join('\n');
+            }
+        }
+
+        function clearEventLog() {
+            document.getElementById('eventLog').innerHTML = 'Log limpiado. Los nuevos eventos aparecerán aquí...';
+        }
+
+        async function refreshAllPrices() {
+            const statusDiv = document.getElementById('systemStatus');
+            const originalContent = statusDiv.innerHTML;
+            statusDiv.innerHTML = '<span class="loading">Actualizando todos los precios...</span>';
+            
+            try {
+                if (window.jewelryPricingMaster) {
+                    const allPrices = await window.jewelryPricingMaster.refreshAllPrices();
+                    
+                    // Mostrar precios actualizados
+                    let pricesHtml = '\n\n💰 PRECIOS ACTUALIZADOS:\n';
+                    
+                    Object.entries(allPrices.metals).forEach(([metal, priceData]) => {
+                        if (typeof priceData === 'object' && !priceData.pricePerGram) {
+                            // Es oro con quilates
+                            pricesHtml += `\n${metal.toUpperCase()}:\n`;
+                            Object.entries(priceData).forEach(([karat, karatData]) => {
+                                pricesHtml += `  ${karat}: $${karatData.pricePerGram.toFixed(2)} MXN/g (${karatData.source})\n`;
+                            });
+                        } else {
+                            // Otros metales
+                            pricesHtml += `${metal.toUpperCase()}: $${priceData.pricePerGram.toFixed(2)} MXN/g (${priceData.source})\n`;
+                        }
+                    });
+                    
+                    statusDiv.innerHTML = originalContent + pricesHtml;
+                } else {
+                    statusDiv.innerHTML = originalContent + '\n\n⚠️ Sistema maestro no disponible para actualización.';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = originalContent + `\n\n❌ Error actualizando precios: ${error.message}`;
+            }
+        }
+
+        function checkCacheStatus() {
+            const cacheDiv = document.getElementById('cacheInfo');
+            
+            try {
+                const cacheInfo = {
+                    localStorage: {
+                        itemCount: localStorage.length,
+                        items: []
+                    }
+                };
+                
+                // Revisar items de localStorage
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.includes('pricing') || key.includes('cache') || key.includes('kitco') || key.includes('manual'))) {
+                        const value = localStorage.getItem(key);
+                        cacheInfo.localStorage.items.push({
+                            key: key,
+                            size: value ? Math.round(value.length / 1024) : 0
+                        });
+                    }
+                }
+                
+                let cacheHtml = `
+💾 INFORMACIÓN DEL CACHE:
+
+📊 localStorage:
+- Total items: ${cacheInfo.localStorage.itemCount}
+- Items relacionados con precios: ${cacheInfo.localStorage.items.length}
+
+🔍 Items de precios detectados:
+                `;
+                
+                cacheInfo.localStorage.items.forEach(item => {
+                    cacheHtml += `\n- ${item.key} (${item.size}KB)`;
+                });
+                
+                cacheDiv.innerHTML = cacheHtml;
+                
+            } catch (error) {
+                cacheDiv.innerHTML = `❌ Error verificando cache: ${error.message}`;
+            }
+        }
+
+        function clearCache() {
+            if (confirm('¿Estás seguro de que quieres limpiar el cache de precios?')) {
+                const keysToRemove = [];
+                
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.includes('pricing') || key.includes('cache') || key.includes('kitco'))) {
+                        keysToRemove.push(key);
+                    }
+                }
+                
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                
+                document.getElementById('cacheInfo').innerHTML = `
+✅ Cache limpiado exitosamente.
+
+Items eliminados: ${keysToRemove.length}
+- ${keysToRemove.join('\n- ')}
+                `;
+            }
+        }
+
+        // Auto-verificar estado cada 30 segundos
+        setInterval(() => {
+            if (window.jewelryPricingMaster && document.getElementById('systemStatus').innerHTML.includes('Sistema Maestro Inicializado')) {
+                // Solo si ya se mostró el estado anteriormente
+                const status = window.jewelryPricingMaster.getSystemStatus();
+                updateSystemStatus(status.systemHealth);
+            }
+        }, 30000);
+
+        function updateSystemStatus(healthData) {
+            // Actualizar indicadores de salud en tiempo real si el status está visible
+            const statusDiv = document.getElementById('systemStatus');
+            if (statusDiv.innerHTML.includes('Estado de Salud')) {
+                // Re-generar display de salud
+                const status = window.jewelryPricingMaster.getSystemStatus();
+                displaySystemStatus(status);
+            }
+        }
+    </script>
+</body>
+</html>

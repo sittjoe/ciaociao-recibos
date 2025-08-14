@@ -57,14 +57,14 @@ const FALLBACK_CONFIG = {
         'fallback-static': {
             name: 'Static Fallback',
             type: 'static',
-            // Precios de emergencia actualizados manualmente
+            // Precios de emergencia actualizados enero 2025
             staticPrices: {
-                XAU: 0.0005125, // ~$1950/oz
-                XAG: 0.04348,   // ~$23/oz  
-                XPT: 0.001075,  // ~$930/oz
-                XPD: 0.000775   // ~$1290/oz
+                XAU: 0.00037037, // $2,700/oz (oro)
+                XAG: 0.02632,    // $38/oz (plata)  
+                XPT: 0.001026,   // $975/oz (platino)
+                XPD: 0.000714    // $1,400/oz (paladio)
             },
-            lastUpdate: '2024-08-13T00:00:00Z'
+            lastUpdate: '2025-01-15T00:00:00Z'
         }
     },
 
