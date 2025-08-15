@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Overrides Manuales - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos específicos para la interfaz de overrides manuales */
+        .manual-pricing-interface {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .interface-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .interface-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .interface-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .interface-subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .back-button {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .main-content {
+            padding: 0;
+        }
+
+        .pricing-dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        .pricing-panel {
+            padding: 30px;
+            overflow-y: auto;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 1.6em;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-refresh {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .btn-export {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .btn-import {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-import:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+
+        .metals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+        }
+
+        .metal-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border-left: 5px solid transparent;
+        }
+
+        .metal-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .metal-card.gold {
+            border-left-color: #FFD700;
+        }
+
+        .metal-card.silver {
+            border-left-color: #C0C0C0;
+        }
+
+        .metal-card.platinum {
+            border-left-color: #E5E4E2;
+        }
+
+        .metal-card.palladium {
+            border-left-color: #CED0DD;
+        }
+
+        .metal-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .metal-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .metal-base-price {
+            font-size: 1.1em;
+            color: #7f8c8d;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .verified-badge {
+            background: #27ae60;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .purity-section {
+            padding: 20px;
+        }
+
+        .purity-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .purity-item.has-override {
+            border-color: #27ae60;
+            background: #f8fff9;
+        }
+
+        .purity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .purity-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .current-price {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #3498db;
+        }
+
+        .override-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .override-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .form-control {
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .btn-apply {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-apply:hover {
+            background: #229954;
+        }
+
+        .btn-remove {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-remove:hover {
+            background: #c0392b;
+        }
+
+        .btn-remove:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .price-comparison {
+            background: #f1f2f6;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .comparison-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .comparison-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .comparison-label {
+            color: #7f8c8d;
+        }
+
+        .comparison-value {
+            font-weight: 600;
+        }
+
+        .override-value {
+            color: #27ae60;
+        }
+
+        .difference-positive {
+            color: #e74c3c;
+        }
+
+        .difference-negative {
+            color: #27ae60;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .info-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .status-value {
+            display: block;
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .status-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9em;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-action {
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+
+        .action-create {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .action-update {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .action-deactivate {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .history-metal {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .history-time {
+            color: #6c757d;
+            font-size: 0.8em;
+        }
+
+        .alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .alert-modal {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .alert-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .alert-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .alert-message {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .alert-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .alert-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .alert-btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .alert-btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .alert-btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .alert-btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1001;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast-icon {
+            font-size: 1.2em;
+        }
+
+        .toast-success .toast-icon {
+            color: #27ae60;
+        }
+
+        .toast-warning .toast-icon {
+            color: #f39c12;
+        }
+
+        .toast-error .toast-icon {
+            color: #e74c3c;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 40px;
+        }
+
+        @media (max-width: 1200px) {
+            .pricing-dashboard {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .info-panel {
+                border-right: none;
+                border-top: 1px solid #e9ecef;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .interface-header {
+                padding: 20px;
+            }
+
+            .interface-header h1 {
+                font-size: 1.8em;
+            }
+
+            .header-stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .back-button {
+                position: static;
+                transform: none;
+                margin-bottom: 15px;
+                align-self: flex-start;
+            }
+
+            .pricing-panel,
+            .info-panel {
+                padding: 20px;
+            }
+
+            .metals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .override-form {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="manual-pricing-interface">
+        <div class="interface-container">
+            <header class="interface-header">
+                <a href="index.html" class="back-button">
+                    <span>←</span>
+                    <span>Volver al Inicio</span>
+                </a>
+                <h1>🎛️ Sistema de Overrides Manuales</h1>
+                <p class="interface-subtitle">Control total sobre los precios de metales preciosos</p>
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="totalOverrides">0</span>
+                        <span class="stat-label">Overrides Activos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="dailyChanges">0</span>
+                        <span class="stat-label">Cambios Hoy</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="historyEntries">0</span>
+                        <span class="stat-label">Historial</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="main-content">
+                <div class="pricing-dashboard">
+                    <section class="pricing-panel">
+                        <h2 class="section-title">
+                            <span>💰</span>
+                            Configuración de Precios
+                        </h2>
+
+                        <div class="quick-actions">
+                            <button class="quick-action-btn btn-refresh" id="refreshPricesBtn">
+                                <span>🔄</span>
+                                Actualizar Precios
+                            </button>
+                            <button class="quick-action-btn btn-reset" id="resetAllBtn">
+                                <span>⚠️</span>
+                                Resetear Todos
+                            </button>
+                            <button class="quick-action-btn btn-export" id="exportBtn">
+                                <span>📤</span>
+                                Exportar
+                            </button>
+                            <button class="quick-action-btn btn-import" id="importBtn">
+                                <span>📥</span>
+                                Importar
+                            </button>
+                            <input type="file" id="importFile" style="display: none;" accept=".json">
+                        </div>
+
+                        <div class="metals-grid" id="metalsGrid">
+                            <!-- Los metales se cargarán dinámicamente -->
+                        </div>
+                    </section>
+
+                    <aside class="info-panel">
+                        <div class="info-section">
+                            <h3 class="info-title">
+                                <span>📊</span>
+                                Estado del Sistema
+                            </h3>
+                            <div class="status-grid">
+                                <div class="status-item">
+                                    <span class="status-value" id="activeOverridesCount">0</span>
+                                    <span class="status-label">Activos</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-value" id="changesLeftCount">100</span>
+                                    <span class="status-label">Cambios Restantes</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <h3 class="info-title">
+                                <span>📋</span>
+                                Precios Verificados
+                            </h3>
+                            <div class="verified-prices">
+                                <div class="comparison-row">
+                                    <span class="comparison-label">Oro 14k:</span>
+                                    <span class="comparison-value">$1,172 MXN/g</span>
+                                </div>
+                                <div class="comparison-row">
+                                    <span class="comparison-label">Plata 925:</span>
+                                    <span class="comparison-value">$23 MXN/g</span>
+                                </div>
+                                <div class="comparison-row">
+                                    <span class="comparison-label">Platino 950:</span>
+                                    <span class="comparison-value">$654 MXN/g</span>
+                                </div>
+                                <div class="comparison-row">
+                                    <span class="comparison-label">Paladio 950:</span>
+                                    <span class="comparison-value">$672 MXN/g</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-section">
+                            <h3 class="info-title">
+                                <span>📚</span>
+                                Historial Reciente
+                            </h3>
+                            <div class="history-list" id="historyList">
+                                <!-- El historial se cargará dinámicamente -->
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div class="alert-overlay" id="confirmModal">
+        <div class="alert-modal">
+            <div class="alert-icon" id="confirmIcon">⚠️</div>
+            <h3 class="alert-title" id="confirmTitle">Confirmar Acción</h3>
+            <p class="alert-message" id="confirmMessage">¿Está seguro de que desea continuar?</p>
+            <div class="alert-buttons">
+                <button class="alert-btn alert-btn-primary" id="confirmYes">Confirmar</button>
+                <button class="alert-btn alert-btn-secondary" id="confirmNo">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast para notificaciones -->
+    <div class="toast" id="toast">
+        <span class="toast-icon" id="toastIcon">✓</span>
+        <span class="toast-message" id="toastMessage">Mensaje</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    <script src="advanced-manual-pricing-override.js"></script>
+    
+    <script>
+        // Script específico para la interfaz
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎛️ Iniciando interfaz de overrides manuales...');
+            
+            // Verificar autenticación
+            if (typeof window.auth !== 'undefined' && !window.auth.isAuthenticated()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Inicializar interfaz cuando el sistema esté listo
+            const initializeInterface = () => {
+                if (window.advancedManualPricingOverride && window.advancedManualPricingOverride.isInitialized) {
+                    updateStats();
+                    renderMetals();
+                    updateHistory();
+                    
+                    // Actualizar cada 30 segundos
+                    setInterval(() => {
+                        updateStats();
+                        updateHistory();
+                    }, 30000);
+                    
+                    console.log('✅ Interfaz de overrides inicializada');
+                } else {
+                    // Reintentar en 100ms
+                    setTimeout(initializeInterface, 100);
+                }
+            };
+
+            initializeInterface();
+
+            // Event listeners
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Botones principales
+            document.getElementById('refreshPricesBtn').addEventListener('click', () => {
+                window.advancedManualPricingOverride.refreshPrices();
+                showToast('Precios actualizados', 'success');
+                renderMetals();
+            });
+
+            document.getElementById('resetAllBtn').addEventListener('click', () => {
+                showConfirm(
+                    '⚠️',
+                    'Resetear Todos los Overrides',
+                    '¿Está seguro de que desea eliminar todos los overrides activos? Esta acción no se puede deshacer.',
+                    () => {
+                        const reason = prompt('Razón para resetear todos los overrides:');
+                        if (reason) {
+                            window.advancedManualPricingOverride.resetAllOverrides();
+                            showToast('Todos los overrides han sido reseteados', 'success');
+                            updateStats();
+                            renderMetals();
+                            updateHistory();
+                        }
+                    }
+                );
+            });
+
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                window.advancedManualPricingOverride.exportData();
+                showToast('Datos exportados correctamente', 'success');
+            });
+
+            document.getElementById('importBtn').addEventListener('click', () => {
+                document.getElementById('importFile').click();
+            });
+
+            document.getElementById('importFile').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            window.advancedManualPricingOverride.importData(data);
+                            showToast('Datos importados correctamente', 'success');
+                            updateStats();
+                            renderMetals();
+                            updateHistory();
+                        } catch (error) {
+                            showToast('Error al importar: ' + error.message, 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+                e.target.value = '';
+            });
+        }
+
+        function updateStats() {
+            const status = window.advancedManualPricingOverride.getOverrideStatus();
+            
+            document.getElementById('totalOverrides').textContent = status.activeOverrides;
+            document.getElementById('dailyChanges').textContent = status.dailyChanges;
+            document.getElementById('historyEntries').textContent = window.advancedManualPricingOverride.history.length;
+            document.getElementById('activeOverridesCount').textContent = status.activeOverrides;
+            document.getElementById('changesLeftCount').textContent = status.maxDailyChanges - status.dailyChanges;
+        }
+
+        function renderMetals() {
+            const metalsGrid = document.getElementById('metalsGrid');
+            const prices = window.advancedManualPricingOverride.getAllCurrentPrices();
+            
+            metalsGrid.innerHTML = '';
+
+            Object.keys(prices).forEach(metal => {
+                const metalCard = createMetalCard(metal, prices[metal]);
+                metalsGrid.appendChild(metalCard);
+            });
+        }
+
+        function createMetalCard(metal, purities) {
+            const card = document.createElement('div');
+            card.className = `metal-card ${metal}`;
+            
+            const metalNames = {
+                gold: 'Oro',
+                silver: 'Plata',
+                platinum: 'Platino',
+                palladium: 'Paladio'
+            };
+
+            const basePrices = {
+                gold: 1172,
+                silver: 23,
+                platinum: 654,
+                palladium: 672
+            };
+
+            card.innerHTML = `
+                <div class="metal-header">
+                    <h3 class="metal-name">
+                        ${metalNames[metal]}
+                        <span class="verified-badge">Verificado ✓</span>
+                    </h3>
+                    <div class="metal-base-price">
+                        Base: $${basePrices[metal]} MXN/g
+                    </div>
+                </div>
+                <div class="purity-section">
+                    ${Object.keys(purities).map(purity => 
+                        createPurityItem(metal, purity, purities[purity])
+                    ).join('')}
+                </div>
+            `;
+
+            return card;
+        }
+
+        function createPurityItem(metal, purity, priceData) {
+            const overrideKey = `${metal}_${purity}`;
+            const override = window.advancedManualPricingOverride.overrides.get(overrideKey);
+            const hasOverride = override && override.active;
+
+            const purityNames = {
+                '10k': '10 Kilates',
+                '14k': '14 Kilates', 
+                '18k': '18 Kilates',
+                '22k': '22 Kilates',
+                '24k': '24 Kilates',
+                '925': 'Plata 925 (Sterling)',
+                '950': 'Platino/Paladio 950'
+            };
+
+            return `
+                <div class="purity-item ${hasOverride ? 'has-override' : ''}" data-key="${overrideKey}">
+                    <div class="purity-header">
+                        <span class="purity-name">${purityNames[purity] || purity}</span>
+                        <div>
+                            <span class="current-price">$${priceData.pricePerGram.toFixed(2)}</span>
+                            ${hasOverride ? '<span class="override-badge">Override</span>' : ''}
+                        </div>
+                    </div>
+
+                    <div class="override-form">
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Override</label>
+                            <select class="form-control override-type" data-key="${overrideKey}">
+                                <option value="">Sin Override</option>
+                                <option value="percentage" ${override?.overrideType === 'percentage' ? 'selected' : ''}>Porcentaje (%)</option>
+                                <option value="fixed_amount" ${override?.overrideType === 'fixed_amount' ? 'selected' : ''}>Cantidad Fija (MXN)</option>
+                                <option value="absolute" ${override?.overrideType === 'absolute' ? 'selected' : ''}>Precio Absoluto (MXN/g)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Valor</label>
+                            <input type="number" class="form-control override-value" 
+                                   data-key="${overrideKey}" value="${override?.value || ''}" 
+                                   placeholder="Ingrese valor" step="0.01">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label class="form-label">Razón</label>
+                            <select class="form-control override-reason" data-key="${overrideKey}">
+                                <option value="">Seleccionar razón...</option>
+                                ${window.ADVANCED_OVERRIDE_CONFIG.overrideReasons.map(reason => 
+                                    `<option value="${reason}" ${override?.reason === reason ? 'selected' : ''}>${reason}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="action-btn btn-apply" data-key="${overrideKey}">
+                            Aplicar Override
+                        </button>
+                        <button class="action-btn btn-remove" data-key="${overrideKey}" 
+                                ${!hasOverride ? 'disabled' : ''}>
+                            Remover Override
+                        </button>
+                    </div>
+
+                    ${createPriceComparison(priceData, override)}
+                </div>
+            `;
+        }
+
+        function createPriceComparison(priceData, override) {
+            if (!override || !override.active) {
+                return `
+                    <div class="price-comparison">
+                        <div class="comparison-row">
+                            <span class="comparison-label">Precio actual:</span>
+                            <span class="comparison-value">$${priceData.pricePerGram.toFixed(2)} MXN/g</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">Fuente:</span>
+                            <span class="comparison-value">Precio de mercado</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const difference = ((override.finalPrice - override.basePrice) / override.basePrice * 100);
+            const diffClass = difference >= 0 ? 'difference-positive' : 'difference-negative';
+
+            return `
+                <div class="price-comparison">
+                    <div class="comparison-row">
+                        <span class="comparison-label">Precio base:</span>
+                        <span class="comparison-value">$${override.basePrice.toFixed(2)} MXN/g</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span class="comparison-label">Precio override:</span>
+                        <span class="comparison-value override-value">$${override.finalPrice.toFixed(2)} MXN/g</span>
+                    </div>
+                    <div class="comparison-row">
+                        <span class="comparison-label">Diferencia:</span>
+                        <span class="comparison-value ${diffClass}">
+                            ${difference >= 0 ? '+' : ''}${difference.toFixed(1)}%
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            const history = window.advancedManualPricingOverride.history.slice(0, 10);
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<div class="no-data">No hay entradas en el historial</div>';
+                return;
+            }
+
+            historyList.innerHTML = history.map(entry => `
+                <div class="history-item">
+                    <div>
+                        <span class="history-action action-${entry.action.toLowerCase()}">${entry.action}</span>
+                        <span class="history-metal">${entry.metal.toUpperCase()} ${entry.purity}</span>
+                        <span class="comparison-value">$${entry.finalPrice?.toFixed(2) || 'N/A'}</span>
+                    </div>
+                    <div class="history-time">
+                        ${new Date(entry.timestamp).toLocaleString('es-MX')} - ${entry.user}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Event delegation para botones dinámicos
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.btn-apply')) {
+                handleApplyOverride(e.target.dataset.key);
+            } else if (e.target.matches('.btn-remove')) {
+                handleRemoveOverride(e.target.dataset.key);
+            }
+        });
+
+        function handleApplyOverride(overrideKey) {
+            const [metal, purity] = overrideKey.split('_');
+            const purityItem = document.querySelector(`[data-key="${overrideKey}"]`);
+            
+            const overrideType = purityItem.querySelector('.override-type').value;
+            const value = parseFloat(purityItem.querySelector('.override-value').value);
+            const reason = purityItem.querySelector('.override-reason').value;
+
+            if (!overrideType) {
+                showToast('Seleccione un tipo de override', 'warning');
+                return;
+            }
+
+            if (isNaN(value)) {
+                showToast('Ingrese un valor válido', 'warning');
+                return;
+            }
+
+            if (!reason) {
+                showToast('Seleccione una razón', 'warning');
+                return;
+            }
+
+            window.advancedManualPricingOverride.setOverride(metal, purity, overrideType, value, reason)
+                .then(result => {
+                    if (result.success) {
+                        showToast('Override aplicado correctamente', 'success');
+                        updateStats();
+                        renderMetals();
+                        updateHistory();
+                    } else if (result.requiresConfirmation) {
+                        showConfirm(
+                            '⚠️',
+                            'Confirmar Override',
+                            result.warning,
+                            () => {
+                                window.advancedManualPricingOverride.setOverride(metal, purity, overrideType, value, reason, { confirmed: true })
+                                    .then(confirmResult => {
+                                        if (confirmResult.success) {
+                                            showToast('Override aplicado con advertencia', 'warning');
+                                            updateStats();
+                                            renderMetals();
+                                            updateHistory();
+                                        } else {
+                                            showToast(confirmResult.error, 'error');
+                                        }
+                                    });
+                            }
+                        );
+                    } else {
+                        showToast(result.error, 'error');
+                    }
+                });
+        }
+
+        function handleRemoveOverride(overrideKey) {
+            showConfirm(
+                '🗑️',
+                'Remover Override',
+                '¿Está seguro de que desea remover este override?',
+                () => {
+                    const reason = prompt('Razón para remover el override:');
+                    if (reason) {
+                        const result = window.advancedManualPricingOverride.deactivateOverride(overrideKey, reason);
+                        if (result.success) {
+                            showToast('Override removido correctamente', 'success');
+                            updateStats();
+                            renderMetals();
+                            updateHistory();
+                        } else {
+                            showToast(result.error, 'error');
+                        }
+                    }
+                }
+            );
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const messageEl = document.getElementById('toastMessage');
+
+            const icons = {
+                success: '✓',
+                warning: '⚠️',
+                error: '✗'
+            };
+
+            toast.className = `toast toast-${type}`;
+            icon.textContent = icons[type] || '✓';
+            messageEl.textContent = message;
+
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function showConfirm(icon, title, message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const iconEl = document.getElementById('confirmIcon');
+            const titleEl = document.getElementById('confirmTitle');
+            const messageEl = document.getElementById('confirmMessage');
+            const yesBtn = document.getElementById('confirmYes');
+            const noBtn = document.getElementById('confirmNo');
+
+            iconEl.textContent = icon;
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+
+            modal.style.display = 'flex';
+
+            yesBtn.onclick = () => {
+                modal.style.display = 'none';
+                onConfirm();
+            };
+
+            noBtn.onclick = () => {
+                modal.style.display = 'none';
+            };
+
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+        }
+    </script>
+</body>
+</html>

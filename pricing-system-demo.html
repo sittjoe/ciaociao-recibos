@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo y Test - Sistema de Overrides Manuales</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos específicos para la demo */
+        .demo-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .demo-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .demo-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .demo-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .demo-subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        .test-panel {
+            padding: 30px;
+            overflow-y: auto;
+            border-right: 1px solid #e9ecef;
+        }
+
+        .results-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .test-section h3 {
+            margin: 0 0 15px 0;
+            color: #495057;
+            font-size: 1.2em;
+        }
+
+        .test-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .form-control {
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .test-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .test-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .test-button.danger {
+            background: #e74c3c;
+        }
+
+        .test-button.danger:hover {
+            background: #c0392b;
+        }
+
+        .test-button.success {
+            background: #27ae60;
+        }
+
+        .test-button.success:hover {
+            background: #229954;
+        }
+
+        .result-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .result-content {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-success {
+            background: #27ae60;
+        }
+
+        .status-error {
+            background: #e74c3c;
+        }
+
+        .status-warning {
+            background: #f39c12;
+        }
+
+        .status-info {
+            background: #3498db;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .log-container {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-timestamp {
+            color: #95a5a6;
+        }
+
+        .log-level-info {
+            color: #3498db;
+        }
+
+        .log-level-success {
+            color: #27ae60;
+        }
+
+        .log-level-warning {
+            color: #f39c12;
+        }
+
+        .log-level-error {
+            color: #e74c3c;
+        }
+
+        .integration-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .system-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .system-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .system-details {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+
+        .system-details div {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 1200px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+
+            .test-panel {
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .demo-container {
+                padding: 10px;
+            }
+
+            .demo-header {
+                padding: 20px;
+            }
+
+            .demo-header h1 {
+                font-size: 1.8em;
+            }
+
+            .test-panel,
+            .results-panel {
+                padding: 20px;
+            }
+
+            .test-form {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-content">
+            <header class="demo-header">
+                <h1>🧪 Demo y Test - Sistema de Overrides Manuales</h1>
+                <p class="demo-subtitle">Prueba completa de funcionalidad e integración</p>
+            </header>
+
+            <div class="demo-grid">
+                <section class="test-panel">
+                    <h2 class="section-title">
+                        <span>🔬</span>
+                        Panel de Pruebas
+                    </h2>
+
+                    <!-- Test de Sistema -->
+                    <div class="test-section">
+                        <h3>1. Test de Sistema</h3>
+                        <div class="test-form">
+                            <button class="test-button" onclick="testSystemInitialization()">
+                                Verificar Inicialización
+                            </button>
+                            <button class="test-button" onclick="testIntegrationStatus()">
+                                Estado de Integración
+                            </button>
+                            <button class="test-button success" onclick="runFullSystemTest()">
+                                Test Completo
+                            </button>
+                            <button class="test-button danger" onclick="clearAllData()">
+                                Limpiar Datos
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Test de Precios -->
+                    <div class="test-section">
+                        <h3>2. Test de Precios</h3>
+                        <div class="test-form">
+                            <div class="form-group">
+                                <label class="form-label">Metal</label>
+                                <select class="form-control" id="testMetal">
+                                    <option value="gold">Oro</option>
+                                    <option value="silver">Plata</option>
+                                    <option value="platinum">Platino</option>
+                                    <option value="palladium">Paladio</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Pureza</label>
+                                <select class="form-control" id="testPurity">
+                                    <option value="14k">14k</option>
+                                    <option value="10k">10k</option>
+                                    <option value="18k">18k</option>
+                                    <option value="22k">22k</option>
+                                    <option value="24k">24k</option>
+                                    <option value="925">925</option>
+                                    <option value="950">950</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Peso (gramos)</label>
+                                <input type="number" class="form-control" id="testWeight" value="1" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <button class="test-button" onclick="testPriceRequest()">
+                                    Obtener Precio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test de Overrides -->
+                    <div class="test-section">
+                        <h3>3. Test de Overrides</h3>
+                        <div class="test-form">
+                            <div class="form-group">
+                                <label class="form-label">Tipo</label>
+                                <select class="form-control" id="overrideType">
+                                    <option value="percentage">Porcentaje</option>
+                                    <option value="fixed_amount">Cantidad Fija</option>
+                                    <option value="absolute">Precio Absoluto</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Valor</label>
+                                <input type="number" class="form-control" id="overrideValue" step="0.01">
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Razón</label>
+                                <select class="form-control" id="overrideReason">
+                                    <option value="Promoción especial">Promoción especial</option>
+                                    <option value="Cliente mayorista">Cliente mayorista</option>
+                                    <option value="Precio de competencia">Precio de competencia</option>
+                                    <option value="Costos adicionales de fabricación">Costos adicionales</option>
+                                    <option value="Test automatizado">Test automatizado</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <button class="test-button success" onclick="createTestOverride()">
+                                    Crear Override
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button class="test-button danger" onclick="removeTestOverride()">
+                                    Remover Override
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test de Performance -->
+                    <div class="test-section">
+                        <h3>4. Test de Performance</h3>
+                        <div class="test-form">
+                            <div class="form-group">
+                                <label class="form-label">Número de Requests</label>
+                                <input type="number" class="form-control" id="performanceRequests" value="100" min="1" max="1000">
+                            </div>
+                            <div class="form-group">
+                                <button class="test-button" onclick="runPerformanceTest()">
+                                    Test de Performance
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button class="test-button" onclick="testCachePerformance()">
+                                    Test de Caché
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <button class="test-button" onclick="stressTest()">
+                                    Stress Test
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Test de Validación -->
+                    <div class="test-section">
+                        <h3>5. Test de Validación</h3>
+                        <div class="test-form">
+                            <button class="test-button" onclick="testValidationRules()">
+                                Test Reglas
+                            </button>
+                            <button class="test-button" onclick="testAlertSystem()">
+                                Test Alertas
+                            </button>
+                            <button class="test-button" onclick="testSuspiciousActivity()">
+                                Test Actividad Sospechosa
+                            </button>
+                            <button class="test-button" onclick="testDataIntegrity()">
+                                Test Integridad
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="results-panel">
+                    <h2 class="section-title">
+                        <span>📊</span>
+                        Resultados y Métricas
+                    </h2>
+
+                    <!-- Estado del Sistema -->
+                    <div class="result-container">
+                        <div class="result-title">Estado del Sistema</div>
+                        <div class="integration-status" id="systemStatus">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Métricas en Tiempo Real -->
+                    <div class="result-container">
+                        <div class="result-title">Métricas en Tiempo Real</div>
+                        <div class="metrics-grid" id="metricsGrid">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Resultados de Tests -->
+                    <div class="result-container">
+                        <div class="result-title">Último Resultado</div>
+                        <div class="result-content" id="testResults">
+                            Ejecute un test para ver los resultados...
+                        </div>
+                    </div>
+
+                    <!-- Log en Tiempo Real -->
+                    <div class="result-container">
+                        <div class="result-title">Log en Tiempo Real</div>
+                        <div class="log-container" id="logContainer">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Overrides Activos -->
+                    <div class="result-container">
+                        <div class="result-title">Overrides Activos</div>
+                        <div class="result-content" id="activeOverrides">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    <script src="advanced-manual-pricing-override.js"></script>
+    <script src="pricing-validation-engine.js"></script>
+    <script src="pricing-history-tracker.js"></script>
+    <script src="pricing-system-integration.js"></script>
+
+    <script>
+        // Variables globales para la demo
+        let logEntries = [];
+        let testCounter = 0;
+        let isSystemReady = false;
+
+        // Inicialización de la demo
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('info', 'Iniciando demo del sistema de overrides...');
+            initializeDemo();
+        });
+
+        // Esperar a que todos los sistemas estén listos
+        window.addEventListener('pricingSystemReady', function(event) {
+            isSystemReady = true;
+            addLog('success', 'Sistema de precios completamente inicializado');
+            updateSystemStatus();
+            startRealTimeMetrics();
+        });
+
+        function initializeDemo() {
+            // Verificar sistemas disponibles cada segundo hasta que estén listos
+            const checkSystems = () => {
+                if (window.advancedManualPricingOverride && 
+                    window.pricingValidator && 
+                    window.pricingTracker) {
+                    
+                    addLog('success', 'Sistemas principales cargados');
+                    updateSystemStatus();
+                    
+                    // Si también está la integración, marcar como completo
+                    if (window.pricingIntegration) {
+                        isSystemReady = true;
+                        startRealTimeMetrics();
+                    }
+                } else {
+                    setTimeout(checkSystems, 1000);
+                }
+            };
+            
+            checkSystems();
+        }
+
+        function addLog(level, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = {
+                timestamp,
+                level,
+                message,
+                id: ++testCounter
+            };
+            
+            logEntries.unshift(entry);
+            
+            // Mantener solo las últimas 50 entradas
+            if (logEntries.length > 50) {
+                logEntries = logEntries.slice(0, 50);
+            }
+            
+            updateLogDisplay();
+        }
+
+        function updateLogDisplay() {
+            const container = document.getElementById('logContainer');
+            if (!container) return;
+            
+            container.innerHTML = logEntries.map(entry => `
+                <div class="log-entry">
+                    <span class="log-timestamp">[${entry.timestamp}]</span>
+                    <span class="log-level-${entry.level}">[${entry.level.toUpperCase()}]</span>
+                    ${entry.message}
+                </div>
+            `).join('');
+            
+            container.scrollTop = 0;
+        }
+
+        function updateTestResults(title, data) {
+            const container = document.getElementById('testResults');
+            if (!container) return;
+            
+            const formattedData = typeof data === 'object' ? 
+                JSON.stringify(data, null, 2) : 
+                data.toString();
+            
+            container.innerHTML = `=== ${title} ===\n\n${formattedData}`;
+        }
+
+        function updateSystemStatus() {
+            const container = document.getElementById('systemStatus');
+            if (!container) return;
+            
+            const systems = [
+                {
+                    name: 'Override System',
+                    status: window.advancedManualPricingOverride?.isInitialized,
+                    details: window.advancedManualPricingOverride?.getOverrideStatus()
+                },
+                {
+                    name: 'Validation Engine',
+                    status: window.pricingValidator?.isInitialized,
+                    details: window.pricingValidator?.getValidationStats()
+                },
+                {
+                    name: 'History Tracker',
+                    status: window.pricingTracker?.isInitialized,
+                    details: window.pricingTracker?.getMetrics()
+                },
+                {
+                    name: 'Integration System',
+                    status: window.pricingIntegration?.isInitialized,
+                    details: window.pricingIntegration?.getIntegrationStatus()
+                }
+            ];
+            
+            container.innerHTML = systems.map(system => `
+                <div class="system-card">
+                    <div class="system-name">
+                        <span class="status-indicator status-${system.status ? 'success' : 'error'}"></span>
+                        ${system.name}
+                    </div>
+                    <div class="system-details">
+                        <div><strong>Estado:</strong> ${system.status ? 'Activo' : 'Inactivo'}</div>
+                        ${system.details ? `
+                            <div><strong>Métricas:</strong> ${Object.keys(system.details).length} disponibles</div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateMetrics() {
+            const container = document.getElementById('metricsGrid');
+            if (!container) return;
+            
+            const metrics = [];
+            
+            // Métricas del sistema de overrides
+            if (window.advancedManualPricingOverride) {
+                const status = window.advancedManualPricingOverride.getOverrideStatus();
+                metrics.push(
+                    { label: 'Overrides Activos', value: status.activeOverrides || 0 },
+                    { label: 'Cambios Hoy', value: status.dailyChanges || 0 }
+                );
+            }
+            
+            // Métricas del tracker
+            if (window.pricingTracker) {
+                const trackerMetrics = window.pricingTracker.getMetrics();
+                metrics.push(
+                    { label: 'Total Eventos', value: trackerMetrics.totalEvents || 0 },
+                    { label: 'Actividad Sospechosa', value: trackerMetrics.suspiciousActivityCount || 0 }
+                );
+            }
+            
+            // Métricas de integración
+            if (window.pricingIntegration) {
+                const perfMetrics = window.pricingIntegration.getPerformanceMetrics();
+                metrics.push(
+                    { label: 'Requests Totales', value: perfMetrics.requests?.total || 0 },
+                    { label: 'Cache Hit Rate', value: `${(perfMetrics.cacheHitRate * 100).toFixed(1)}%` }
+                );
+            }
+            
+            container.innerHTML = metrics.map(metric => `
+                <div class="metric-card">
+                    <div class="metric-value">${metric.value}</div>
+                    <div class="metric-label">${metric.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateActiveOverrides() {
+            const container = document.getElementById('activeOverrides');
+            if (!container || !window.advancedManualPricingOverride) return;
+            
+            const overrides = window.advancedManualPricingOverride.getAllCurrentPrices();
+            const activeOverrides = [];
+            
+            Object.keys(overrides).forEach(metal => {
+                Object.keys(overrides[metal]).forEach(purity => {
+                    const priceData = overrides[metal][purity];
+                    if (priceData.source === 'manual_override') {
+                        activeOverrides.push({
+                            metal,
+                            purity,
+                            price: priceData.pricePerGram,
+                            reason: priceData.override?.reason
+                        });
+                    }
+                });
+            });
+            
+            if (activeOverrides.length === 0) {
+                container.innerHTML = 'No hay overrides activos';
+            } else {
+                const overridesList = activeOverrides.map(override => 
+                    `${override.metal.toUpperCase()} ${override.purity}: $${override.price.toFixed(2)} MXN/g (${override.reason})`
+                ).join('\n');
+                
+                container.innerHTML = overridesList;
+            }
+        }
+
+        function startRealTimeMetrics() {
+            // Actualizar métricas cada 5 segundos
+            setInterval(() => {
+                updateMetrics();
+                updateActiveOverrides();
+            }, 5000);
+            
+            // Actualización inicial
+            updateMetrics();
+            updateActiveOverrides();
+        }
+
+        // =================================================================
+        // FUNCIONES DE TEST
+        // =================================================================
+
+        async function testSystemInitialization() {
+            addLog('info', 'Iniciando test de inicialización...');
+            
+            const results = {
+                advancedOverride: !!window.advancedManualPricingOverride?.isInitialized,
+                validator: !!window.pricingValidator,
+                tracker: !!window.pricingTracker,
+                integration: !!window.pricingIntegration?.isInitialized
+            };
+            
+            const allSystemsReady = Object.values(results).every(Boolean);
+            
+            addLog(allSystemsReady ? 'success' : 'warning', 
+                   `Sistemas inicializados: ${Object.values(results).filter(Boolean).length}/4`);
+            
+            updateTestResults('Test de Inicialización', results);
+            updateSystemStatus();
+        }
+
+        async function testIntegrationStatus() {
+            if (!window.pricingIntegration) {
+                addLog('error', 'Sistema de integración no disponible');
+                updateTestResults('Error', 'Sistema de integración no inicializado');
+                return;
+            }
+            
+            addLog('info', 'Verificando estado de integración...');
+            
+            const status = window.pricingIntegration.getIntegrationStatus();
+            
+            addLog('success', `Integración: ${status.integratedSystems.length} sistemas conectados`);
+            
+            updateTestResults('Estado de Integración', status);
+        }
+
+        async function runFullSystemTest() {
+            addLog('info', 'Ejecutando test completo del sistema...');
+            
+            const testResults = {
+                timestamp: new Date().toISOString(),
+                systems: {},
+                functionality: {},
+                performance: {},
+                errors: []
+            };
+            
+            try {
+                // Test de sistemas
+                await testSystemInitialization();
+                testResults.systems.initialization = true;
+                
+                // Test de funcionalidad básica
+                const priceTest = await testPriceRequest();
+                testResults.functionality.pricing = priceTest.success;
+                
+                // Test de override
+                const overrideTest = await createTestOverride();
+                testResults.functionality.overrides = overrideTest.success;
+                
+                // Test de integración
+                if (window.pricingIntegration) {
+                    const integrationTest = await window.pricingIntegration.testIntegration();
+                    testResults.integration = integrationTest;
+                }
+                
+                // Test de performance básico
+                const performanceTest = await runPerformanceTest();
+                testResults.performance = performanceTest;
+                
+                addLog('success', 'Test completo finalizado exitosamente');
+                
+            } catch (error) {
+                testResults.errors.push(error.message);
+                addLog('error', `Error en test completo: ${error.message}`);
+            }
+            
+            updateTestResults('Test Completo del Sistema', testResults);
+        }
+
+        async function testPriceRequest() {
+            const metal = document.getElementById('testMetal').value;
+            const purity = document.getElementById('testPurity').value;
+            const weight = parseFloat(document.getElementById('testWeight').value);
+            
+            addLog('info', `Solicitando precio: ${metal} ${purity} ${weight}g`);
+            
+            try {
+                if (window.pricingIntegration && window.pricingIntegration.isInitialized) {
+                    // Usar sistema integrado
+                    const result = await window.pricingIntegration.getPriceWithOverride(metal, purity, weight);
+                    
+                    addLog('success', `Precio obtenido: $${result.pricePerGram.toFixed(2)} MXN/g`);
+                    addLog('info', `Fuente: ${result.source}`);
+                    
+                    updateTestResults('Test de Precio', result);
+                    return { success: true, data: result };
+                    
+                } else if (window.advancedManualPricingOverride) {
+                    // Usar sistema de overrides directamente
+                    const result = window.advancedManualPricingOverride.getPrice(metal, purity, weight);
+                    
+                    addLog('success', `Precio obtenido: $${result.pricePerGram.toFixed(2)} MXN/g`);
+                    addLog('info', `Fuente: ${result.source}`);
+                    
+                    updateTestResults('Test de Precio', result);
+                    return { success: true, data: result };
+                    
+                } else {
+                    throw new Error('Ningún sistema de precios disponible');
+                }
+                
+            } catch (error) {
+                addLog('error', `Error obteniendo precio: ${error.message}`);
+                updateTestResults('Error en Test de Precio', error.message);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function createTestOverride() {
+            const metal = document.getElementById('testMetal').value;
+            const purity = document.getElementById('testPurity').value;
+            const overrideType = document.getElementById('overrideType').value;
+            const value = parseFloat(document.getElementById('overrideValue').value);
+            const reason = document.getElementById('overrideReason').value;
+            
+            if (isNaN(value)) {
+                addLog('error', 'Valor de override inválido');
+                return { success: false, error: 'Valor inválido' };
+            }
+            
+            addLog('info', `Creando override: ${metal} ${purity} ${overrideType} ${value}`);
+            
+            try {
+                if (!window.advancedManualPricingOverride) {
+                    throw new Error('Sistema de overrides no disponible');
+                }
+                
+                const result = await window.advancedManualPricingOverride.setOverride(
+                    metal, purity, overrideType, value, reason
+                );
+                
+                if (result.success) {
+                    addLog('success', 'Override creado exitosamente');
+                    updateActiveOverrides();
+                } else {
+                    addLog('error', `Error creando override: ${result.error}`);
+                }
+                
+                updateTestResults('Test de Override', result);
+                return result;
+                
+            } catch (error) {
+                addLog('error', `Error creando override: ${error.message}`);
+                updateTestResults('Error en Override', error.message);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function removeTestOverride() {
+            const metal = document.getElementById('testMetal').value;
+            const purity = document.getElementById('testPurity').value;
+            const overrideKey = `${metal}_${purity}`;
+            
+            addLog('info', `Removiendo override: ${overrideKey}`);
+            
+            try {
+                if (!window.advancedManualPricingOverride) {
+                    throw new Error('Sistema de overrides no disponible');
+                }
+                
+                const result = window.advancedManualPricingOverride.deactivateOverride(
+                    overrideKey, 'Test automatizado - remoción'
+                );
+                
+                if (result.success) {
+                    addLog('success', 'Override removido exitosamente');
+                    updateActiveOverrides();
+                } else {
+                    addLog('error', `Error removiendo override: ${result.error}`);
+                }
+                
+                updateTestResults('Remoción de Override', result);
+                return result;
+                
+            } catch (error) {
+                addLog('error', `Error removiendo override: ${error.message}`);
+                updateTestResults('Error en Remoción', error.message);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function runPerformanceTest() {
+            const requestCount = parseInt(document.getElementById('performanceRequests').value);
+            
+            addLog('info', `Iniciando test de performance con ${requestCount} requests...`);
+            
+            const startTime = performance.now();
+            const results = {
+                totalRequests: requestCount,
+                successfulRequests: 0,
+                failedRequests: 0,
+                averageTime: 0,
+                minTime: Infinity,
+                maxTime: 0,
+                errors: []
+            };
+            
+            const promises = [];
+            
+            for (let i = 0; i < requestCount; i++) {
+                const requestStart = performance.now();
+                
+                promises.push(
+                    (async () => {
+                        try {
+                            if (window.pricingIntegration) {
+                                await window.pricingIntegration.getPriceWithOverride('gold', '14k', 1);
+                            } else {
+                                window.advancedManualPricingOverride.getPrice('gold', '14k', 1);
+                            }
+                            
+                            const requestTime = performance.now() - requestStart;
+                            results.successfulRequests++;
+                            results.minTime = Math.min(results.minTime, requestTime);
+                            results.maxTime = Math.max(results.maxTime, requestTime);
+                            
+                            return requestTime;
+                            
+                        } catch (error) {
+                            results.failedRequests++;
+                            results.errors.push(error.message);
+                            return 0;
+                        }
+                    })()
+                );
+            }
+            
+            const times = await Promise.all(promises);
+            const validTimes = times.filter(time => time > 0);
+            
+            const totalTime = performance.now() - startTime;
+            results.averageTime = validTimes.length > 0 ? 
+                validTimes.reduce((sum, time) => sum + time, 0) / validTimes.length : 0;
+            results.totalTime = totalTime;
+            results.requestsPerSecond = requestCount / (totalTime / 1000);
+            
+            addLog('success', `Performance test completado: ${results.successfulRequests}/${requestCount} exitosos`);
+            addLog('info', `Promedio: ${results.averageTime.toFixed(2)}ms por request`);
+            addLog('info', `Throughput: ${results.requestsPerSecond.toFixed(2)} requests/segundo`);
+            
+            updateTestResults('Test de Performance', results);
+            return results;
+        }
+
+        async function testCachePerformance() {
+            addLog('info', 'Iniciando test de performance de caché...');
+            
+            if (!window.pricingIntegration) {
+                addLog('error', 'Sistema de integración no disponible para test de caché');
+                return;
+            }
+            
+            const testParams = ['gold', '14k', 1];
+            const iterations = 100;
+            
+            // Test sin caché (primera llamada)
+            const noCacheStart = performance.now();
+            await window.pricingIntegration.getPriceWithOverride(...testParams);
+            const noCacheTime = performance.now() - noCacheStart;
+            
+            // Test con caché (llamadas subsecuentes)
+            const cacheStart = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                await window.pricingIntegration.getPriceWithOverride(...testParams);
+            }
+            const cacheTime = (performance.now() - cacheStart) / iterations;
+            
+            const results = {
+                firstRequest: noCacheTime,
+                cachedRequest: cacheTime,
+                speedup: noCacheTime / cacheTime,
+                cacheEfficiency: ((noCacheTime - cacheTime) / noCacheTime * 100)
+            };
+            
+            addLog('success', `Test de caché completado`);
+            addLog('info', `Primera request: ${noCacheTime.toFixed(2)}ms`);
+            addLog('info', `Request con caché: ${cacheTime.toFixed(2)}ms`);
+            addLog('info', `Mejora: ${results.speedup.toFixed(2)}x más rápido`);
+            
+            updateTestResults('Test de Caché', results);
+        }
+
+        async function stressTest() {
+            addLog('warning', 'Iniciando stress test...');
+            
+            const stressResults = {
+                concurrentRequests: 50,
+                totalRequests: 500,
+                duration: 0,
+                successRate: 0,
+                errorRate: 0,
+                systemStability: 'unknown'
+            };
+            
+            const startTime = performance.now();
+            let successCount = 0;
+            let errorCount = 0;
+            
+            // Crear múltiples batches de requests concurrentes
+            const batches = 10;
+            const requestsPerBatch = 50;
+            
+            for (let batch = 0; batch < batches; batch++) {
+                const batchPromises = [];
+                
+                for (let i = 0; i < requestsPerBatch; i++) {
+                    batchPromises.push(
+                        (async () => {
+                            try {
+                                if (window.pricingIntegration) {
+                                    await window.pricingIntegration.getPriceWithOverride('gold', '14k', 1);
+                                } else {
+                                    window.advancedManualPricingOverride.getPrice('gold', '14k', 1);
+                                }
+                                successCount++;
+                            } catch (error) {
+                                errorCount++;
+                            }
+                        })()
+                    );
+                }
+                
+                await Promise.all(batchPromises);
+                
+                // Pequeña pausa entre batches
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            stressResults.duration = performance.now() - startTime;
+            stressResults.successRate = (successCount / stressResults.totalRequests) * 100;
+            stressResults.errorRate = (errorCount / stressResults.totalRequests) * 100;
+            stressResults.systemStability = stressResults.successRate > 95 ? 'Excelente' :
+                                           stressResults.successRate > 90 ? 'Buena' :
+                                           stressResults.successRate > 80 ? 'Aceptable' : 'Pobre';
+            
+            addLog('success', `Stress test completado: ${successCount} éxitos, ${errorCount} errores`);
+            addLog('info', `Estabilidad del sistema: ${stressResults.systemStability}`);
+            
+            updateTestResults('Stress Test', stressResults);
+        }
+
+        async function testValidationRules() {
+            addLog('info', 'Probando reglas de validación...');
+            
+            if (!window.pricingValidator) {
+                addLog('error', 'Sistema de validación no disponible');
+                return;
+            }
+            
+            const testCases = [
+                { metal: 'gold', purity: '14k', newPrice: 2000, oldPrice: 1000, expected: 'warning' },
+                { metal: 'gold', purity: '14k', newPrice: 50, oldPrice: 1000, expected: 'error' },
+                { metal: 'silver', purity: '925', newPrice: 30, oldPrice: 25, expected: 'valid' },
+                { metal: 'platinum', purity: '950', newPrice: 5000, oldPrice: 600, expected: 'error' }
+            ];
+            
+            const results = [];
+            
+            for (const testCase of testCases) {
+                try {
+                    const validation = await window.pricingValidator.validatePriceChange(
+                        testCase.metal,
+                        testCase.purity,
+                        testCase.newPrice,
+                        testCase.oldPrice
+                    );
+                    
+                    results.push({
+                        ...testCase,
+                        result: validation,
+                        passed: validation.isValid === (testCase.expected === 'valid')
+                    });
+                    
+                } catch (error) {
+                    results.push({
+                        ...testCase,
+                        error: error.message,
+                        passed: false
+                    });
+                }
+            }
+            
+            const passedTests = results.filter(r => r.passed).length;
+            
+            addLog('success', `Test de validación: ${passedTests}/${testCases.length} casos pasaron`);
+            
+            updateTestResults('Test de Validación', results);
+        }
+
+        async function testAlertSystem() {
+            addLog('info', 'Probando sistema de alertas...');
+            
+            if (!window.pricingValidator) {
+                addLog('error', 'Sistema de validación no disponible');
+                return;
+            }
+            
+            // Trigger diferentes tipos de alertas
+            const alertTests = [
+                { type: 'error', title: 'Test Error', messages: ['Este es un error de prueba'] },
+                { type: 'warning', title: 'Test Warning', messages: ['Esta es una advertencia de prueba'] },
+                { type: 'info', title: 'Test Info', messages: ['Esta es información de prueba'] }
+            ];
+            
+            alertTests.forEach((alertConfig, index) => {
+                setTimeout(() => {
+                    window.pricingValidator.showAlert({
+                        ...alertConfig,
+                        severity: alertConfig.type === 'error' ? 'high' : 'moderate',
+                        persistent: false
+                    });
+                }, index * 1000);
+            });
+            
+            addLog('success', 'Alertas de prueba generadas');
+            updateTestResults('Test de Alertas', 'Alertas generadas - revise las notificaciones');
+        }
+
+        async function testSuspiciousActivity() {
+            addLog('info', 'Generando actividad sospechosa para prueba...');
+            
+            // Generar múltiples cambios rápidos para trigger detección
+            const rapidChanges = 8;
+            
+            for (let i = 0; i < rapidChanges; i++) {
+                try {
+                    if (window.advancedManualPricingOverride) {
+                        await window.advancedManualPricingOverride.setOverride(
+                            'gold', '14k', 'percentage', i * 5, 'Test actividad sospechosa'
+                        );
+                    }
+                } catch (error) {
+                    // Ignorar errores para este test
+                }
+                
+                // Pequeña pausa entre cambios
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            addLog('warning', 'Actividad sospechosa generada para prueba');
+            
+            // Verificar si se detectó
+            setTimeout(() => {
+                if (window.pricingTracker) {
+                    const suspicious = window.pricingTracker.getSuspiciousActivities();
+                    updateTestResults('Test Actividad Sospechosa', {
+                        generatedChanges: rapidChanges,
+                        detectedActivities: suspicious.length,
+                        activities: suspicious
+                    });
+                }
+            }, 2000);
+        }
+
+        async function testDataIntegrity() {
+            addLog('info', 'Verificando integridad de datos...');
+            
+            const integrityResults = {
+                checksumValidation: 'pending',
+                dataConsistency: 'pending',
+                storageIntegrity: 'pending',
+                backupStatus: 'pending'
+            };
+            
+            try {
+                // Test checksum validation
+                if (window.pricingTracker) {
+                    const metrics = window.pricingTracker.getMetrics();
+                    integrityResults.checksumValidation = metrics.dataIntegrityScore >= 95 ? 'passed' : 'failed';
+                }
+                
+                // Test data consistency
+                if (window.advancedManualPricingOverride) {
+                    const overrides = window.advancedManualPricingOverride.getAllCurrentPrices();
+                    integrityResults.dataConsistency = Object.keys(overrides).length > 0 ? 'passed' : 'warning';
+                }
+                
+                // Test storage integrity
+                try {
+                    const testData = { test: Date.now() };
+                    localStorage.setItem('integrity_test', JSON.stringify(testData));
+                    const retrieved = JSON.parse(localStorage.getItem('integrity_test'));
+                    integrityResults.storageIntegrity = retrieved.test === testData.test ? 'passed' : 'failed';
+                    localStorage.removeItem('integrity_test');
+                } catch (error) {
+                    integrityResults.storageIntegrity = 'failed';
+                }
+                
+                integrityResults.backupStatus = 'simulated_passed';
+                
+                addLog('success', 'Test de integridad completado');
+                
+            } catch (error) {
+                addLog('error', `Error en test de integridad: ${error.message}`);
+                integrityResults.error = error.message;
+            }
+            
+            updateTestResults('Test de Integridad', integrityResults);
+        }
+
+        async function clearAllData() {
+            if (!confirm('¿Está seguro de que desea limpiar todos los datos? Esta acción no se puede deshacer.')) {
+                return;
+            }
+            
+            addLog('warning', 'Limpiando todos los datos...');
+            
+            try {
+                // Limpiar localStorage
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.includes('pricing') || key.includes('override') || key.includes('manual'))) {
+                        keysToRemove.push(key);
+                    }
+                }
+                
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                
+                // Resetear sistemas si están disponibles
+                if (window.advancedManualPricingOverride) {
+                    window.advancedManualPricingOverride.overrides.clear();
+                    window.advancedManualPricingOverride.history = [];
+                }
+                
+                if (window.pricingTracker) {
+                    window.pricingTracker.history = [];
+                    window.pricingTracker.auditTrail = [];
+                }
+                
+                if (window.pricingIntegration) {
+                    window.pricingIntegration.priceCache.clear();
+                    window.pricingIntegration.resetPerformanceMetrics();
+                }
+                
+                // Limpiar logs de la demo
+                logEntries = [];
+                
+                addLog('success', 'Todos los datos han sido limpiados');
+                
+                // Actualizar displays
+                updateSystemStatus();
+                updateMetrics();
+                updateActiveOverrides();
+                updateLogDisplay();
+                
+            } catch (error) {
+                addLog('error', `Error limpiando datos: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

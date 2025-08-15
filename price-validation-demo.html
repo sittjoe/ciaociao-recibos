@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Sistema de Validación de Precios en Tiempo Real</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .status-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .status-healthy { border-left: 4px solid #28a745; }
+        .status-warning { border-left: 4px solid #ffc107; }
+        .status-critical { border-left: 4px solid #dc3545; }
+        .status-unknown { border-left: 4px solid #6c757d; }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        
+        .log-container {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .validation-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .result-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .alert {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        .timestamp {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .reference-prices {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .reference-prices h3 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .price-item {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            border: 2px solid #2196f3;
+        }
+        
+        .price-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛡️ Sistema de Validación de Precios en Tiempo Real</h1>
+        <p>SUBAGENTE 2: Validación Cruzada y Alertas Inteligentes</p>
+    </div>
+
+    <!-- Precios de Referencia -->
+    <div class="reference-prices">
+        <h3>📊 Precios Reales Verificados (Agosto 2025)</h3>
+        <div class="price-grid">
+            <div class="price-item">
+                <div>Oro 14k</div>
+                <div class="price-value">1,172 MXN/g</div>
+            </div>
+            <div class="price-item">
+                <div>Plata 925</div>
+                <div class="price-value">23 MXN/g</div>
+            </div>
+            <div class="price-item">
+                <div>Platino</div>
+                <div class="price-value">654 MXN/g</div>
+            </div>
+            <div class="price-item">
+                <div>Paladio</div>
+                <div class="price-value">672 MXN/g</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Estado del Sistema -->
+    <div class="container">
+        <h2>🏥 Estado del Sistema de Validación</h2>
+        <div class="status-panel" id="systemStatus">
+            <div class="status-card status-unknown">
+                <h4>Sistema Principal</h4>
+                <div id="mainSystemStatus">Inicializando...</div>
+            </div>
+            <div class="status-card status-unknown">
+                <h4>Validador de Precios</h4>
+                <div id="validatorStatus">Inicializando...</div>
+            </div>
+            <div class="status-card status-unknown">
+                <h4>Fuentes Activas</h4>
+                <div id="activeSourcesStatus">0</div>
+            </div>
+            <div class="status-card status-unknown">
+                <h4>Alertas Activas</h4>
+                <div id="activeAlertsStatus">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Controles de Validación -->
+    <div class="container">
+        <h2>🎮 Controles de Validación</h2>
+        <div class="controls">
+            <button class="btn btn-primary" onclick="validateCurrentPrices()">
+                🔍 Validar Precios Actuales
+            </button>
+            <button class="btn btn-success" onclick="getValidationReport()">
+                📋 Generar Reporte
+            </button>
+            <button class="btn btn-warning" onclick="getSourceRankings()">
+                📊 Ver Rankings de Fuentes
+            </button>
+            <button class="btn btn-danger" onclick="acknowledgeAlerts()">
+                ✅ Reconocer Alertas
+            </button>
+            <button class="btn btn-primary" onclick="forceValidationUpdate()">
+                🔄 Forzar Validación
+            </button>
+            <button class="btn btn-success" onclick="testValidationWithDemoData()">
+                🧪 Probar con Datos Demo
+            </button>
+        </div>
+    </div>
+
+    <!-- Resultados de Validación -->
+    <div class="container">
+        <h2>📊 Resultados de Validación</h2>
+        <div id="validationResults"></div>
+    </div>
+
+    <!-- Rankings de Fuentes -->
+    <div class="container">
+        <h2>🏆 Rankings de Fuentes de Datos</h2>
+        <div id="sourceRankings"></div>
+    </div>
+
+    <!-- Log del Sistema -->
+    <div class="container">
+        <h2>📝 Log del Sistema</h2>
+        <div class="log-container" id="systemLog"></div>
+    </div>
+
+    <!-- Scripts del Sistema -->
+    <script src="real-time-price-validator.js"></script>
+    <script src="pricing-integration-system.js"></script>
+    
+    <script>
+        // =================================================================
+        // VARIABLES GLOBALES Y ESTADO
+        // =================================================================
+        
+        let systemInitialized = false;
+        let validationInProgress = false;
+        
+        // =================================================================
+        // INICIALIZACIÓN DEL DEMO
+        // =================================================================
+        
+        function initializeDemo() {
+            logMessage('🚀 Inicializando Demo de Validación de Precios...', 'info');
+            
+            // Verificar disponibilidad de sistemas cada segundo
+            const checkInterval = setInterval(() => {
+                updateSystemStatus();
+                
+                if (window.priceValidator && window.jewelryPricingMaster) {
+                    if (!systemInitialized) {
+                        systemInitialized = true;
+                        clearInterval(checkInterval);
+                        onSystemReady();
+                    }
+                }
+            }, 1000);
+            
+            // Timeout después de 15 segundos
+            setTimeout(() => {
+                if (!systemInitialized) {
+                    clearInterval(checkInterval);
+                    logMessage('⚠️ Timeout: Algunos sistemas no se inicializaron completamente', 'warning');
+                    initializeFallbackMode();
+                }
+            }, 15000);
+        }
+        
+        function onSystemReady() {
+            logMessage('✅ Todos los sistemas inicializados correctamente', 'success');
+            
+            // Configurar observers para eventos del sistema
+            setupSystemObservers();
+            
+            // Realizar validación inicial
+            setTimeout(() => {
+                validateCurrentPrices();
+            }, 2000);
+        }
+        
+        function initializeFallbackMode() {
+            logMessage('🆘 Iniciando modo de demostración sin sistemas completos', 'warning');
+            systemInitialized = true;
+            
+            // Mostrar datos de demo
+            showDemoValidationResults();
+        }
+        
+        // =================================================================
+        // FUNCIONES DE VALIDACIÓN
+        // =================================================================
+        
+        async function validateCurrentPrices() {
+            if (validationInProgress) {
+                logMessage('⚠️ Validación ya en progreso...', 'warning');
+                return;
+            }
+            
+            validationInProgress = true;
+            logMessage('🔍 Iniciando validación de precios actuales...', 'info');
+            
+            try {
+                let validation = null;
+                
+                if (window.jewelryPricingMaster && window.jewelryPricingMaster.validateCurrentPrices) {
+                    // Usar sistema integrado
+                    validation = await window.jewelryPricingMaster.validateCurrentPrices();
+                } else if (window.priceValidator) {
+                    // Usar validador directo con datos de demo
+                    const demoData = generateDemoSourcesData();
+                    validation = await window.priceValidator.validatePricesFromSources(demoData);
+                } else {
+                    // Generar resultados de demo
+                    validation = generateDemoValidationResults();
+                }
+                
+                if (validation) {
+                    displayValidationResults(validation);
+                    logMessage(`✅ Validación completada - Status: ${validation.overallStatus}`, 
+                              validation.overallStatus === 'healthy' ? 'success' : 'warning');
+                } else {
+                    logMessage('❌ Error: No se pudo realizar la validación', 'error');
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Error en validación: ${error.message}`, 'error');
+            } finally {
+                validationInProgress = false;
+                updateSystemStatus();
+            }
+        }
+        
+        async function getValidationReport() {
+            logMessage('📋 Generando reporte de validación...', 'info');
+            
+            try {
+                let report = null;
+                
+                if (window.jewelryPricingMaster && window.jewelryPricingMaster.getValidationReport) {
+                    report = await window.jewelryPricingMaster.getValidationReport(7);
+                } else if (window.priceValidator) {
+                    report = await window.priceValidator.getValidationReport(7);
+                } else {
+                    report = generateDemoReport();
+                }
+                
+                if (report) {
+                    displayValidationReport(report);
+                    logMessage('✅ Reporte generado exitosamente', 'success');
+                } else {
+                    logMessage('❌ Error generando reporte', 'error');
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Error generando reporte: ${error.message}`, 'error');
+            }
+        }
+        
+        async function getSourceRankings() {
+            logMessage('📊 Obteniendo rankings de fuentes...', 'info');
+            
+            try {
+                let rankings = [];
+                
+                if (window.jewelryPricingMaster && window.jewelryPricingMaster.getValidationSourceRankings) {
+                    rankings = window.jewelryPricingMaster.getValidationSourceRankings();
+                } else if (window.priceValidator) {
+                    rankings = window.priceValidator.updateSourceRankings();
+                } else {
+                    rankings = generateDemoRankings();
+                }
+                
+                displaySourceRankings(rankings);
+                logMessage(`✅ Rankings obtenidos: ${rankings.length} fuentes`, 'success');
+                
+            } catch (error) {
+                logMessage(`❌ Error obteniendo rankings: ${error.message}`, 'error');
+            }
+        }
+        
+        async function acknowledgeAlerts() {
+            logMessage('✅ Reconociendo alertas activas...', 'info');
+            
+            try {
+                let count = 0;
+                
+                if (window.jewelryPricingMaster && window.jewelryPricingMaster.acknowledgeValidationAlerts) {
+                    count = await window.jewelryPricingMaster.acknowledgeValidationAlerts();
+                } else if (window.priceValidator) {
+                    count = window.priceValidator.acknowledgeAllAlerts();
+                } else {
+                    count = Math.floor(Math.random() * 5);
+                }
+                
+                logMessage(`✅ ${count} alertas reconocidas`, 'success');
+                updateSystemStatus();
+                
+            } catch (error) {
+                logMessage(`❌ Error reconociendo alertas: ${error.message}`, 'error');
+            }
+        }
+        
+        async function forceValidationUpdate() {
+            logMessage('🔄 Forzando actualización de validación...', 'info');
+            
+            try {
+                if (window.jewelryPricingMaster && window.jewelryPricingMaster.forceValidationUpdate) {
+                    await window.jewelryPricingMaster.forceValidationUpdate();
+                } else if (window.priceValidator) {
+                    await window.priceValidator.performAutomaticValidation();
+                } else {
+                    // Simular actualización
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+                
+                logMessage('✅ Validación forzada completada', 'success');
+                setTimeout(() => validateCurrentPrices(), 1000);
+                
+            } catch (error) {
+                logMessage(`❌ Error forzando validación: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testValidationWithDemoData() {
+            logMessage('🧪 Probando validación con datos de demostración...', 'info');
+            
+            try {
+                const demoData = generateTestDemoData();
+                
+                if (window.priceValidator) {
+                    const validation = await window.priceValidator.validatePricesFromSources(demoData);
+                    displayValidationResults(validation);
+                    logMessage('✅ Prueba con datos demo completada', 'success');
+                } else {
+                    const demoValidation = generateDemoValidationResults();
+                    displayValidationResults(demoValidation);
+                    logMessage('✅ Datos demo mostrados (modo simulación)', 'info');
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Error en prueba con datos demo: ${error.message}`, 'error');
+            }
+        }
+        
+        // =================================================================
+        // FUNCIONES DE VISUALIZACIÓN
+        // =================================================================
+        
+        function updateSystemStatus() {
+            // Estado del sistema principal
+            const mainStatus = window.jewelryPricingMaster ? 
+                (window.jewelryPricingMaster.isInitialized ? 'Operativo' : 'Inicializando') : 
+                'No disponible';
+            document.getElementById('mainSystemStatus').textContent = mainStatus;
+            
+            // Estado del validador
+            const validatorStatus = window.priceValidator ? 
+                (window.priceValidator.isInitialized ? 'Operativo' : 'Inicializando') : 
+                'No disponible';
+            document.getElementById('validatorStatus').textContent = validatorStatus;
+            
+            // Fuentes activas
+            let activeSources = 0;
+            if (window.priceValidator && window.priceValidator.sourceScores) {
+                activeSources = Array.from(window.priceValidator.sourceScores.values())
+                    .filter(s => s.isActive).length;
+            }
+            document.getElementById('activeSourcesStatus').textContent = activeSources;
+            
+            // Alertas activas
+            let activeAlerts = 0;
+            if (window.priceValidator && window.priceValidator.activeAlerts) {
+                activeAlerts = window.priceValidator.activeAlerts.size;
+            }
+            document.getElementById('activeAlertsStatus').textContent = activeAlerts;
+            
+            // Actualizar colores de estado
+            updateStatusColors();
+        }
+        
+        function updateStatusColors() {
+            const statusCards = document.querySelectorAll('.status-card');
+            statusCards.forEach((card, index) => {
+                card.className = 'status-card';
+                
+                switch (index) {
+                    case 0: // Sistema principal
+                        card.classList.add(window.jewelryPricingMaster ? 'status-healthy' : 'status-warning');
+                        break;
+                    case 1: // Validador
+                        card.classList.add(window.priceValidator ? 'status-healthy' : 'status-warning');
+                        break;
+                    case 2: // Fuentes activas
+                        const sources = parseInt(document.getElementById('activeSourcesStatus').textContent);
+                        card.classList.add(sources >= 2 ? 'status-healthy' : sources >= 1 ? 'status-warning' : 'status-critical');
+                        break;
+                    case 3: // Alertas activas
+                        const alerts = parseInt(document.getElementById('activeAlertsStatus').textContent);
+                        card.classList.add(alerts === 0 ? 'status-healthy' : alerts <= 2 ? 'status-warning' : 'status-critical');
+                        break;
+                }
+            });
+        }
+        
+        function displayValidationResults(validation) {
+            const container = document.getElementById('validationResults');
+            
+            let html = `
+                <div class="alert alert-${getAlertClass(validation.overallStatus)}">
+                    <strong>Estado General:</strong> ${validation.overallStatus}
+                    <div class="timestamp">Validación realizada: ${new Date(validation.timestamp).toLocaleString()}</div>
+                </div>
+                <div class="validation-results">
+            `;
+            
+            // Resultados por metal
+            Object.entries(validation.results || {}).forEach(([metal, result]) => {
+                html += `
+                    <div class="result-card">
+                        <h4>🏷️ ${metal.toUpperCase()}</h4>
+                        <p><strong>Status:</strong> <span class="alert alert-${getAlertClass(result.status)}">${result.status}</span></p>
+                        <p><strong>Confianza:</strong> ${(result.confidence * 100).toFixed(1)}%</p>
+                        <p><strong>Fuente Recomendada:</strong> ${result.recommendedSource || 'N/A'}</p>
+                        <p><strong>Precio de Referencia:</strong> ${result.referencePrice?.toFixed(2) || 'N/A'} MXN/g</p>
+                `;
+                
+                // Mostrar fuentes individuales
+                if (result.sources) {
+                    html += '<h5>Fuentes:</h5><ul>';
+                    Object.entries(result.sources).forEach(([source, sourceResult]) => {
+                        html += `
+                            <li>
+                                <strong>${source}:</strong> ${sourceResult.price?.toFixed(2)} MXN/g 
+                                (${sourceResult.status}, desviación: ${sourceResult.deviationPercent}%)
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+                }
+                
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            
+            // Mostrar discrepancias
+            if (validation.discrepancies && validation.discrepancies.length > 0) {
+                html += '<h3>⚠️ Discrepancias Detectadas</h3>';
+                validation.discrepancies.forEach(disc => {
+                    html += `
+                        <div class="alert alert-${disc.severity === 'critical' ? 'danger' : 'warning'}">
+                            <strong>${disc.metal}:</strong> Desviación máxima de ${(disc.maxDeviation * 100).toFixed(1)}% 
+                            en fuente ${disc.maxDeviationSource}
+                        </div>
+                    `;
+                });
+            }
+            
+            // Mostrar alertas
+            if (validation.alerts && validation.alerts.length > 0) {
+                html += '<h3>🚨 Alertas Generadas</h3>';
+                validation.alerts.forEach(alert => {
+                    html += `
+                        <div class="alert alert-${getAlertClass(alert.severity)}">
+                            <strong>${alert.type}:</strong> ${alert.message}
+                        </div>
+                    `;
+                });
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        function displayValidationReport(report) {
+            const container = document.getElementById('validationResults');
+            
+            const html = `
+                <div class="alert alert-info">
+                    <h3>📋 Reporte de Validación (${report.period})</h3>
+                    <div class="validation-results">
+                        <div class="result-card">
+                            <h4>📊 Estadísticas Generales</h4>
+                            <p><strong>Total de Validaciones:</strong> ${report.totalValidations}</p>
+                            <p><strong>Promedio de Discrepancias:</strong> ${report.averageDiscrepancies?.toFixed(2) || 0}</p>
+                            <p><strong>Alertas Generadas:</strong> ${report.alertsGenerated}</p>
+                            <p><strong>Salud del Sistema:</strong> ${report.systemHealth}</p>
+                        </div>
+                        
+                        <div class="result-card">
+                            <h4>🏆 Top 3 Fuentes Más Confiables</h4>
+                            ${report.sourceRankings?.slice(0, 3).map((source, i) => `
+                                <p><strong>${i + 1}. ${source.source}:</strong> 
+                                Score ${source.score.toFixed(1)} (${source.accuracy}% precisión)</p>
+                            `).join('') || '<p>No hay datos de ranking</p>'}
+                        </div>
+                    </div>
+                    <div class="timestamp">Reporte generado: ${new Date(report.timestamp).toLocaleString()}</div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+        
+        function displaySourceRankings(rankings) {
+            const container = document.getElementById('sourceRankings');
+            
+            if (!rankings || rankings.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning">No hay datos de ranking disponibles</div>';
+                return;
+            }
+            
+            let html = '<div class="validation-results">';
+            
+            rankings.forEach((source, index) => {
+                const rankClass = index < 3 ? 'success' : index < 6 ? 'warning' : 'danger';
+                html += `
+                    <div class="result-card">
+                        <h4>🏅 #${index + 1} ${source.source}</h4>
+                        <div class="alert alert-${source.isActive ? rankClass : 'secondary'}">
+                            <p><strong>Score:</strong> ${source.score.toFixed(1)}/100</p>
+                            <p><strong>Precisión:</strong> ${source.accuracy}%</p>
+                            <p><strong>Confiabilidad:</strong> ${source.reliability}</p>
+                            <p><strong>Estado:</strong> ${source.isActive ? 'Activa' : 'Inactiva'}</p>
+                            <p><strong>Validaciones:</strong> ${source.validations}</p>
+                            <p><strong>Errores:</strong> ${source.errors}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // =================================================================
+        // FUNCIONES DE DEMO Y DATOS DE PRUEBA
+        // =================================================================
+        
+        function generateDemoSourcesData() {
+            return {
+                'market_api': {
+                    pricesInMXN: {
+                        pricesPerGram: {
+                            gold: 1710,
+                            silver: 23,
+                            platinum: 654,
+                            palladium: 672
+                        }
+                    },
+                    source: 'MetalpriceAPI'
+                },
+                'kitco_backup': {
+                    pricesInMXN: {
+                        pricesPerGram: {
+                            gold: 1705,
+                            silver: 23.5,
+                            platinum: 660,
+                            palladium: 680
+                        }
+                    },
+                    source: 'KitcoAPI'
+                },
+                'manual_override': {
+                    gold: 1720,
+                    silver: 22.8,
+                    platinum: 650,
+                    palladium: 675
+                }
+            };
+        }
+        
+        function generateTestDemoData() {
+            // Generar datos con discrepancias para pruebas
+            return {
+                'api_source_1': {
+                    pricesInMXN: {
+                        pricesPerGram: {
+                            gold: 1172,  // Precio correcto
+                            silver: 23,   // Precio correcto
+                            platinum: 654, // Precio correcto
+                            palladium: 672 // Precio correcto
+                        }
+                    }
+                },
+                'api_source_2': {
+                    pricesInMXN: {
+                        pricesPerGram: {
+                            gold: 1250,   // 6.7% más alto - discrepancia
+                            silver: 25,   // 8.7% más alto - discrepancia
+                            platinum: 600, // 8.3% más bajo - discrepancia
+                            palladium: 750 // 11.6% más alto - discrepancia crítica
+                        }
+                    }
+                },
+                'unreliable_source': {
+                    pricesInMXN: {
+                        pricesPerGram: {
+                            gold: 1500,   // 28% más alto - crítico
+                            silver: 15,   // 35% más bajo - crítico
+                            platinum: 400, // 39% más bajo - crítico
+                            palladium: 900 // 34% más alto - crítico
+                        }
+                    }
+                }
+            };
+        }
+        
+        function generateDemoValidationResults() {
+            return {
+                id: `demo_validation_${Date.now()}`,
+                timestamp: Date.now(),
+                overallStatus: 'caution',
+                results: {
+                    gold: {
+                        metal: 'gold',
+                        status: 'caution',
+                        confidence: 0.85,
+                        recommendedSource: 'api_source_1',
+                        referencePrice: 1172,
+                        sources: {
+                            'api_source_1': { price: 1172, status: 'valid', deviationPercent: '0.0' },
+                            'api_source_2': { price: 1250, status: 'warning', deviationPercent: '6.7' },
+                            'unreliable_source': { price: 1500, status: 'critical', deviationPercent: '28.0' }
+                        }
+                    }
+                },
+                discrepancies: [
+                    {
+                        metal: 'gold',
+                        maxDeviation: 0.28,
+                        maxDeviationSource: 'unreliable_source',
+                        severity: 'critical'
+                    }
+                ],
+                alerts: [
+                    {
+                        type: 'price_out_of_range',
+                        message: 'Precio de oro fuera de rango en unreliable_source: 1500 MXN/g',
+                        severity: 'critical'
+                    }
+                ]
+            };
+        }
+        
+        function generateDemoReport() {
+            return {
+                period: '7 días',
+                totalValidations: 156,
+                averageDiscrepancies: 1.2,
+                alertsGenerated: 8,
+                systemHealth: 'healthy',
+                sourceRankings: generateDemoRankings(),
+                timestamp: Date.now()
+            };
+        }
+        
+        function generateDemoRankings() {
+            return [
+                { source: 'MetalpriceAPI', score: 95.5, accuracy: '98.2', reliability: 'excellent', isActive: true, validations: 450, errors: 8 },
+                { source: 'KitcoAPI', score: 88.3, accuracy: '92.1', reliability: 'good', isActive: true, validations: 380, errors: 30 },
+                { source: 'manual_override', score: 82.1, accuracy: '89.5', reliability: 'good', isActive: true, validations: 125, errors: 13 },
+                { source: 'FawazAPI', score: 75.8, accuracy: '85.3', reliability: 'fair', isActive: true, validations: 200, errors: 29 },
+                { source: 'fallback_static', score: 45.2, accuracy: '68.1', reliability: 'poor', isActive: false, validations: 50, errors: 16 }
+            ];
+        }
+        
+        // =================================================================
+        // FUNCIONES DE UTILIDAD
+        // =================================================================
+        
+        function setupSystemObservers() {
+            if (window.priceValidator && window.priceValidator.addObserver) {
+                window.priceValidator.addObserver((event, data) => {
+                    logMessage(`🛡️ Evento de validación: ${event}`, 'info');
+                    
+                    if (event === 'alert_generated') {
+                        logMessage(`🚨 ALERTA: ${data.message}`, data.severity === 'critical' ? 'error' : 'warning');
+                    }
+                    
+                    updateSystemStatus();
+                });
+            }
+            
+            if (window.jewelryPricingMaster && window.jewelryPricingMaster.addObserver) {
+                window.jewelryPricingMaster.addObserver((event, data) => {
+                    if (event === 'critical_price_alert') {
+                        logMessage(`🚨 ALERTA CRÍTICA DEL SISTEMA: ${data.message}`, 'error');
+                    }
+                    
+                    updateSystemStatus();
+                });
+            }
+        }
+        
+        function getAlertClass(status) {
+            const classMap = {
+                'healthy': 'success',
+                'valid': 'success',
+                'caution': 'warning',
+                'warning': 'warning',
+                'critical': 'danger',
+                'invalid': 'danger',
+                'error': 'danger',
+                'info': 'info'
+            };
+            return classMap[status] || 'info';
+        }
+        
+        function logMessage(message, type = 'info') {
+            const logContainer = document.getElementById('systemLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const typePrefix = {
+                'info': '[INFO]',
+                'success': '[OK]',
+                'warning': '[WARN]',
+                'error': '[ERROR]'
+            };
+            
+            const logEntry = `${timestamp} ${typePrefix[type]} ${message}\n`;
+            logContainer.textContent += logEntry;
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Limitar el log a las últimas 100 líneas
+            const lines = logContainer.textContent.split('\n');
+            if (lines.length > 100) {
+                logContainer.textContent = lines.slice(-100).join('\n');
+            }
+        }
+        
+        function showDemoValidationResults() {
+            const demoValidation = generateDemoValidationResults();
+            displayValidationResults(demoValidation);
+            
+            const demoRankings = generateDemoRankings();
+            displaySourceRankings(demoRankings);
+            
+            logMessage('📊 Datos de demostración cargados', 'info');
+        }
+        
+        // =================================================================
+        // INICIALIZACIÓN
+        // =================================================================
+        
+        // Inicializar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            logMessage('🌟 Demo de Validación de Precios iniciado', 'info');
+            initializeDemo();
+            
+            // Actualizar estado cada 5 segundos
+            setInterval(updateSystemStatus, 5000);
+        });
+        
+        // Manejo de errores globales
+        window.addEventListener('error', (event) => {
+            logMessage(`❌ Error global: ${event.error?.message || event.message}`, 'error');
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            logMessage(`❌ Promise rechazada: ${event.reason?.message || event.reason}`, 'error');
+        });
+    </script>
+</body>
+</html>

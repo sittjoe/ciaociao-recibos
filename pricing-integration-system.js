@@ -14,6 +14,7 @@ class JewelryPricingMaster {
         this.manualPricing = null;
         this.globalMarkup = null;
         this.fallbackManager = null;
+        this.priceValidator = null; // NUEVO: Sistema de validación
         
         this.isInitialized = false;
         this.currentExchangeRate = 19.8; // USD/MXN enero 2025
@@ -25,7 +26,8 @@ class JewelryPricingMaster {
             apis: 'unknown',
             manual: 'unknown',
             markup: 'unknown',
-            fallback: 'unknown'
+            fallback: 'unknown',
+            validation: 'unknown' // NUEVO: Estado del validador
         };
         
         this.initialize();
@@ -143,6 +145,23 @@ class JewelryPricingMaster {
         } else {
             this.systemHealth.fallback = 'offline';
         }
+
+        // Conectar con Price Validator
+        if (typeof window !== 'undefined' && window.priceValidator) {
+            this.priceValidator = window.priceValidator;
+            
+            // Agregar observer para alertas de validación
+            if (this.priceValidator.addObserver) {
+                this.priceValidator.addObserver((event, data) => {
+                    this.handleValidationEvent(event, data);
+                });
+            }
+            
+            this.systemHealth.validation = 'connected';
+            console.log('🔗 Conectado con Price Validator System');
+        } else {
+            this.systemHealth.validation = 'offline';
+        }
     }
 
     async initializeFallbackMode() {
@@ -228,7 +247,28 @@ class JewelryPricingMaster {
                 console.log(`🆘 Usando precio fallback: ${metal} ${karats || ''} = ${basePrice} MXN`);
             }
 
-            // 4. Aplicar markup si se solicita
+            // 4. Validar precio si el validador está disponible
+            let validationResult = null;
+            if (this.priceValidator && source !== 'fallback_static') {
+                try {
+                    const priceData = {
+                        pricePerGram: basePrice / weight,
+                        metal: metal,
+                        karats: karats,
+                        source: source
+                    };
+                    
+                    validationResult = await this.priceValidator.validatePriceData(priceData, source);
+                    
+                    if (validationResult.overallStatus === 'critical') {
+                        console.warn(`⚠️ Precio crítico detectado para ${metal} ${karats || ''} de ${source}`);
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error validando precio:', error.message);
+                }
+            }
+
+            // 5. Aplicar markup si se solicita
             let finalResult = {
                 pricePerGram: basePrice / weight,
                 totalPrice: basePrice,
@@ -237,7 +277,8 @@ class JewelryPricingMaster {
                 weight: weight,
                 source: source,
                 systemSource: 'integrated',
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                validation: validationResult // NUEVO: Resultado de validación
             };
 
             if (includeMarkup && this.globalMarkup) {
@@ -411,6 +452,12 @@ class JewelryPricingMaster {
             health.fallback = fallbackStatus ? 'healthy' : 'degraded';
         }
 
+        if (this.priceValidator) {
+            const validatorStatus = this.priceValidator.getSystemStatus ? 
+                this.priceValidator.getSystemStatus() : null;
+            health.validation = validatorStatus ? 'healthy' : 'degraded';
+        }
+
         // Actualizar estado si cambió
         const healthChanged = JSON.stringify(health) !== JSON.stringify(this.systemHealth);
         if (healthChanged) {
@@ -437,6 +484,38 @@ class JewelryPricingMaster {
         this.notifyObservers('markup_updated', {
             timestamp: Date.now(),
             data: data
+        });
+    }
+
+    handleValidationEvent(event, data) {
+        console.log(`🛡️ Evento de validación: ${event}`);
+        
+        // Manejar diferentes tipos de eventos de validación
+        switch (event) {
+            case 'alert_generated':
+                if (data.severity === 'critical') {
+                    console.error(`🚨 ALERTA CRÍTICA DE PRECIOS: ${data.message}`);
+                    // Notificar a observadores sobre alerta crítica
+                    this.notifyObservers('critical_price_alert', data);
+                }
+                break;
+                
+            case 'validation_completed':
+                if (data.overallStatus === 'critical') {
+                    console.warn('⚠️ Validación de precios detectó problemas críticos');
+                }
+                break;
+                
+            case 'rankings_updated':
+                console.log(`📊 Rankings de fuentes actualizados - Top: ${data.topSource}`);
+                break;
+        }
+        
+        // Reenviar evento a observadores del sistema maestro
+        this.notifyObservers('validation_event', {
+            originalEvent: event,
+            data: data,
+            timestamp: Date.now()
         });
     }
 
@@ -479,10 +558,12 @@ class JewelryPricingMaster {
                 kitcoPricing: !!this.kitcoPricing,
                 manualPricing: !!this.manualPricing,
                 globalMarkup: !!this.globalMarkup,
-                fallbackManager: !!this.fallbackManager
+                fallbackManager: !!this.fallbackManager,
+                priceValidator: !!this.priceValidator
             },
             fallbackPricesAvailable: !!this.fallbackPrices,
-            observerCount: this.observers.length
+            observerCount: this.observers.length,
+            validationSystem: this.priceValidator ? this.priceValidator.getSystemStatus() : null
         };
     }
 
@@ -564,6 +645,127 @@ class JewelryPricingMaster {
             throw error;
         }
     }
+
+    // =================================================================
+    // MÉTODOS DE VALIDACIÓN DE PRECIOS
+    // =================================================================
+
+    async getValidationReport(days = 7) {
+        if (!this.priceValidator) {
+            console.warn('⚠️ Sistema de validación no disponible');
+            return null;
+        }
+
+        try {
+            const report = await this.priceValidator.getValidationReport(days);
+            return {
+                ...report,
+                masterSystemIntegration: true,
+                timestamp: Date.now()
+            };
+        } catch (error) {
+            console.error('❌ Error obteniendo reporte de validación:', error);
+            return null;
+        }
+    }
+
+    async validateCurrentPrices() {
+        if (!this.priceValidator) {
+            console.warn('⚠️ Sistema de validación no disponible');
+            return null;
+        }
+
+        try {
+            console.log('🔍 Validando precios actuales del sistema...');
+            
+            // Obtener precios actuales de todas las fuentes
+            const currentPrices = await this.getAllCurrentPrices();
+            
+            // Crear estructura de datos para validación
+            const sourcesData = {
+                'integrated_system': currentPrices
+            };
+
+            // Agregar datos de fuentes individuales si están disponibles
+            if (this.kitcoPricing) {
+                try {
+                    const kitcoPrices = await this.kitcoPricing.getAllCurrentPrices();
+                    sourcesData['kitco_api'] = kitcoPrices;
+                } catch (error) {
+                    console.warn('⚠️ Error obteniendo precios de Kitco para validación:', error.message);
+                }
+            }
+
+            // Realizar validación
+            const validation = await this.priceValidator.validatePricesFromSources(sourcesData);
+            
+            console.log(`✅ Validación completada - Status: ${validation.overallStatus}`);
+            
+            // Notificar resultado
+            this.notifyObservers('price_validation_completed', {
+                validation: validation,
+                timestamp: Date.now()
+            });
+            
+            return validation;
+
+        } catch (error) {
+            console.error('❌ Error validando precios actuales:', error);
+            return null;
+        }
+    }
+
+    async acknowledgeValidationAlerts() {
+        if (!this.priceValidator) {
+            console.warn('⚠️ Sistema de validación no disponible');
+            return 0;
+        }
+
+        try {
+            const acknowledgedCount = await this.priceValidator.acknowledgeAllAlerts();
+            console.log(`✅ ${acknowledgedCount} alertas de validación reconocidas`);
+            
+            this.notifyObservers('validation_alerts_acknowledged', {
+                count: acknowledgedCount,
+                timestamp: Date.now()
+            });
+            
+            return acknowledgedCount;
+            
+        } catch (error) {
+            console.error('❌ Error reconociendo alertas de validación:', error);
+            return 0;
+        }
+    }
+
+    getValidationSourceRankings() {
+        if (!this.priceValidator) {
+            console.warn('⚠️ Sistema de validación no disponible');
+            return [];
+        }
+
+        try {
+            return this.priceValidator.updateSourceRankings();
+        } catch (error) {
+            console.error('❌ Error obteniendo rankings de fuentes:', error);
+            return [];
+        }
+    }
+
+    async forceValidationUpdate() {
+        if (!this.priceValidator) {
+            console.warn('⚠️ Sistema de validación no disponible');
+            return null;
+        }
+
+        try {
+            console.log('🔄 Forzando validación de precios...');
+            return await this.priceValidator.performAutomaticValidation();
+        } catch (error) {
+            console.error('❌ Error forzando validación:', error);
+            return null;
+        }
+    }
 }
 
 // =================================================================
@@ -572,9 +774,19 @@ class JewelryPricingMaster {
 
 // Crear instancia global con inicialización diferida
 if (typeof window !== 'undefined') {
-    // Esperar a que otros sistemas estén cargados
+    // Esperar a que otros sistemas estén cargados, incluyendo el validador
     setTimeout(() => {
         window.jewelryPricingMaster = new JewelryPricingMaster();
+        
+        // Reintento de conexión con validador si no se conectó inicialmente
+        setTimeout(() => {
+            if (window.jewelryPricingMaster && window.priceValidator && 
+                !window.jewelryPricingMaster.priceValidator) {
+                console.log('🔄 Reconectando con Price Validator...');
+                window.jewelryPricingMaster.connectToSubsystems();
+            }
+        }, 2000); // Reintento después de 2 segundos adicionales
+        
     }, 2000); // 2 segundos para permitir carga de otros módulos
 }
 
