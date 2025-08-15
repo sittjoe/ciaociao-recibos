@@ -1,8 +1,15 @@
-// calculator-system.js - SISTEMA COMPLETO DE CALCULADORA DE PRECIOS v1.0
-// Maneja toda la lógica de la calculadora de joyería
+// calculator-system.js - CALCULADORA INTEGRADA CON SISTEMA DE PRECIOS REALES v2.0
+// Usa los 10 subagentes del sistema de precios para obtener datos en tiempo real
 // =================================================================
 
-console.log('🧮 Iniciando Sistema de Calculadora de Precios v1.0...');
+console.log('🧮 Iniciando Calculadora Integrada con Sistema de Precios Reales v2.0...');
+
+// Verificar que el sistema de precios esté disponible
+if (typeof window.getPrice === 'function') {
+    console.log('✅ Sistema de precios integrado detectado');
+} else {
+    console.warn('⚠️ Sistema de precios no disponible - usando fallbacks');
+}
 
 // =================================================================
 // CONFIGURACIÓN Y VARIABLES GLOBALES
@@ -123,6 +130,43 @@ class PriceCalculator {
         }
 
         try {
+            // ✅ USAR SISTEMA DE PRECIOS REAL SI ESTÁ DISPONIBLE
+            if (typeof window.getPrice === 'function') {
+                console.log(`🔗 Obteniendo precio real de ${metalType} ${karats || ''} del sistema integrado...`);
+                
+                // Convertir nombres para el sistema de precios
+                let metalName = metalType;
+                if (metalType === 'oro') metalName = 'gold';
+                if (metalType === 'plata') metalName = 'silver';
+                if (metalType === 'platino') metalName = 'platinum';
+                
+                // Usar API unificada del sistema de precios
+                const result = await window.getPrice(metalName, karats || '24k', 1, {
+                    source: 'calculator',
+                    requestId: `calc_${Date.now()}`
+                });
+                
+                if (result && result.pricePerGram) {
+                    const pricePerGramMXN = result.pricePerGram;
+                    
+                    // Guardar en cache
+                    this.cache[cacheKey] = {
+                        price: pricePerGramMXN,
+                        timestamp: Date.now(),
+                        source: result.source,
+                        confidence: result.confidence
+                    };
+                    this.saveCache();
+                    
+                    console.log(`✅ Precio real ${metalType} obtenido: $${pricePerGramMXN.toFixed(2)} MXN/g (${result.source})`);
+                    return pricePerGramMXN;
+                } else {
+                    console.warn('⚠️ Sistema de precios devolvió resultado inválido, usando fallback');
+                }
+            }
+            
+            // 🔄 FALLBACK: Precio simulado si el sistema de precios no está disponible
+            console.log(`⚠️ Usando precios de fallback para ${metalType} ${karats || ''}`);
             let pricePerOz = 0;
             
             switch(metalType) {
@@ -153,11 +197,13 @@ class PriceCalculator {
             // Guardar en cache
             this.cache[cacheKey] = {
                 price: pricePerGramMXN,
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                source: 'fallback_simulator',
+                confidence: 'low'
             };
             this.saveCache();
 
-            console.log(`💰 Precio ${metalType} actualizado: $${pricePerGramMXN.toFixed(2)} MXN/g`);
+            console.log(`💰 Precio fallback ${metalType}: $${pricePerGramMXN.toFixed(2)} MXN/g`);
             return pricePerGramMXN;
 
         } catch (error) {
