@@ -23,6 +23,262 @@
     --luxury-black: #1a1a1a;      /* Negro de lujo */
     --luxury-gray: #2c2c2c;       /* Gris de lujo */
     --border-gold: #D4AF37;       /* Bordes dorados */
+    
+    /* Variables para SmartDropdown */
+    --dropdown-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    --dropdown-border: 1px solid var(--medium-gray);
+    --dropdown-radius: 8px;
+    --dropdown-hover: #f8f9fa;
+    --dropdown-selected: var(--gold-light);
+}
+
+/* =============================================
+   MANUAL GOLD CONTROL PANEL STYLES
+   ============================================= */
+
+.manual-gold-control {
+    background: linear-gradient(135deg, var(--gold-light) 0%, var(--champagne) 100%);
+    border: 2px solid var(--gold);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.manual-gold-control::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--dark-gold) 0%, var(--gold) 50%, var(--dark-gold) 100%);
+}
+
+.manual-gold-control h3 {
+    color: var(--dark-gold);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.manual-control-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Gold 24k Input Section */
+.gold-24k-input {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.gold-24k-input label {
+    display: block;
+    font-weight: 600;
+    color: var(--dark-gold);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.gold-24k-input input[type="number"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--medium-gray);
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background: white;
+    margin-bottom: 12px;
+}
+
+.gold-24k-input input[type="number"]:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+    transform: translateY(-1px);
+}
+
+.gold-24k-input input[type="number"]:hover {
+    border-color: var(--dark-gold);
+    transform: translateY(-1px);
+}
+
+/* Calculate Button */
+.btn-calculate {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--dark-gold) 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    width: 100%;
+}
+
+.btn-calculate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+    background: linear-gradient(135deg, var(--dark-gold) 0%, var(--gold) 100%);
+}
+
+.btn-calculate:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+/* Calculated Results Section */
+.calculated-results {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.results-header {
+    font-weight: 600;
+    color: var(--dark-gold);
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: 1rem;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 8px;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* Individual Result Items */
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #fefefe 0%, #f8f8f8 100%);
+    border: 1px solid var(--medium-gray);
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.result-item:hover {
+    border-color: var(--gold);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+}
+
+.karat-label {
+    font-weight: 600;
+    color: var(--dark-gray);
+    font-size: 0.9rem;
+}
+
+.karat-price {
+    font-weight: 700;
+    color: var(--dark-gold);
+    font-size: 1rem;
+    text-align: right;
+    min-width: 80px;
+}
+
+/* Apply Button */
+.btn-apply {
+    background: linear-gradient(135deg, var(--success) 0%, #1e8449 100%);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+    width: 100%;
+    display: none; /* Hidden by default, shown via JavaScript */
+}
+
+.btn-apply:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4);
+    background: linear-gradient(135deg, #1e8449 0%, var(--success) 100%);
+}
+
+.btn-apply:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
+/* Responsive Design for Manual Gold Control */
+@media (max-width: 768px) {
+    .manual-gold-control {
+        padding: 20px 16px;
+        margin-bottom: 16px;
+    }
+    
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .result-item {
+        padding: 8px 12px;
+    }
+    
+    .gold-24k-input input[type="number"] {
+        font-size: 1rem;
+        padding: 10px 12px;
+    }
+    
+    .btn-calculate,
+    .btn-apply {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .manual-gold-control {
+        padding: 16px 12px;
+    }
+    
+    .manual-gold-control h3 {
+        font-size: 1.1rem;
+        margin-bottom: 16px;
+    }
+    
+    .gold-24k-input,
+    .calculated-results {
+        padding: 16px 12px;
+    }
+    
+    .result-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .karat-price {
+        align-self: flex-end;
+        min-width: auto;
+    }
 }
 
 * {
@@ -2698,5 +2954,416 @@ input[type="file"]:hover {
     
     .summary-row.total {
         font-size: 1.2rem;
+    }
+}
+
+/* ====================================================================
+   SMART DROPDOWN STYLES - Auto-Complete Inteligente
+   ================================================================== */
+
+/* Input mejorado con auto-complete */
+.smart-input {
+    position: relative;
+}
+
+.smart-input[data-smart-dropdown="true"] {
+    background-image: linear-gradient(45deg, transparent 40%, var(--gold) 41%, var(--gold) 42%, transparent 43%);
+    background-size: 10px 10px;
+    background-position: calc(100% - 12px) center;
+    background-repeat: no-repeat;
+    transition: all 0.3s ease;
+}
+
+.smart-input:focus[data-smart-dropdown="true"] {
+    background-image: linear-gradient(225deg, transparent 40%, var(--success) 41%, var(--success) 42%, transparent 43%);
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+/* Contenedor principal del dropdown */
+.smart-dropdown {
+    position: absolute;
+    background: var(--white);
+    border: var(--dropdown-border);
+    border-radius: var(--dropdown-radius);
+    box-shadow: var(--dropdown-shadow);
+    z-index: 1050;
+    min-width: 250px;
+    max-width: 400px;
+    max-height: 320px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+}
+
+/* Estados de visibilidad */
+.smart-dropdown-hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    pointer-events: none;
+}
+
+.smart-dropdown-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: all;
+}
+
+/* Dropdown posicionado arriba del input */
+.smart-dropdown.dropdown-above {
+    transform-origin: bottom center;
+}
+
+.smart-dropdown.dropdown-above.smart-dropdown-hidden {
+    transform: translateY(8px);
+}
+
+/* Header del dropdown */
+.smart-dropdown-header {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--dark-gold) 100%);
+    color: var(--white);
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.dropdown-hint {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* Lista de sugerencias */
+.smart-dropdown-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 240px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--medium-gray) transparent;
+}
+
+.smart-dropdown-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.smart-dropdown-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.smart-dropdown-list::-webkit-scrollbar-thumb {
+    background: var(--medium-gray);
+    border-radius: 3px;
+}
+
+.smart-dropdown-list::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-gray);
+}
+
+/* Items de sugerencias */
+.smart-dropdown-item {
+    padding: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--light-gray);
+    transition: all 0.15s ease;
+    background: var(--white);
+}
+
+.smart-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.smart-dropdown-item:hover {
+    background: var(--dropdown-hover);
+    transform: translateX(2px);
+}
+
+.smart-dropdown-item.selected {
+    background: var(--dropdown-selected);
+    border-left: 4px solid var(--gold);
+    padding-left: 8px;
+}
+
+.smart-dropdown-item.no-suggestions {
+    background: var(--light-gray);
+    cursor: default;
+    color: var(--dark-gray);
+    font-style: italic;
+}
+
+.smart-dropdown-item.no-suggestions:hover {
+    background: var(--light-gray);
+    transform: none;
+}
+
+/* Contenido de sugerencias */
+.suggestion-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.suggestion-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--black);
+    line-height: 1.2;
+}
+
+.suggestion-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.75rem;
+    color: var(--dark-gray);
+}
+
+.frequency {
+    flex: 1;
+}
+
+.score {
+    font-weight: 600;
+    color: var(--gold);
+}
+
+/* Highlight de texto coincidente */
+.suggestion-text mark.highlight {
+    background: var(--gold);
+    color: var(--white);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+/* Footer del dropdown */
+.smart-dropdown-footer {
+    background: var(--light-gray);
+    padding: 6px 12px;
+    font-size: 0.7rem;
+    color: var(--dark-gray);
+    text-align: center;
+    border-top: 1px solid var(--medium-gray);
+}
+
+.powered-by {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* ====================================================================
+   RESPONSIVE DESIGN PARA SMART DROPDOWN
+   ================================================================== */
+
+/* Tablets */
+@media (max-width: 768px) {
+    .smart-dropdown {
+        min-width: 200px;
+        max-width: 300px;
+        max-height: 280px;
+    }
+    
+    .smart-dropdown-header {
+        padding: 6px 10px;
+    }
+    
+    .dropdown-hint {
+        display: none; /* Ocultar en tablets */
+    }
+    
+    .smart-dropdown-item {
+        padding: 10px;
+    }
+    
+    .suggestion-text {
+        font-size: 0.85rem;
+    }
+    
+    .suggestion-meta {
+        font-size: 0.7rem;
+    }
+}
+
+/* Móviles */
+@media (max-width: 480px) {
+    .smart-dropdown {
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        min-width: auto !important;
+        border-radius: var(--dropdown-radius) var(--dropdown-radius) 0 0;
+        max-height: 60vh;
+    }
+    
+    .smart-dropdown-header {
+        padding: 8px 12px;
+    }
+    
+    .dropdown-title {
+        font-size: 0.9rem;
+    }
+    
+    .dropdown-hint {
+        display: none;
+    }
+    
+    .smart-dropdown-item {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--medium-gray);
+    }
+    
+    .suggestion-content {
+        gap: 6px;
+    }
+    
+    .suggestion-text {
+        font-size: 0.95rem;
+        line-height: 1.3;
+    }
+    
+    .suggestion-meta {
+        flex-direction: column;
+        gap: 2px;
+        font-size: 0.75rem;
+    }
+    
+    .smart-dropdown-footer {
+        padding: 8px 12px;
+        font-size: 0.75rem;
+    }
+    
+    /* Mejorar toque en móviles */
+    .smart-dropdown-item:hover {
+        transform: none;
+    }
+    
+    .smart-dropdown-item:active {
+        background: var(--dropdown-selected);
+    }
+}
+
+/* ====================================================================
+   ANIMACIONES ADICIONALES PARA SMART DROPDOWN
+   ================================================================== */
+
+/* Animación de entrada */
+@keyframes dropdownSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Animación de salida */
+@keyframes dropdownSlideOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+}
+
+.smart-dropdown-visible {
+    animation: dropdownSlideIn 0.2s ease-out;
+}
+
+.smart-dropdown-hidden {
+    animation: dropdownSlideOut 0.15s ease-in;
+}
+
+/* Efecto de typing en el input */
+.smart-input:focus {
+    animation: inputFocus 0.3s ease;
+}
+
+@keyframes inputFocus {
+    0% {
+        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(212, 175, 55, 0.1);
+    }
+    100% {
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    }
+}
+
+/* ====================================================================
+   ESTADOS ESPECIALES PARA SMART DROPDOWN
+   ================================================================== */
+
+/* Cuando está cargando sugerencias */
+.smart-dropdown.loading .smart-dropdown-list::before {
+    content: "Buscando sugerencias...";
+    display: block;
+    padding: 20px;
+    text-align: center;
+    color: var(--dark-gray);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+/* Cuando no hay conexión o error */
+.smart-dropdown.error .smart-dropdown-header {
+    background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);
+}
+
+.smart-dropdown.error .dropdown-title::after {
+    content: " (Error)";
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+/* Dark mode support (futuro) */
+@media (prefers-color-scheme: dark) {
+    .smart-dropdown {
+        background: var(--luxury-gray);
+        border-color: #444;
+        color: var(--white);
+    }
+    
+    .smart-dropdown-item {
+        background: var(--luxury-gray);
+        color: var(--white);
+        border-bottom-color: #444;
+    }
+    
+    .smart-dropdown-item:hover {
+        background: #3a3a3a;
+    }
+    
+    .smart-dropdown-item.selected {
+        background: rgba(212, 175, 55, 0.2);
+    }
+    
+    .suggestion-text {
+        color: var(--white);
+    }
+    
+    .suggestion-meta {
+        color: #ccc;
+    }
+    
+    .smart-dropdown-footer {
+        background: #2a2a2a;
+        border-top-color: #444;
+        color: #ccc;
     }
 }

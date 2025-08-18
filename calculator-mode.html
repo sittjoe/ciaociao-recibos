@@ -50,14 +50,60 @@
                         </div>
                         
                         <div class="price-sections">
+                            <!-- Control Manual de Oro 24k -->
+                            <div class="price-category manual-gold-control">
+                                <h3>🎯 Control Manual de Oro</h3>
+                                <div class="manual-control-container">
+                                    <div class="gold-24k-input">
+                                        <label for="manual24kPrice">Precio Oro 24k (MXN/gramo):</label>
+                                        <input type="number" id="manual24kPrice" placeholder="1700.00" step="0.01" min="0">
+                                        <button type="button" id="calculateAllKarats" class="btn-calculate">🧮 Calcular Todos</button>
+                                    </div>
+                                    
+                                    <div class="calculated-results" id="calculatedResults">
+                                        <div class="results-header">Precios Calculados (MXN/gramo):</div>
+                                        <div class="results-grid">
+                                            <div class="result-item">
+                                                <span class="karat-label">24k (100%):</span>
+                                                <span class="karat-price" id="calc24k">--</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="karat-label">22k (91.7%):</span>
+                                                <span class="karat-price" id="calc22k">--</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="karat-label">18k (75.0%):</span>
+                                                <span class="karat-price" id="calc18k">--</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="karat-label">14k (58.3%):</span>
+                                                <span class="karat-price" id="calc14k">--</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="karat-label">10k (41.7%):</span>
+                                                <span class="karat-price" id="calc10k">--</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" id="applyCalculatedPrices" class="btn-apply" style="display:none;">
+                                            ✅ Aplicar Precios a la Calculadora
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- Metales -->
                             <div class="price-category">
-                                <h3>🥇 Metales Preciosos (USD/gramo)</h3>
+                                <h3>🥇 Metales Preciosos (MXN/gramo)</h3>
                                 <div class="price-grid">
                                     <div class="price-item">
                                         <span class="price-label">Oro 24k:</span>
                                         <input type="number" id="priceGold24k" class="price-input" step="0.01" readonly>
                                         <button type="button" class="price-edit-btn" data-price="gold24k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 22k:</span>
+                                        <input type="number" id="priceGold22k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold22k">✏️</button>
                                     </div>
                                     <div class="price-item">
                                         <span class="price-label">Oro 18k:</span>
@@ -68,6 +114,11 @@
                                         <span class="price-label">Oro 14k:</span>
                                         <input type="number" id="priceGold14k" class="price-input" step="0.01" readonly>
                                         <button type="button" class="price-edit-btn" data-price="gold14k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 10k:</span>
+                                        <input type="number" id="priceGold10k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold10k">✏️</button>
                                     </div>
                                     <div class="price-item">
                                         <span class="price-label">Plata 925:</span>
@@ -466,6 +517,11 @@
     <script src="auth.js"></script>
     <script src="utils.js"></script>
     <script src="database.js"></script>
+    
+    <!-- Auto-Complete System -->
+    <script src="autocomplete-engine.js"></script>
+    <script src="smart-dropdown.js"></script>
+    <script src="autocomplete-integration.js"></script>
     
     <!-- Sistema de Precios Unificado -->
     <script src="pricing-master.js"></script>

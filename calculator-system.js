@@ -486,6 +486,9 @@ function initializeCalculatorSystem() {
     // Configurar event listeners
     setupCalculatorEventListeners();
     
+    // Configurar control manual de oro
+    setupGoldManualControl();
+    
     // Establecer fecha actual
     const dateField = document.getElementById('calculatorDate');
     if (dateField && !dateField.value) {
@@ -493,6 +496,190 @@ function initializeCalculatorSystem() {
     }
     
     console.log('✅ Sistema de calculadora inicializado');
+}
+
+// =================================================================
+// SISTEMA DE CÁLCULO MANUAL DE ORO 24K
+// =================================================================
+
+/**
+ * Calcular todos los quilates basado en precio de oro 24k
+ * @param {number} price24k - Precio del oro 24k en MXN/gramo
+ * @returns {object} - Objeto con precios calculados para todos los quilates
+ */
+function calculateAllKaratsFromGold24k(price24k) {
+    console.log(`🧮 Calculando quilates desde oro 24k: $${price24k} MXN/gramo`);
+    
+    // Fórmulas de pureza del oro (estándar de la industria)
+    const karatPurities = {
+        '24k': 1.000,   // 100.0% oro puro
+        '22k': 0.917,   // 91.7% oro (oro de moneda)
+        '18k': 0.750,   // 75.0% oro (joyería fina)
+        '14k': 0.583,   // 58.3% oro (estándar americano)
+        '10k': 0.417    // 41.7% oro (mínimo legal USA/México)
+    };
+    
+    const calculatedPrices = {};
+    
+    Object.entries(karatPurities).forEach(([karat, purity]) => {
+        const calculatedPrice = price24k * purity;
+        calculatedPrices[karat] = {
+            price: Math.round(calculatedPrice * 100) / 100, // Redondear a 2 decimales
+            purity: purity,
+            percentage: (purity * 100).toFixed(1) + '%'
+        };
+        
+        console.log(`  ${karat}: $${calculatedPrices[karat].price} MXN/g (${calculatedPrices[karat].percentage})`);
+    });
+    
+    return calculatedPrices;
+}
+
+/**
+ * Aplicar precios calculados a los campos de la calculadora
+ * @param {object} calculatedPrices - Precios calculados por quilate
+ */
+function applyCalculatedPricesToInputs(calculatedPrices) {
+    console.log('📊 Aplicando precios calculados a los campos...');
+    
+    // Mapeo de quilates a IDs de campos
+    const karatFieldMapping = {
+        '24k': 'priceGold24k',
+        '22k': 'priceGold22k', 
+        '18k': 'priceGold18k',
+        '14k': 'priceGold14k',
+        '10k': 'priceGold10k'
+    };
+    
+    let appliedCount = 0;
+    
+    Object.entries(karatFieldMapping).forEach(([karat, fieldId]) => {
+        const field = document.getElementById(fieldId);
+        if (field && calculatedPrices[karat]) {
+            field.value = calculatedPrices[karat].price;
+            
+            // Añadir efecto visual de actualización
+            field.style.background = '#d4edda'; // Verde claro
+            setTimeout(() => {
+                field.style.background = '';
+            }, 1000);
+            
+            appliedCount++;
+            console.log(`  ✅ ${karat}: $${calculatedPrices[karat].price} → ${fieldId}`);
+        }
+    });
+    
+    console.log(`✅ ${appliedCount} precios aplicados a la calculadora`);
+    
+    // Mostrar notificación de éxito
+    if (window.utils && window.utils.showNotification) {
+        window.utils.showNotification(
+            `Precios de oro actualizados: ${appliedCount} quilates`, 
+            'success', 
+            3000
+        );
+    }
+}
+
+/**
+ * Configurar event listeners para el control manual de oro
+ */
+function setupGoldManualControl() {
+    console.log('🎯 Configurando control manual de oro...');
+    
+    const manual24kInput = document.getElementById('manual24kPrice');
+    const calculateBtn = document.getElementById('calculateAllKarats');
+    const applyBtn = document.getElementById('applyCalculatedPrices');
+    
+    let currentCalculatedPrices = null;
+    
+    if (manual24kInput && calculateBtn) {
+        // Event listener para cálculo automático
+        calculateBtn.addEventListener('click', () => {
+            const price24k = parseFloat(manual24kInput.value);
+            
+            if (!price24k || price24k <= 0) {
+                alert('Por favor ingrese un precio válido para oro 24k');
+                manual24kInput.focus();
+                return;
+            }
+            
+            // Calcular todos los quilates
+            currentCalculatedPrices = calculateAllKaratsFromGold24k(price24k);
+            
+            // Mostrar resultados en la interfaz
+            displayCalculatedResults(currentCalculatedPrices);
+            
+            // Mostrar botón de aplicar
+            if (applyBtn) {
+                applyBtn.style.display = 'block';
+            }
+        });
+        
+        // Event listener para aplicar precios
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+                if (currentCalculatedPrices) {
+                    applyCalculatedPricesToInputs(currentCalculatedPrices);
+                    applyBtn.style.display = 'none';
+                } else {
+                    alert('Primero calcule los precios usando el botón "🧮 Calcular Todos"');
+                }
+            });
+        }
+        
+        // Cálculo automático mientras escribe (debounced)
+        let debounceTimer;
+        manual24kInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const price24k = parseFloat(manual24kInput.value);
+                if (price24k && price24k > 0) {
+                    currentCalculatedPrices = calculateAllKaratsFromGold24k(price24k);
+                    displayCalculatedResults(currentCalculatedPrices);
+                    if (applyBtn) {
+                        applyBtn.style.display = 'block';
+                    }
+                }
+            }, 500); // 500ms delay
+        });
+        
+        console.log('✅ Control manual de oro configurado');
+    } else {
+        console.warn('⚠️ Elementos del control manual no encontrados');
+    }
+}
+
+/**
+ * Mostrar resultados calculados en la interfaz
+ * @param {object} calculatedPrices - Precios calculados
+ */
+function displayCalculatedResults(calculatedPrices) {
+    const resultElements = {
+        'calc24k': '24k',
+        'calc22k': '22k', 
+        'calc18k': '18k',
+        'calc14k': '14k',
+        'calc10k': '10k'
+    };
+    
+    Object.entries(resultElements).forEach(([elementId, karat]) => {
+        const element = document.getElementById(elementId);
+        if (element && calculatedPrices[karat]) {
+            const price = calculatedPrices[karat].price;
+            const percentage = calculatedPrices[karat].percentage;
+            element.textContent = `$${price.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            element.title = `${percentage} de pureza`;
+            
+            // Añadir animación de actualización
+            element.style.color = '#28a745';
+            element.style.fontWeight = 'bold';
+            setTimeout(() => {
+                element.style.color = '';
+                element.style.fontWeight = '';
+            }, 1500);
+        }
+    });
 }
 
 // =================================================================

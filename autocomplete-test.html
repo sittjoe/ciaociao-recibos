@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auto-Complete System - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 20px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+        }
+        
+        .test-section h3 {
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+        
+        .test-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .test-stats {
+            background: var(--light-gray);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .test-results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-success { background: var(--success); }
+        .status-warning { background: #F39C12; }
+        .status-error { background: var(--danger); }
+        
+        .btn-test {
+            background: var(--gold);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn-test:hover {
+            background: var(--dark-gold);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧪 Sistema de Auto-Complete - Pruebas</h1>
+            <p>Panel de testing para verificar la funcionalidad del auto-complete inteligente</p>
+        </div>
+
+        <!-- Estado del Sistema -->
+        <div class="test-section">
+            <h3>📊 Estado del Sistema</h3>
+            <div id="systemStatus">
+                <div id="engineStatus">
+                    <span class="status-indicator status-warning"></span>
+                    Motor de Auto-Complete: Inicializando...
+                </div>
+                <div id="dropdownStatus">
+                    <span class="status-indicator status-warning"></span>
+                    Sistema de Dropdown: Inicializando...
+                </div>
+                <div id="integrationStatus">
+                    <span class="status-indicator status-warning"></span>
+                    Integración: Inicializando...
+                </div>
+            </div>
+            
+            <div class="test-stats" id="systemStats">
+                Cargando estadísticas del sistema...
+            </div>
+        </div>
+
+        <!-- Formulario de Prueba -->
+        <div class="test-section">
+            <h3>📝 Formulario de Prueba</h3>
+            <p>Prueba el auto-complete escribiendo en los campos. Los datos se aprenden automáticamente.</p>
+            
+            <form id="testForm" class="test-form">
+                <div class="form-group">
+                    <label for="testClientName">Nombre del Cliente</label>
+                    <input type="text" id="testClientName" placeholder="Escribe para ver sugerencias...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="testClientPhone">Teléfono</label>
+                    <input type="tel" id="testClientPhone" placeholder="Teléfono del cliente...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="testClientEmail">Email</label>
+                    <input type="email" id="testClientEmail" placeholder="Email del cliente...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="testPieceType">Tipo de Joya</label>
+                    <input type="text" id="testPieceType" placeholder="Anillo, collar, pulsera...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="testMaterial">Material</label>
+                    <input type="text" id="testMaterial" placeholder="Oro, plata, platino...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="testDescription">Descripción</label>
+                    <textarea id="testDescription" placeholder="Descripción detallada..." rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="testStones">Piedras Preciosas</label>
+                    <input type="text" id="testStones" placeholder="Diamante, rubí, esmeralda...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="testSize">Talla/Tamaño</label>
+                    <input type="text" id="testSize" placeholder="Talla o medidas...">
+                </div>
+            </form>
+        </div>
+
+        <!-- Controles de Prueba -->
+        <div class="test-section">
+            <h3>🔧 Controles de Prueba</h3>
+            
+            <button class="btn-test" onclick="addTestData()">📚 Agregar Datos de Prueba</button>
+            <button class="btn-test" onclick="clearTestData()">🗑️ Limpiar Datos</button>
+            <button class="btn-test" onclick="runPerformanceTest()">⚡ Test de Performance</button>
+            <button class="btn-test" onclick="exportStats()">📊 Exportar Estadísticas</button>
+            <button class="btn-test" onclick="refreshStats()">🔄 Actualizar Estado</button>
+            
+            <div class="test-results" id="testResults">
+                📋 Resultados de pruebas aparecerán aquí...
+            </div>
+        </div>
+
+        <!-- Datos de Ejemplo -->
+        <div class="test-section">
+            <h3>💾 Gestión de Datos</h3>
+            <div id="dataStats">
+                <div><strong>Índices construidos:</strong> <span id="indexCount">-</span></div>
+                <div><strong>Entradas totales:</strong> <span id="totalEntries">-</span></div>
+                <div><strong>Última actualización:</strong> <span id="lastUpdate">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts del Sistema -->
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    <script src="autocomplete-engine.js"></script>
+    <script src="smart-dropdown.js"></script>
+    <script src="autocomplete-integration.js"></script>
+
+    <script>
+        // Variables globales para testing
+        let testStartTime = Date.now();
+        let testData = [];
+
+        // Datos de prueba predefinidos
+        const sampleData = {
+            clientName: [
+                'María García López', 'José Luis Rodríguez', 'Ana Patricia Martínez',
+                'Carlos Eduardo Ruiz', 'Sofía Isabel Hernández', 'Fernando Alejandro Torres',
+                'Gabriela Monserrat Jiménez', 'Ricardo Alfonso Vargas'
+            ],
+            clientPhone: [
+                '55 1234 5678', '55 8765 4321', '55 9876 5432',
+                '55 2468 1357', '55 3691 4702', '55 7410 8520'
+            ],
+            clientEmail: [
+                'maria.garcia@email.com', 'jose.rodriguez@empresa.mx', 'ana.martinez@correo.com',
+                'carlos.ruiz@gmail.com', 'sofia.hernandez@outlook.com'
+            ],
+            pieceType: [
+                'Anillo de compromiso', 'Collar', 'Pulsera', 'Aretes', 'Anillo de bodas',
+                'Cadena', 'Dije', 'Reloj', 'Broches', 'Anillo cocktail'
+            ],
+            material: [
+                'Oro 18k', 'Oro 14k', 'Plata 925', 'Platino', 'Oro blanco 18k',
+                'Oro rosa 14k', 'Acero inoxidable', 'Plata con baño de oro'
+            ],
+            description: [
+                'Anillo solitario con diamante central de 1ct',
+                'Collar de perlas cultivadas con cierre de oro',
+                'Pulsera tennis con diamantes engarzados',
+                'Aretes tipo chandelier con circonias',
+                'Reloj de lujo con correa de piel italiana'
+            ],
+            stones: [
+                'Diamante 1ct', 'Rubí birmano', 'Esmeralda colombiana', 'Zafiro azul',
+                'Perlas cultivadas', 'Circonias cúbicas', 'Topacio azul', 'Amatista'
+            ],
+            size: [
+                'Talla 6', 'Talla 7', 'Talla 8', '45cm', '50cm', '18cm', '20cm'
+            ]
+        };
+
+        // Inicialización del sistema de testing
+        async function initializeTestSystem() {
+            console.log('🧪 Inicializando sistema de testing...');
+            
+            updateStatus('engineStatus', 'warning', 'Motor de Auto-Complete: Inicializando...');
+            updateStatus('dropdownStatus', 'warning', 'Sistema de Dropdown: Inicializando...');
+            updateStatus('integrationStatus', 'warning', 'Integración: Inicializando...');
+            
+            try {
+                // Esperar a que todos los sistemas estén listos
+                await waitForSystems();
+                
+                // Actualizar estados
+                updateStatus('engineStatus', 'success', 'Motor de Auto-Complete: ✅ Operativo');
+                updateStatus('dropdownStatus', 'success', 'Sistema de Dropdown: ✅ Operativo');
+                updateStatus('integrationStatus', 'success', 'Integración: ✅ Operativo');
+                
+                // Configurar test específico
+                setupTestIntegration();
+                
+                // Actualizar estadísticas
+                refreshStats();
+                
+                console.log('✅ Sistema de testing listo');
+                
+            } catch (error) {
+                console.error('❌ Error inicializando testing:', error);
+                updateStatus('engineStatus', 'error', 'Motor de Auto-Complete: ❌ Error');
+                updateStatus('dropdownStatus', 'error', 'Sistema de Dropdown: ❌ Error');
+                updateStatus('integrationStatus', 'error', 'Integración: ❌ Error');
+            }
+        }
+
+        // Esperar a que todos los sistemas estén listos
+        async function waitForSystems() {
+            let attempts = 0;
+            const maxAttempts = 30;
+            
+            while (attempts < maxAttempts) {
+                if (window.autoCompleteEngine && 
+                    window.smartDropdownFactory && 
+                    window.autoCompleteIntegration) {
+                    break;
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
+            }
+            
+            if (attempts >= maxAttempts) {
+                throw new Error('Sistemas no disponibles después de espera');
+            }
+        }
+
+        // Configurar integración específica para testing
+        function setupTestIntegration() {
+            const testConfig = {
+                'testClientName': { fieldType: 'clientName', placeholder: 'Nombre...' },
+                'testClientPhone': { fieldType: 'clientPhone', placeholder: 'Teléfono...' },
+                'testClientEmail': { fieldType: 'clientEmail', placeholder: 'Email...' },
+                'testPieceType': { fieldType: 'pieceType', placeholder: 'Tipo...' },
+                'testMaterial': { fieldType: 'material', placeholder: 'Material...' },
+                'testDescription': { fieldType: 'description', placeholder: 'Descripción...' },
+                'testStones': { fieldType: 'stones', placeholder: 'Piedras...' },
+                'testSize': { fieldType: 'size', placeholder: 'Tamaño...' }
+            };
+            
+            Object.entries(testConfig).forEach(([fieldId, config]) => {
+                const input = document.getElementById(fieldId);
+                if (input) {
+                    window.smartDropdownFactory.createDropdown(input, config);
+                }
+            });
+        }
+
+        // Actualizar estado visual
+        function updateStatus(elementId, status, text) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                const indicator = element.querySelector('.status-indicator');
+                if (indicator) {
+                    indicator.className = `status-indicator status-${status}`;
+                }
+                element.innerHTML = `<span class="status-indicator status-${status}"></span>${text}`;
+            }
+        }
+
+        // Agregar datos de prueba
+        async function addTestData() {
+            if (!window.autoCompleteEngine) {
+                addToResults('❌ Motor de auto-complete no disponible');
+                return;
+            }
+            
+            addToResults('📚 Agregando datos de prueba...');
+            let totalAdded = 0;
+            
+            Object.entries(sampleData).forEach(([fieldType, values]) => {
+                values.forEach(value => {
+                    window.autoCompleteEngine.learnFromInput(fieldType, value);
+                    totalAdded++;
+                });
+            });
+            
+            addToResults(`✅ ${totalAdded} entradas agregadas al sistema`);
+            refreshStats();
+        }
+
+        // Limpiar datos de prueba
+        function clearTestData() {
+            try {
+                // Limpiar localStorage relacionado con auto-complete
+                const keys = Object.keys(localStorage);
+                keys.forEach(key => {
+                    if (key.startsWith('ciaociao_') || key.includes('autocomplete')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                
+                addToResults('🗑️ Datos de prueba eliminados');
+                refreshStats();
+            } catch (error) {
+                addToResults('❌ Error limpiando datos: ' + error.message);
+            }
+        }
+
+        // Test de performance
+        async function runPerformanceTest() {
+            addToResults('⚡ Iniciando test de performance...');
+            
+            const testQuery = 'ana';
+            const iterations = 10;
+            let totalTime = 0;
+            
+            for (let i = 0; i < iterations; i++) {
+                const startTime = performance.now();
+                
+                if (window.autoCompleteEngine) {
+                    await window.autoCompleteEngine.getSuggestions('clientName', testQuery);
+                }
+                
+                const endTime = performance.now();
+                totalTime += (endTime - startTime);
+            }
+            
+            const avgTime = totalTime / iterations;
+            addToResults(`⚡ Performance: ${avgTime.toFixed(2)}ms promedio por búsqueda`);
+        }
+
+        // Exportar estadísticas
+        function exportStats() {
+            const stats = {
+                timestamp: new Date().toISOString(),
+                systems: {
+                    engine: window.autoCompleteEngine ? window.autoCompleteEngine.getStats() : null,
+                    dropdown: window.smartDropdownFactory ? window.smartDropdownFactory.getStats() : null,
+                    integration: window.autoCompleteIntegration ? window.autoCompleteIntegration.getStats() : null
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(stats, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `autocomplete-stats-${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            addToResults('📊 Estadísticas exportadas a archivo JSON');
+        }
+
+        // Actualizar estadísticas
+        function refreshStats() {
+            try {
+                let systemStats = 'Sistema no disponible';
+                let indexStats = {};
+                
+                if (window.autoCompleteEngine) {
+                    const stats = window.autoCompleteEngine.getStats();
+                    const dropdownStats = window.smartDropdownFactory ? 
+                        window.smartDropdownFactory.getStats() : {};
+                    
+                    systemStats = `
+                        <strong>Estado del Motor:</strong> ${stats.initialized ? '✅ Inicializado' : '❌ No inicializado'}<br>
+                        <strong>Dropdowns Activos:</strong> ${dropdownStats.totalDropdowns || 0}<br>
+                        <strong>Dropdowns Visibles:</strong> ${dropdownStats.visibleDropdowns || 0}<br>
+                        <strong>Configuración:</strong> Max ${stats.config?.maxSuggestions || 0} sugerencias
+                    `;
+                    
+                    if (stats.indexStats) {
+                        indexStats = stats.indexStats;
+                    }
+                }
+                
+                document.getElementById('systemStats').innerHTML = systemStats;
+                
+                // Actualizar estadísticas de datos
+                document.getElementById('indexCount').textContent = Object.keys(indexStats).length;
+                document.getElementById('totalEntries').textContent = indexStats.total || 0;
+                document.getElementById('lastUpdate').textContent = 
+                    indexStats.lastBuild ? new Date(indexStats.lastBuild).toLocaleString() : 'Nunca';
+                
+            } catch (error) {
+                console.error('Error actualizando estadísticas:', error);
+            }
+        }
+
+        // Agregar resultado a la consola de testing
+        function addToResults(message) {
+            const resultsDiv = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            const newMessage = `[${timestamp}] ${message}\n`;
+            resultsDiv.textContent += newMessage;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        // Inicializar cuando esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(initializeTestSystem, 1000);
+            });
+        } else {
+            setTimeout(initializeTestSystem, 1000);
+        }
+
+        // Auto-refresh cada 10 segundos
+        setInterval(refreshStats, 10000);
+    </script>
+</body>
+</html>
