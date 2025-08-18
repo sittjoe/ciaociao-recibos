@@ -1,8 +1,8 @@
-// calculator-system.js - CALCULADORA CON APIS REALES v4.0
-// Sistema integrado con APIs de precios en tiempo real
+// calculator-system.js - CALCULADORA LIMPIA CON PRICING MASTER v5.0
+// Sistema integrado con pricing-master.js únicamente
 // =================================================================
 
-console.log('🧮 Iniciando Calculadora con APIs Reales v4.0...');
+console.log('🧮 Iniciando Calculadora Limpia v5.0...');
 
 // =================================================================
 // CONFIGURACIÓN Y VARIABLES GLOBALES
@@ -13,37 +13,7 @@ const CALCULATOR_CONFIG = {
     maxProjects: 100,
     priceCache: 'calculator_price_cache',
     cacheExpiry: 5 * 60 * 1000, // 5 minutos en ms
-    apiRetryDelay: 1000,
     debounceDelay: 500,
-    metalAPIs: {
-        gold: 'https://api.metals.live/v1/spot/gold',
-        silver: 'https://api.metals.live/v1/spot/silver', 
-        platinum: 'https://api.metals.live/v1/spot/platinum'
-    },
-    metalPurities: {
-        '10k': 0.417,
-        '14k': 0.583,
-        '18k': 0.750,
-        '22k': 0.917,
-        '24k': 1.000
-    },
-    diamondPricing: {
-        // Precios base por quilate según claridad (USD)
-        FL: { base: 8000, multiplier: 1.5 },
-        IF: { base: 7500, multiplier: 1.4 },
-        VVS1: { base: 6500, multiplier: 1.3 },
-        VVS2: { base: 6000, multiplier: 1.25 },
-        VS1: { base: 5000, multiplier: 1.2 },
-        VS2: { base: 4500, multiplier: 1.15 },
-        SI1: { base: 3500, multiplier: 1.1 },
-        SI2: { base: 2800, multiplier: 1.05 },
-        I1: { base: 2000, multiplier: 1.0 }
-    },
-    gemstoneRanges: {
-        ruby: { low: 200, medium: 800, high: 2000, premium: 5000 },
-        emerald: { low: 300, medium: 1200, high: 3000, premium: 8000 },
-        sapphire: { low: 150, medium: 600, high: 1500, premium: 4000 }
-    },
     exchangeRate: 20.0 // USD a MXN, se actualizará con API
 };
 
@@ -67,83 +37,14 @@ let priceCache = {};
 let isCalculating = false;
 
 // =================================================================
-// CLASE PRINCIPAL DE CALCULADORA
+// CLASE SIMPLE DE CALCULADORA CON PRICING MASTER
 // =================================================================
 
 class PriceCalculator {
     constructor() {
         this.cache = this.loadCache();
         this.exchangeRate = CALCULATOR_CONFIG.exchangeRate;
-        this.apiConfig = window.apiConfiguration || null;
-        this.realMetalsAPI = window.RealMetalsAPIImproved || null;
-        this.initializePricingSystems();
-    }
-
-    async initializePricingSystems() {
-        console.log('🚀 Inicializando sistemas de precios...');
-        
-        // Prioridad 1: Inicializar KitcoRealAPI si está disponible
-        if (window.kitcoRealAPI) {
-            await window.kitcoRealAPI.initialize();
-            console.log('✅ KitcoRealAPI inicializado como fuente primaria');
-        }
-        
-        // Inicializar configuración de APIs si está disponible
-        if (this.apiConfig) {
-            console.log('✅ Configuración de APIs detectada');
-        }
-        
-        // Inicializar sistema de metales reales si está disponible
-        if (this.realMetalsAPI) {
-            await this.realMetalsAPI.initialize();
-            console.log('✅ Sistema de metales reales inicializado');
-        }
-        
-        // Actualizar tipo de cambio
-        await this.updateExchangeRate();
-        
-        // Actualizar precios de metales
-        await this.updateMetalPrices();
-    }
-    
-    async updateExchangeRate() {
-        try {
-            // Intentar con el sistema de APIs mejorado primero
-            if (this.realMetalsAPI) {
-                const rate = await this.realMetalsAPI.getExchangeRate();
-                if (rate) {
-                    this.exchangeRate = rate;
-                    console.log(`💱 Tipo de cambio actualizado (API mejorada): $${this.exchangeRate} MXN/USD`);
-                    return;
-                }
-            }
-            
-            // Fallback a API directa
-            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-            const data = await response.json();
-            if (data.rates && data.rates.MXN) {
-                this.exchangeRate = data.rates.MXN;
-                console.log(`💱 Tipo de cambio actualizado: $${this.exchangeRate} MXN/USD`);
-            }
-        } catch (error) {
-            console.warn('⚠️ No se pudo actualizar el tipo de cambio, usando valor por defecto');
-        }
-    }
-    
-    async updateMetalPrices() {
-        try {
-            if (!this.realMetalsAPI) return;
-            
-            const prices = await this.realMetalsAPI.getAllMetalPrices();
-            if (prices) {
-                // Actualizar cache con precios reales
-                this.cache.metalPrices = prices;
-                this.saveCache();
-                console.log('💰 Precios de metales actualizados desde APIs');
-            }
-        } catch (error) {
-            console.warn('⚠️ Error actualizando precios de metales:', error);
-        }
+        console.log('💎 Calculadora inicializada con PricingMaster');
     }
 
     loadCache() {
@@ -171,489 +72,136 @@ class PriceCalculator {
     }
 
     async getMetalPrice(metalType, karats = null) {
-        const cacheKey = `metal_${metalType}_${karats}`;
+        console.log(`💰 Obteniendo precio de ${metalType} ${karats || ''} desde PricingMaster...`);
         
-        if (this.isCacheValid(cacheKey)) {
-            console.log(`📦 Usando precio en cache para ${metalType}`);
-            return this.cache[cacheKey].price;
-        }
-
         try {
-            // 🚀 INTEGRACIÓN CON SISTEMA DE APIs REALES
-            let pricePerGramMXN = 0;
+            // 🚀 INTEGRACIÓN SIMPLE CON PRICING MASTER
             
-            // Intentar obtener precio del sistema integrado si está disponible
-            // Prioridad 1: KitcoRealAPI - Precios REALES de Kitco
-            if (window.kitcoRealAPI && window.kitcoRealAPI.isInitialized) {
-                console.log(`🥇 Obteniendo precio REAL de ${metalType} ${karats || ''} desde Kitco...`);
+            // Normalizar el tipo de metal
+            const metalName = metalType.toLowerCase() === 'oro' ? 'gold' : 
+                            metalType.toLowerCase() === 'plata' ? 'silver' : 
+                            metalType.toLowerCase() === 'platino' ? 'platinum' : 
+                            metalType.toLowerCase() === 'paladio' ? 'palladium' : metalType.toLowerCase();
+            
+            // Intentar obtener precio del PricingMaster (prioridad por gramo)
+            if (window.pricingMaster && window.pricingMaster.isInitialized) {
+                const priceData = await window.pricingMaster.getPriceForCalculator(metalName, karats, 1);
                 
-                try {
-                    // Normalizar el tipo de metal para Kitco
-                    const metalName = metalType.toLowerCase() === 'oro' ? 'gold' : 
-                                    metalType.toLowerCase() === 'plata' ? 'silver' : 
-                                    metalType.toLowerCase() === 'platino' ? 'platinum' : 
-                                    metalType.toLowerCase() === 'paladio' ? 'palladium' : metalType;
+                if (priceData && priceData.price_per_gram_mxn) {
+                    console.log(`✅ Precio obtenido de PricingMaster: $${priceData.price_per_gram_mxn.toFixed(2)} MXN/g`);
+                    console.log(`   Fuente: ${priceData.source}`);
                     
-                    const priceData = await window.kitcoRealAPI.getMetalPricePerGramMXN(metalName, karats);
-                    
-                    if (priceData && priceData.price_per_gram_mxn) {
-                        pricePerGramMXN = priceData.price_per_gram_mxn * weight;
-                        console.log(`✅ Precio REAL de Kitco obtenido: $${pricePerGramMXN.toFixed(2)} MXN total`);
-                        console.log(`   Por gramo: $${priceData.price_per_gram_mxn.toFixed(2)} MXN/g`);
-                        console.log(`   Fuente: ${priceData.source}, Prioridad: ${priceData.priority}`);
-                        console.log(`   Tipo de cambio: $${priceData.exchange_rate} MXN/USD`);
-                        
-                        // Actualizar tipo de cambio local
-                        if (priceData.exchange_rate) {
-                            this.exchangeRate = priceData.exchange_rate;
-                        }
+                    // Actualizar tipo de cambio local
+                    if (priceData.exchange_rate) {
+                        this.exchangeRate = priceData.exchange_rate;
                     }
-                } catch (apiError) {
-                    console.warn(`⚠️ KitcoRealAPI no disponible, usando sistemas de respaldo...`, apiError);
+                    
+                    return priceData.price_per_gram_mxn;
                 }
             }
             
-            // Prioridad 2: Sistema de APIs mejorado (fallback)
-            if (!pricePerGramMXN && window.improvedMetalsAPI) {
-                console.log(`🔄 Obteniendo precio desde sistema mejorado (fallback)...`);
+            // FALLBACK: Usar API simple si está disponible
+            if (window.getPrice) {
+                console.log(`🔄 Usando API simple como fallback...`);
                 
-                try {
-                    // Normalizar el tipo de metal
-                    const metalName = metalType.toLowerCase() === 'oro' ? 'oro' : 
-                                    metalType.toLowerCase() === 'plata' ? 'plata' : 
-                                    metalType.toLowerCase() === 'platino' ? 'platino' : metalType;
-                    
-                    const priceData = await window.improvedMetalsAPI.getMetalPrice(metalName, karats, weight);
-                    
-                    if (priceData && priceData.price_per_gram_mxn) {
-                        pricePerGramMXN = priceData.price_per_gram_mxn;
-                        console.log(`✅ Precio obtenido del sistema mejorado: $${pricePerGramMXN.toFixed(2)} MXN/g`);
-                        console.log(`   Fuente: ${priceData.source}, Actualizado: ${priceData.timestamp}`);
-                    }
-                } catch (apiError) {
-                    console.warn(`⚠️ Sistema mejorado no disponible, intentando con alternativas...`, apiError);
+                const priceData = await window.getPrice(metalName, karats, 1);
+                
+                if (priceData && priceData.price_per_gram_mxn) {
+                    console.log(`✅ Precio obtenido via API simple: $${priceData.price_per_gram_mxn.toFixed(2)} MXN/g`);
+                    return priceData.price_per_gram_mxn;
                 }
             }
             
-            // Prioridad 2: Sistema de integración existente
-            if (!pricePerGramMXN && window.pricingIntegration) {
-                console.log(`🔄 Intentando con sistema de integración...`);
-                
-                try {
-                    const priceData = await window.pricingIntegration.getPriceWithFallback(metalType, karats, 1);
-                    
-                    if (priceData && priceData.pricePerGram) {
-                        pricePerGramMXN = priceData.pricePerGram;
-                        console.log(`✅ Precio obtenido de integración: $${pricePerGramMXN.toFixed(2)} MXN/g`);
-                    }
-                } catch (apiError) {
-                    console.warn(`⚠️ Sistema de integración no disponible...`);
-                }
-            }
+            // ÚLTIMO RECURSO: Precios de emergencia hardcodeados
+            console.warn(`⚠️ Usando precios de emergencia para ${metalType} ${karats}`);
             
-            // Si no hay precio de APIs, usar el sistema de fallback mejorado
-            if (!pricePerGramMXN) {
-                if (window.fallbackPriceCalculator) {
-                    try {
-                        const fallbackCalc = new window.fallbackPriceCalculator();
-                        pricePerGramMXN = await fallbackCalc.getMetalPrice(metalType, karats);
-                        console.log(`📊 Precio calculado por fallback: $${pricePerGramMXN.toFixed(2)} MXN/g`);
-                    } catch (fallbackError) {
-                        console.warn('⚠️ Fallback calculator no disponible');
-                    }
-                }
-                
-                // Si aún no hay precio, usar precios de mercado actualizados (Agosto 2025)
-                if (!pricePerGramMXN) {
-                    const realMarketPrices = {
-                        'oro': {
-                            '10k': 712,    // Precio real verificado
-                            '14k': 1172,   // Precio real verificado
-                            '18k': 1283,   // Precio real verificado
-                            '22k': 1567,   // Precio real verificado
-                            '24k': 1710    // Precio real verificado
-                        },
-                        'gold': {
-                            '10k': 712,    // Para compatibilidad en inglés
-                            '14k': 1172,
-                            '18k': 1283,
-                            '22k': 1567,
-                            '24k': 1710
-                        },
-                        'plata': 23,       // Precio real verificado
-                        'silver': 23,      // Para compatibilidad en inglés
-                        'platino': 620,    // Precio real verificado
-                        'platinum': 620    // Para compatibilidad en inglés
-                    };
-                    
-                    if (metalType === 'oro' || metalType === 'gold') {
-                        const metalPrices = realMarketPrices[metalType] || realMarketPrices['oro'];
-                        pricePerGramMXN = metalPrices[karats] || metalPrices['14k'];
-                    } else {
-                        pricePerGramMXN = realMarketPrices[metalType] || 0;
-                    }
-                    
-                    // Agregar pequeña variación para simular mercado real
-                    if (pricePerGramMXN > 0) {
-                        pricePerGramMXN += (Math.random() * 10 - 5); // ±$5 MXN
-                        console.log(`💰 Usando precio de mercado actualizado: $${pricePerGramMXN.toFixed(2)} MXN/g`);
-                    }
-                }
-            }
-            
-            // Validar precio si el validador está disponible
-            if (window.RealTimePriceValidator && pricePerGramMXN > 0) {
-                const validator = new window.RealTimePriceValidator();
-                const validation = await validator.validatePrice(metalType, karats, pricePerGramMXN);
-                
-                if (!validation.isValid) {
-                    console.warn(`⚠️ Precio fuera de rango esperado: ${validation.message}`);
-                }
-            }
-
-            // Guardar en cache con metadata mejorada
-            this.cache[cacheKey] = {
-                price: pricePerGramMXN,
-                timestamp: Date.now(),
-                source: window.PricingIntegrationArchitect ? 'integrated_apis' : 'fallback_system',
-                confidence: pricePerGramMXN > 0 ? 'high' : 'low',
-                metal: metalType,
-                karat: karats
-            };
-            this.saveCache();
-
-            console.log(`✅ Precio final ${metalType} ${karats || ''}: $${pricePerGramMXN.toFixed(2)} MXN/g`);
-            return pricePerGramMXN;
-
-        } catch (error) {
-            console.error(`❌ Error crítico obteniendo precio de ${metalType}:`, error);
-            
-            // Precios de emergencia actualizados
             const emergencyPrices = {
-                oro: { '10k': 712, '14k': 1172, '18k': 1283, '22k': 1567, '24k': 1710 },
-                plata: 23,
-                platino: 620
+                'gold': { 
+                    '24k': 1600, '22k': 1467, '18k': 1200, '14k': 933, '10k': 667 
+                },
+                'silver': { 
+                    '999': 23, '925': 21, '900': 21, '800': 18 
+                },
+                'platinum': { 
+                    '999': 610, '950': 580, '900': 550, '850': 520 
+                },
+                'palladium': { 
+                    '999': 520, '950': 494, '900': 468 
+                }
             };
             
-            let emergencyPrice = 0;
-            if (metalType === 'oro' && karats) {
-                emergencyPrice = emergencyPrices.oro[karats] || emergencyPrices.oro['14k'];
-            } else {
-                emergencyPrice = emergencyPrices[metalType] || 1000;
+            if (emergencyPrices[metalName] && emergencyPrices[metalName][karats]) {
+                const pricePerGram = emergencyPrices[metalName][karats];
+                console.log(`🚨 Precio de emergencia: $${pricePerGram} MXN/g`);
+                return pricePerGram;
             }
+            
+            throw new Error(`No se pudo determinar el precio para ${metalType} ${karats}`);
 
-            console.log(`🆘 Usando precio de emergencia: $${emergencyPrice} MXN/g`);
-            return emergencyPrice;
+        } catch (error) {
+            console.error(`❌ Error obteniendo precio de ${metalType}:`, error);
+            throw error;
         }
     }
 
+    // Métodos simplificados para diamantes y gemas
     calculateDiamondPrice(carats, clarity, color, cut, quantity) {
-        if (!carats || carats <= 0 || !quantity || quantity <= 0) {
-            return { pricePerCarat: 0, totalPrice: 0 };
-        }
+        const diamondPricing = {
+            FL: { base: 8000, multiplier: 1.5 },
+            IF: { base: 7500, multiplier: 1.4 },
+            VVS1: { base: 6500, multiplier: 1.3 },
+            VVS2: { base: 6000, multiplier: 1.25 },
+            VS1: { base: 5000, multiplier: 1.2 },
+            VS2: { base: 4500, multiplier: 1.15 },
+            SI1: { base: 3500, multiplier: 1.1 },
+            SI2: { base: 2800, multiplier: 1.05 },
+            I1: { base: 2000, multiplier: 1.0 }
+        };
 
-        try {
-            const clarityData = CALCULATOR_CONFIG.diamondPricing[clarity];
-            if (!clarityData) {
-                throw new Error(`Claridad no válida: ${clarity}`);
-            }
+        const colorFactors = {
+            D: 1.3, E: 1.25, F: 1.2, G: 1.15, H: 1.1, I: 1.0, J: 0.95, K: 0.9, L: 0.85, M: 0.8
+        };
 
-            let pricePerCarat = clarityData.base;
+        const cutFactors = {
+            excellent: 1.2, 'very-good': 1.1, good: 1.0, fair: 0.9, poor: 0.8
+        };
 
-            // Ajustar por color (D es el mejor)
-            const colorAdjustments = {
-                'D': 1.3, 'E': 1.2, 'F': 1.15, 'G': 1.1, 
-                'H': 1.05, 'I': 1.0, 'J': 0.95
-            };
-            pricePerCarat *= (colorAdjustments[color] || 1.0);
+        const basePrice = diamondPricing[clarity]?.base || 2000;
+        const multiplier = diamondPricing[clarity]?.multiplier || 1.0;
+        const colorFactor = colorFactors[color] || 1.0;
+        const cutFactor = cutFactors[cut] || 1.0;
 
-            // Ajustar por corte
-            const cutAdjustments = {
-                'Excellent': 1.2, 'Very Good': 1.1, 'Good': 1.0, 
-                'Fair': 0.9, 'Poor': 0.8
-            };
-            pricePerCarat *= (cutAdjustments[cut] || 1.0);
+        const pricePerCarat = basePrice * multiplier * colorFactor * cutFactor;
+        const totalPrice = pricePerCarat * carats * quantity * this.exchangeRate;
 
-            // Aplicar multiplicador por tamaño (diamantes más grandes son exponencialmente más caros)
-            if (carats > 1) {
-                pricePerCarat *= Math.pow(carats, 1.5);
-            } else {
-                pricePerCarat *= clarityData.multiplier;
-            }
-
-            // Convertir a MXN
-            pricePerCarat *= this.exchangeRate;
-            const totalPrice = pricePerCarat * carats * quantity;
-
-            return {
-                pricePerCarat: Math.round(pricePerCarat),
-                totalPrice: Math.round(totalPrice)
-            };
-
-        } catch (error) {
-            console.error('Error calculando precio de diamante:', error);
-            return { pricePerCarat: 0, totalPrice: 0 };
-        }
+        return {
+            pricePerCarat: pricePerCarat,
+            totalPrice: totalPrice,
+            factors: { clarity: multiplier, color: colorFactor, cut: cutFactor }
+        };
     }
 
-    calculateGemstonePriceRange(type, carats, quality) {
-        if (!type || !carats || carats <= 0 || !quality) {
-            return { pricePerCarat: 0, totalPrice: 0, range: null };
-        }
+    calculateGemstonePrice(gemType, carats, quality, quantity) {
+        const gemstoneRanges = {
+            ruby: { low: 200, medium: 800, high: 2000, premium: 5000 },
+            emerald: { low: 300, medium: 1200, high: 3000, premium: 8000 },
+            sapphire: { low: 150, medium: 600, high: 1500, premium: 4000 }
+        };
 
-        try {
-            const ranges = CALCULATOR_CONFIG.gemstoneRanges[type];
-            if (!ranges) {
-                throw new Error(`Tipo de piedra no válida: ${type}`);
-            }
+        const qualityPrices = gemstoneRanges[gemType?.toLowerCase()] || { low: 100, medium: 500, high: 1000, premium: 2000 };
+        const pricePerCarat = qualityPrices[quality] || qualityPrices.medium;
+        const totalPrice = pricePerCarat * carats * quantity * this.exchangeRate;
 
-            const pricePerCaratUSD = ranges[quality] || 0;
-            const pricePerCaratMXN = pricePerCaratUSD * this.exchangeRate;
-            const totalPrice = pricePerCaratMXN * carats;
-
-            return {
-                pricePerCarat: Math.round(pricePerCaratMXN),
-                totalPrice: Math.round(totalPrice),
-                range: `$${Math.round(pricePerCaratMXN * 0.8)} - $${Math.round(pricePerCaratMXN * 1.2)}`
-            };
-
-        } catch (error) {
-            console.error('Error calculando precio de piedra preciosa:', error);
-            return { pricePerCarat: 0, totalPrice: 0, range: null };
-        }
+        return {
+            pricePerCarat: pricePerCarat,
+            totalPrice: totalPrice,
+            quality: quality
+        };
     }
 }
 
 // =================================================================
-// INICIALIZACIÓN DE LA CALCULADORA
-// =================================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM Cargado - Inicializando calculadora...');
-    
-    try {
-        initializeCalculator();
-    } catch (error) {
-        console.error('❌ Error inicializando calculadora:', error);
-        if (window.utils) {
-            window.utils.showNotification('Error al inicializar la calculadora', 'error');
-        }
-    }
-});
-
-function initializeCalculator() {
-    console.log('🔧 Configurando calculadora...');
-    
-    // Inicializar calculadora de precios
-    priceCalculator = new PriceCalculator();
-    
-    // Cargar historial de proyectos
-    loadCalculatorHistory();
-    
-    // Configurar fecha actual
-    setCalculatorDate();
-    
-    // Configurar todos los event listeners
-    setupCalculatorEventListeners();
-    
-    // Configurar elementos colapsibles
-    setupCollapsibleSections();
-    
-    // Configurar modales
-    setupCalculatorModals();
-    
-    // Restaurar proyecto auto-guardado si existe
-    restoreAutoSavedProject();
-    
-    console.log('✅ Calculadora inicializada correctamente');
-    
-    if (window.utils) {
-        window.utils.showNotification('Calculadora lista para usar', 'success');
-    }
-}
-
-function setCalculatorDate() {
-    const dateInput = document.getElementById('calculatorDate');
-    if (dateInput) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-        calculatorProject.date = dateInput.value;
-    }
-}
-
-function loadCalculatorHistory() {
-    try {
-        const stored = localStorage.getItem(CALCULATOR_CONFIG.storageKey);
-        calculatorHistory = stored ? JSON.parse(stored) : [];
-        console.log(`📚 Cargados ${calculatorHistory.length} proyectos del historial`);
-    } catch (error) {
-        console.error('Error cargando historial:', error);
-        calculatorHistory = [];
-    }
-}
-
-function saveCalculatorHistory() {
-    try {
-        // Mantener solo los últimos N proyectos
-        if (calculatorHistory.length > CALCULATOR_CONFIG.maxProjects) {
-            calculatorHistory = calculatorHistory.slice(-CALCULATOR_CONFIG.maxProjects);
-        }
-        
-        localStorage.setItem(CALCULATOR_CONFIG.storageKey, JSON.stringify(calculatorHistory));
-        console.log('💾 Historial guardado correctamente');
-    } catch (error) {
-        console.error('Error guardando historial:', error);
-    }
-}
-
-// =================================================================
-// EVENT LISTENERS
-// =================================================================
-
-function setupCalculatorEventListeners() {
-    console.log('🎯 Configurando event listeners...');
-
-    // === INFORMACIÓN DEL PROYECTO ===
-    const projectName = document.getElementById('projectName');
-    const calculatorDate = document.getElementById('calculatorDate');
-    const clientReference = document.getElementById('clientReference');
-
-    if (projectName) {
-        projectName.addEventListener('input', debounce(() => {
-            calculatorProject.name = projectName.value;
-            autoSaveProject();
-        }, CALCULATOR_CONFIG.debounceDelay));
-    }
-
-    if (calculatorDate) {
-        calculatorDate.addEventListener('change', () => {
-            calculatorProject.date = calculatorDate.value;
-            autoSaveProject();
-        });
-    }
-
-    if (clientReference) {
-        clientReference.addEventListener('input', debounce(() => {
-            calculatorProject.clientReference = clientReference.value;
-            autoSaveProject();
-        }, CALCULATOR_CONFIG.debounceDelay));
-    }
-
-    // === METALES PRECIOSOS ===
-    const metalType = document.getElementById('metalType');
-    const goldKarats = document.getElementById('goldKarats');
-    const metalWeight = document.getElementById('metalWeight');
-
-    if (metalType) {
-        metalType.addEventListener('change', () => {
-            const goldKaratsGroup = document.getElementById('goldKaratsGroup');
-            if (goldKaratsGroup) {
-                goldKaratsGroup.style.display = metalType.value === 'oro' ? 'block' : 'none';
-            }
-            calculateMetalPrice();
-        });
-    }
-
-    if (goldKarats) {
-        goldKarats.addEventListener('change', calculateMetalPrice);
-    }
-
-    if (metalWeight) {
-        metalWeight.addEventListener('input', debounce(calculateMetalPrice, CALCULATOR_CONFIG.debounceDelay));
-    }
-
-    // === DIAMANTES ===
-    const diamondInputs = [
-        'diamondCarats', 'diamondClarity', 'diamondColor', 'diamondCut', 'diamondQuantity'
-    ];
-    
-    diamondInputs.forEach(inputId => {
-        const element = document.getElementById(inputId);
-        if (element) {
-            const eventType = element.tagName === 'SELECT' ? 'change' : 'input';
-            const handler = element.tagName === 'SELECT' ? calculateDiamondPrice : 
-                          debounce(calculateDiamondPrice, CALCULATOR_CONFIG.debounceDelay);
-            element.addEventListener(eventType, handler);
-        }
-    });
-
-    // === PIEDRAS PRECIOSAS ===
-    const gemstoneInputs = [
-        'gemstoneType', 'gemstoneCarats', 'gemstoneQuality'
-    ];
-    
-    gemstoneInputs.forEach(inputId => {
-        const element = document.getElementById(inputId);
-        if (element) {
-            const eventType = element.tagName === 'SELECT' ? 'change' : 'input';
-            const handler = element.tagName === 'SELECT' ? calculateGemstonePrice : 
-                          debounce(calculateGemstonePrice, CALCULATOR_CONFIG.debounceDelay);
-            element.addEventListener(eventType, handler);
-        }
-    });
-
-    // === COSTOS DE FABRICACIÓN ===
-    const laborHours = document.getElementById('laborHours');
-    const laborRate = document.getElementById('laborRate');
-    const profitMargin = document.getElementById('profitMargin');
-    const additionalCosts = document.getElementById('additionalCosts');
-
-    if (laborHours) {
-        laborHours.addEventListener('input', debounce(calculateTotals, CALCULATOR_CONFIG.debounceDelay));
-    }
-
-    if (laborRate) {
-        laborRate.addEventListener('input', debounce(calculateTotals, CALCULATOR_CONFIG.debounceDelay));
-    }
-
-    if (profitMargin) {
-        profitMargin.addEventListener('input', debounce(calculateTotals, CALCULATOR_CONFIG.debounceDelay));
-    }
-
-    if (additionalCosts) {
-        additionalCosts.addEventListener('input', debounce(calculateTotals, CALCULATOR_CONFIG.debounceDelay));
-    }
-
-    // === OBSERVACIONES ===
-    const observations = document.getElementById('calculatorObservations');
-    if (observations) {
-        observations.addEventListener('input', debounce(() => {
-            calculatorProject.observations = observations.value;
-            autoSaveProject();
-        }, CALCULATOR_CONFIG.debounceDelay));
-    }
-
-    // === BOTONES DE ACCIÓN ===
-    const createQuotationBtn = document.getElementById('createQuotationBtn');
-    const createReceiptBtn = document.getElementById('createReceiptBtn');
-    const saveProjectBtn = document.getElementById('saveProjectBtn');
-    const printCalculationBtn = document.getElementById('printCalculationBtn');
-    const resetCalculatorBtn = document.getElementById('resetCalculatorBtn');
-
-    if (createQuotationBtn) {
-        createQuotationBtn.addEventListener('click', showCreateDocumentModal.bind(null, 'quotation'));
-    }
-
-    if (createReceiptBtn) {
-        createReceiptBtn.addEventListener('click', showCreateDocumentModal.bind(null, 'receipt'));
-    }
-
-    if (saveProjectBtn) {
-        saveProjectBtn.addEventListener('click', showSaveProjectModal);
-    }
-
-    if (printCalculationBtn) {
-        printCalculationBtn.addEventListener('click', printCalculation);
-    }
-
-    if (resetCalculatorBtn) {
-        resetCalculatorBtn.addEventListener('click', resetCalculator);
-    }
-
-    console.log('✅ Event listeners configurados');
-}
-
-// =================================================================
-// FUNCIONES DE CÁLCULO
+// FUNCIONES DE CÁLCULO PRINCIPALES
 // =================================================================
 
 async function calculateMetalPrice() {
@@ -751,9 +299,9 @@ async function calculateDiamondPrice() {
         calculateTotals();
 
     } catch (error) {
-        console.error('Error calculando precio de diamantes:', error);
+        console.error('Error calculando precio de diamante:', error);
         if (window.utils) {
-            window.utils.showNotification('Error al calcular precio de diamantes', 'error');
+            window.utils.showNotification('Error al calcular precio del diamante', 'error');
         }
     } finally {
         isCalculating = false;
@@ -765,773 +313,99 @@ async function calculateGemstonePrice() {
     isCalculating = true;
 
     try {
-        const type = document.getElementById('gemstoneType')?.value;
+        const gemType = document.getElementById('gemstoneType')?.value;
         const carats = parseFloat(document.getElementById('gemstoneCarats')?.value || 0);
         const quality = document.getElementById('gemstoneQuality')?.value;
+        const quantity = parseInt(document.getElementById('gemstoneQuantity')?.value || 0);
 
-        if (!type || carats <= 0 || !quality) {
-            updateGemstoneFields(0, 0);
+        if (!gemType || carats <= 0 || !quality || quantity <= 0) {
             updateResultField('resultGemstoneCost', 0);
+            document.getElementById('gemstoneTotalCost').value = '';
             calculateTotals();
             return;
         }
 
-        const result = priceCalculator.calculateGemstonePriceRange(type, carats, quality);
+        const result = priceCalculator.calculateGemstonePrice(gemType, carats, quality, quantity);
         
-        updateGemstoneFields(result.pricePerCarat, result.totalPrice);
+        // Actualizar campo de total
+        const totalField = document.getElementById('gemstoneTotalCost');
+        if (totalField) {
+            totalField.value = window.utils?.formatCurrency(result.totalPrice) || 
+                              `$${result.totalPrice.toLocaleString('es-MX')}`;
+        }
+
         updateResultField('resultGemstoneCost', result.totalPrice);
 
         // Guardar en proyecto
         calculatorProject.gemstones = {
-            type: type,
+            type: gemType,
             carats: carats,
             quality: quality,
+            quantity: quantity,
             pricePerCarat: result.pricePerCarat,
-            totalCost: result.totalPrice,
-            range: result.range
+            totalCost: result.totalPrice
         };
 
         calculateTotals();
 
     } catch (error) {
-        console.error('Error calculando precio de piedras preciosas:', error);
+        console.error('Error calculando precio de gema:', error);
         if (window.utils) {
-            window.utils.showNotification('Error al calcular precio de piedras preciosas', 'error');
+            window.utils.showNotification('Error al calcular precio de la gema', 'error');
         }
     } finally {
         isCalculating = false;
     }
 }
 
-function calculateTotals() {
-    try {
-        // Obtener valores actuales
-        const metalCost = parseFloat(document.getElementById('metalTotalCost')?.value || 0);
-        const diamondCost = parseFloat(document.getElementById('diamondTotalCost')?.value?.replace(/[^0-9.-]+/g, '') || 0);
-        const gemstoneCost = parseFloat(document.getElementById('gemstoneTotalCost')?.value?.replace(/[^0-9.-]+/g, '') || 0);
-        
-        const laborHours = parseFloat(document.getElementById('laborHours')?.value || 0);
-        const laborRate = parseFloat(document.getElementById('laborRate')?.value || 0);
-        const profitMargin = parseFloat(document.getElementById('profitMargin')?.value || 0);
-        const additionalCosts = parseFloat(document.getElementById('additionalCosts')?.value || 0);
-
-        // Calcular costo de mano de obra
-        const laborCost = laborHours * laborRate;
-        
-        // Actualizar campo de mano de obra
-        const laborCostField = document.getElementById('laborCost');
-        if (laborCostField) {
-            laborCostField.value = laborCost.toFixed(2);
-        }
-
-        // Calcular subtotal
-        const subtotal = metalCost + diamondCost + gemstoneCost + laborCost + additionalCosts;
-
-        // Calcular margen de ganancia
-        const profitAmount = (subtotal * profitMargin) / 100;
-
-        // Calcular precio final
-        const finalPrice = subtotal + profitAmount;
-
-        // Actualizar campos de resultados
-        updateResultField('resultMetalCost', metalCost);
-        updateResultField('resultDiamondCost', diamondCost);
-        updateResultField('resultGemstoneCost', gemstoneCost);
-        updateResultField('resultLaborCost', laborCost);
-        updateResultField('resultAdditionalCosts', additionalCosts);
-        updateResultField('resultSubtotal', subtotal);
-        updateResultField('resultProfitAmount', profitAmount);
-        updateResultField('resultFinalPrice', finalPrice);
-
-        // Actualizar porcentaje de ganancia mostrado
-        const profitPercentageSpan = document.getElementById('resultProfitPercentage');
-        if (profitPercentageSpan) {
-            profitPercentageSpan.textContent = profitMargin;
-        }
-
-        // Guardar en proyecto
-        calculatorProject.labor = {
-            hours: laborHours,
-            rate: laborRate,
-            cost: laborCost
-        };
-
-        calculatorProject.costs = {
-            additional: additionalCosts,
-            profitMargin: profitMargin,
-            profitAmount: profitAmount
-        };
-
-        calculatorProject.totals = {
-            metalCost: metalCost,
-            diamondCost: diamondCost,
-            gemstoneCost: gemstoneCost,
-            laborCost: laborCost,
-            additionalCosts: additionalCosts,
-            subtotal: subtotal,
-            profitAmount: profitAmount,
-            finalPrice: finalPrice
-        };
-
-        // Auto-guardar proyecto
-        autoSaveProject();
-
-    } catch (error) {
-        console.error('Error calculando totales:', error);
-        if (window.utils) {
-            window.utils.showNotification('Error al calcular totales', 'error');
-        }
-    }
-}
-
 // =================================================================
-// FUNCIONES DE UI
+// FUNCIONES DE UTILIDAD
 // =================================================================
 
 function updateMetalPriceFields(pricePerGram, totalCost) {
     const priceField = document.getElementById('metalPricePerGram');
-    const totalField = document.getElementById('metalTotalCost');
-
+    const costField = document.getElementById('metalTotalCost');
+    
     if (priceField) {
-        priceField.value = pricePerGram > 0 ? pricePerGram.toFixed(2) : '';
+        priceField.value = window.utils?.formatCurrency(pricePerGram) || 
+                          `$${pricePerGram.toLocaleString('es-MX')}`;
     }
-
-    if (totalField) {
-        totalField.value = totalCost > 0 ? totalCost.toFixed(2) : '';
-    }
-}
-
-function updateGemstoneFields(pricePerCarat, totalCost) {
-    const priceField = document.getElementById('gemstonePricePerCarat');
-    const totalField = document.getElementById('gemstoneTotalCost');
-
-    if (priceField) {
-        priceField.value = pricePerCarat > 0 ? pricePerCarat.toFixed(2) : '';
-    }
-
-    if (totalField) {
-        totalField.value = totalCost > 0 ? 
-            (window.utils?.formatCurrency(totalCost) || `$${totalCost.toLocaleString('es-MX')}`) : '';
+    
+    if (costField) {
+        costField.value = window.utils?.formatCurrency(totalCost) || 
+                         `$${totalCost.toLocaleString('es-MX')}`;
     }
 }
 
 function updateResultField(fieldId, value) {
     const field = document.getElementById(fieldId);
     if (field) {
-        const formattedValue = value > 0 ? 
-            (window.utils?.formatCurrency(value) || `$${value.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`) : 
-            '$0.00';
-        field.textContent = formattedValue;
+        field.textContent = window.utils?.formatCurrency(value) || 
+                           `$${value.toLocaleString('es-MX')}`;
     }
 }
 
-function setupCollapsibleSections() {
-    const collapsibleHeaders = document.querySelectorAll('.collapsible-header');
+function calculateTotals() {
+    const metalCost = calculatorProject.metal?.totalCost || 0;
+    const diamondCost = calculatorProject.diamonds?.totalCost || 0;
+    const gemstoneCost = calculatorProject.gemstones?.totalCost || 0;
+    const laborCost = calculatorProject.labor?.totalCost || 0;
     
-    collapsibleHeaders.forEach(header => {
-        const collapseBtn = header.querySelector('.collapse-btn');
-        const content = header.parentNode.querySelector('.collapsible-content');
-        
-        if (collapseBtn && content) {
-            collapseBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const isCollapsed = content.style.display === 'none';
-                content.style.display = isCollapsed ? 'block' : 'none';
-                collapseBtn.textContent = isCollapsed ? '−' : '+';
-            });
-        }
-    });
-}
-
-// =================================================================
-// GESTIÓN DE PROYECTOS
-// =================================================================
-
-function autoSaveProject() {
-    try {
-        const autoSaveData = {
-            project: calculatorProject,
-            timestamp: new Date().toISOString(),
-            formData: getFormData()
-        };
-        
-        localStorage.setItem('calculator_autosave', JSON.stringify(autoSaveData));
-        console.log('💾 Auto-guardado completado');
-    } catch (error) {
-        console.error('Error en auto-guardado:', error);
-    }
-}
-
-function restoreAutoSavedProject() {
-    try {
-        const autoSaved = localStorage.getItem('calculator_autosave');
-        if (!autoSaved) return false;
-
-        const { project, timestamp, formData } = JSON.parse(autoSaved);
-        
-        // Verificar que no sea muy antiguo (máximo 24 horas)
-        const age = Date.now() - new Date(timestamp).getTime();
-        if (age > 24 * 60 * 60 * 1000) {
-            localStorage.removeItem('calculator_autosave');
-            return false;
-        }
-
-        const timeAgo = window.utils?.getTimeAgo(timestamp) || 'hace un tiempo';
-        
-        if (confirm(`Se encontró un proyecto guardado de ${timeAgo}. ¿Desea restaurarlo?`)) {
-            calculatorProject = project;
-            fillFormWithProject(formData);
-            localStorage.removeItem('calculator_autosave');
-            
-            // Recalcular después de restaurar
-            setTimeout(() => {
-                calculateMetalPrice();
-                calculateDiamondPrice();
-                calculateGemstonePrice();
-            }, 100);
-            
-            return true;
-        }
-        
-        return false;
-    } catch (error) {
-        console.error('Error restaurando auto-guardado:', error);
-        return false;
-    }
-}
-
-function getFormData() {
-    const formData = {};
-    const inputs = document.querySelectorAll('input, select, textarea');
+    const subtotal = metalCost + diamondCost + gemstoneCost + laborCost;
     
-    inputs.forEach(input => {
-        if (input.id && input.value) {
-            formData[input.id] = input.value;
-        }
-    });
+    // Actualizar campos de totales
+    updateResultField('resultSubtotal', subtotal);
     
-    return formData;
+    calculatorProject.totals = {
+        metalCost: metalCost,
+        diamondCost: diamondCost,
+        gemstoneCost: gemstoneCost,
+        laborCost: laborCost,
+        subtotal: subtotal
+    };
 }
 
-function fillFormWithProject(formData) {
-    Object.keys(formData).forEach(key => {
-        const element = document.getElementById(key);
-        if (element) {
-            element.value = formData[key];
-            
-            // Trigger events para elementos especiales
-            if (key === 'metalType') {
-                element.dispatchEvent(new Event('change'));
-            }
-        }
-    });
-}
-
-function showSaveProjectModal() {
-    const modal = document.getElementById('saveProjectModal');
-    const nameInput = document.getElementById('saveProjectName');
-    
-    if (modal && nameInput) {
-        nameInput.value = calculatorProject.name || 
-                         `Proyecto ${new Date().toLocaleDateString('es-MX')}`;
-        modal.style.display = 'block';
-        nameInput.focus();
-    }
-}
-
-function saveProject() {
-    try {
-        const name = document.getElementById('saveProjectName')?.value;
-        const notes = document.getElementById('saveProjectNotes')?.value;
-        
-        if (!name) {
-            if (window.utils) {
-                window.utils.showNotification('El nombre del proyecto es requerido', 'warning');
-            }
-            return;
-        }
-
-        // Crear proyecto completo
-        const projectToSave = {
-            ...calculatorProject,
-            id: calculatorProject.id || window.utils?.generateUUID() || Date.now().toString(),
-            name: name,
-            notes: notes,
-            savedAt: new Date().toISOString(),
-            formData: getFormData()
-        };
-
-        // Buscar si ya existe
-        const existingIndex = calculatorHistory.findIndex(p => p.id === projectToSave.id);
-        
-        if (existingIndex >= 0) {
-            calculatorHistory[existingIndex] = projectToSave;
-        } else {
-            calculatorHistory.unshift(projectToSave);
-        }
-
-        // Guardar historial
-        saveCalculatorHistory();
-
-        // Cerrar modal
-        const modal = document.getElementById('saveProjectModal');
-        if (modal) {
-            modal.style.display = 'none';
-        }
-
-        if (window.utils) {
-            window.utils.showNotification('Proyecto guardado exitosamente', 'success');
-        }
-
-        // Actualizar proyecto actual
-        calculatorProject.id = projectToSave.id;
-
-    } catch (error) {
-        console.error('Error guardando proyecto:', error);
-        if (window.utils) {
-            window.utils.showNotification('Error al guardar el proyecto', 'error');
-        }
-    }
-}
-
-function loadProject(projectId) {
-    try {
-        const project = calculatorHistory.find(p => p.id === projectId);
-        if (!project) {
-            if (window.utils) {
-                window.utils.showNotification('Proyecto no encontrado', 'error');
-            }
-            return;
-        }
-
-        // Cargar proyecto
-        calculatorProject = { ...project };
-        
-        // Llenar formulario
-        if (project.formData) {
-            fillFormWithProject(project.formData);
-        }
-
-        // Recalcular precios
-        setTimeout(() => {
-            calculateMetalPrice();
-            calculateDiamondPrice();
-            calculateGemstonePrice();
-        }, 100);
-
-        if (window.utils) {
-            window.utils.showNotification(`Proyecto "${project.name}" cargado exitosamente`, 'success');
-        }
-
-    } catch (error) {
-        console.error('Error cargando proyecto:', error);
-        if (window.utils) {
-            window.utils.showNotification('Error al cargar el proyecto', 'error');
-        }
-    }
-}
-
-// =================================================================
-// EXPORTACIÓN A OTROS MÓDULOS
-// =================================================================
-
-function showCreateDocumentModal(documentType) {
-    if (!validateCalculatorData()) {
-        if (window.utils) {
-            window.utils.showNotification('Complete al menos un elemento para crear el documento', 'warning');
-        }
-        return;
-    }
-
-    const modal = document.getElementById('createDocumentModal');
-    const title = document.getElementById('createDocumentTitle');
-    const typeSpan = document.getElementById('documentType');
-    
-    if (modal && title && typeSpan) {
-        const docTypeText = documentType === 'quotation' ? 'cotización' : 'recibo';
-        title.textContent = `Crear ${docTypeText.charAt(0).toUpperCase() + docTypeText.slice(1)}`;
-        typeSpan.textContent = docTypeText;
-        
-        // Pre-llenar con datos del cliente si existen
-        const clientNameInput = document.getElementById('documentClientName');
-        const clientPhoneInput = document.getElementById('documentClientPhone');
-        
-        if (clientNameInput) {
-            clientNameInput.value = calculatorProject.clientReference || '';
-        }
-        
-        modal.setAttribute('data-document-type', documentType);
-        modal.style.display = 'block';
-    }
-}
-
-function createDocumentFromCalculator() {
-    try {
-        const modal = document.getElementById('createDocumentModal');
-        const documentType = modal?.getAttribute('data-document-type');
-        const clientName = document.getElementById('documentClientName')?.value;
-        const clientPhone = document.getElementById('documentClientPhone')?.value;
-
-        if (!clientName) {
-            if (window.utils) {
-                window.utils.showNotification('El nombre del cliente es requerido', 'warning');
-            }
-            return;
-        }
-
-        // Preparar datos para transferencia
-        const transferData = {
-            source: 'calculator',
-            timestamp: new Date().toISOString(),
-            project: calculatorProject,
-            client: {
-                name: clientName,
-                phone: clientPhone
-            },
-            items: buildItemsFromCalculation(),
-            totals: calculatorProject.totals
-        };
-
-        // Guardar datos para transferencia
-        localStorage.setItem('document_transfer_data', JSON.stringify(transferData));
-
-        // Navegar al módulo correspondiente
-        const targetPage = documentType === 'quotation' ? 'quotation-mode.html' : 'receipt-mode.html';
-        
-        if (window.utils) {
-            window.utils.showNotification(`Redirigiendo a crear ${documentType === 'quotation' ? 'cotización' : 'recibo'}...`, 'info');
-        }
-
-        // Cerrar modal
-        modal.style.display = 'none';
-
-        // Navegar
-        setTimeout(() => {
-            window.location.href = targetPage;
-        }, 1000);
-
-    } catch (error) {
-        console.error('Error creando documento:', error);
-        if (window.utils) {
-            window.utils.showNotification('Error al crear el documento', 'error');
-        }
-    }
-}
-
-function buildItemsFromCalculation() {
-    const items = [];
-    
-    // Agregar metales si hay
-    if (calculatorProject.metal?.totalCost > 0) {
-        items.push({
-            description: `Metal: ${calculatorProject.metal.type}${calculatorProject.metal.karats ? ' ' + calculatorProject.metal.karats : ''} (${calculatorProject.metal.weight}g)`,
-            quantity: 1,
-            unitPrice: calculatorProject.metal.totalCost,
-            total: calculatorProject.metal.totalCost
-        });
-    }
-
-    // Agregar diamantes si hay
-    if (calculatorProject.diamonds?.totalCost > 0) {
-        items.push({
-            description: `Diamantes: ${calculatorProject.diamonds.carats}ct ${calculatorProject.diamonds.clarity} ${calculatorProject.diamonds.color} ${calculatorProject.diamonds.cut}`,
-            quantity: calculatorProject.diamonds.quantity,
-            unitPrice: calculatorProject.diamonds.totalCost / calculatorProject.diamonds.quantity,
-            total: calculatorProject.diamonds.totalCost
-        });
-    }
-
-    // Agregar piedras preciosas si hay
-    if (calculatorProject.gemstones?.totalCost > 0) {
-        items.push({
-            description: `${calculatorProject.gemstones.type}: ${calculatorProject.gemstones.carats}ct ${calculatorProject.gemstones.quality}`,
-            quantity: 1,
-            unitPrice: calculatorProject.gemstones.totalCost,
-            total: calculatorProject.gemstones.totalCost
-        });
-    }
-
-    // Agregar mano de obra si hay
-    if (calculatorProject.labor?.cost > 0) {
-        items.push({
-            description: `Mano de obra: ${calculatorProject.labor.hours}h @ $${calculatorProject.labor.rate}/h`,
-            quantity: 1,
-            unitPrice: calculatorProject.labor.cost,
-            total: calculatorProject.labor.cost
-        });
-    }
-
-    // Agregar costos adicionales si hay
-    if (calculatorProject.costs?.additional > 0) {
-        items.push({
-            description: 'Costos adicionales',
-            quantity: 1,
-            unitPrice: calculatorProject.costs.additional,
-            total: calculatorProject.costs.additional
-        });
-    }
-
-    return items;
-}
-
-function validateCalculatorData() {
-    const totals = calculatorProject.totals;
-    return totals && (
-        totals.metalCost > 0 || 
-        totals.diamondCost > 0 || 
-        totals.gemstoneCost > 0 || 
-        totals.laborCost > 0
-    );
-}
-
-// =================================================================
-// OTRAS FUNCIONES
-// =================================================================
-
-function printCalculation() {
-    try {
-        if (!validateCalculatorData()) {
-            if (window.utils) {
-                window.utils.showNotification('No hay datos para imprimir', 'warning');
-            }
-            return;
-        }
-
-        // Crear ventana de impresión
-        const printWindow = window.open('', '_blank');
-        const printContent = generatePrintContent();
-        
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
-        
-    } catch (error) {
-        console.error('Error imprimiendo cálculo:', error);
-        if (window.utils) {
-            window.utils.showNotification('Error al imprimir', 'error');
-        }
-    }
-}
-
-function generatePrintContent() {
-    const project = calculatorProject;
-    const totals = project.totals || {};
-    
-    return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Cálculo de Precio - ${project.name}</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 20px; }
-                .header { text-align: center; margin-bottom: 30px; }
-                .logo { max-width: 200px; }
-                .project-info { margin-bottom: 20px; }
-                .calculations { margin-bottom: 20px; }
-                .total { font-weight: bold; font-size: 1.2em; border-top: 2px solid #333; padding-top: 10px; }
-                .section { margin-bottom: 15px; padding: 10px; border-left: 3px solid #ccc; }
-                table { width: 100%; border-collapse: collapse; }
-                th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-                .currency { text-align: right; }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <img src="${CALCULATOR_CONFIG.companyInfo?.logo || ''}" alt="ciaociao.mx" class="logo">
-                <h1>CÁLCULO DE PRECIO</h1>
-            </div>
-            
-            <div class="project-info">
-                <h3>Información del Proyecto</h3>
-                <p><strong>Nombre:</strong> ${project.name || 'Sin nombre'}</p>
-                <p><strong>Fecha:</strong> ${new Date(project.date).toLocaleDateString('es-MX')}</p>
-                <p><strong>Cliente/Referencia:</strong> ${project.clientReference || 'N/A'}</p>
-            </div>
-            
-            <div class="calculations">
-                <h3>Desglose de Costos</h3>
-                <table>
-                    <tr>
-                        <td>Costo de Metales:</td>
-                        <td class="currency">$${(totals.metalCost || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr>
-                        <td>Costo de Diamantes:</td>
-                        <td class="currency">$${(totals.diamondCost || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr>
-                        <td>Costo de Piedras:</td>
-                        <td class="currency">$${(totals.gemstoneCost || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr>
-                        <td>Mano de Obra:</td>
-                        <td class="currency">$${(totals.laborCost || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr>
-                        <td>Costos Adicionales:</td>
-                        <td class="currency">$${(totals.additionalCosts || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr style="font-weight: bold;">
-                        <td>Subtotal:</td>
-                        <td class="currency">$${(totals.subtotal || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr>
-                        <td>Margen de Ganancia (${project.costs?.profitMargin || 0}%):</td>
-                        <td class="currency">$${(totals.profitAmount || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    <tr class="total">
-                        <td>PRECIO FINAL:</td>
-                        <td class="currency">$${(totals.finalPrice || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                </table>
-            </div>
-            
-            ${project.observations ? `
-            <div class="observations">
-                <h3>Observaciones</h3>
-                <p>${project.observations}</p>
-            </div>
-            ` : ''}
-            
-            <div style="margin-top: 40px; text-align: center; font-size: 0.9em; color: #666;">
-                <p>Generado el ${new Date().toLocaleString('es-MX')} por ciaociao.mx</p>
-            </div>
-        </body>
-        </html>
-    `;
-}
-
-function resetCalculator() {
-    if (confirm('¿Está seguro de limpiar toda la calculadora? Los cambios no guardados se perderán.')) {
-        try {
-            // Limpiar proyecto actual
-            calculatorProject = {
-                id: null,
-                name: '',
-                date: new Date().toISOString().split('T')[0],
-                clientReference: '',
-                metal: {},
-                diamonds: {},
-                gemstones: {},
-                labor: {},
-                costs: {},
-                totals: {},
-                observations: ''
-            };
-
-            // Limpiar formulario
-            const form = document.getElementById('calculatorForm');
-            if (form) {
-                form.reset();
-            }
-
-            // Restaurar fecha actual
-            setCalculatorDate();
-
-            // Ocultar quilates de oro
-            const goldKaratsGroup = document.getElementById('goldKaratsGroup');
-            if (goldKaratsGroup) {
-                goldKaratsGroup.style.display = 'none';
-            }
-
-            // Limpiar campos calculados
-            const calculatedFields = [
-                'metalPricePerGram', 'metalTotalCost', 'diamondTotalCost', 
-                'gemstonePricePerCarat', 'gemstoneTotalCost', 'laborCost'
-            ];
-            
-            calculatedFields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                if (field) {
-                    field.value = '';
-                }
-            });
-
-            // Limpiar resultados
-            const resultFields = [
-                'resultMetalCost', 'resultDiamondCost', 'resultGemstoneCost',
-                'resultLaborCost', 'resultAdditionalCosts', 'resultSubtotal',
-                'resultProfitAmount', 'resultFinalPrice'
-            ];
-
-            resultFields.forEach(fieldId => {
-                updateResultField(fieldId, 0);
-            });
-
-            // Limpiar auto-guardado
-            localStorage.removeItem('calculator_autosave');
-
-            if (window.utils) {
-                window.utils.showNotification('Calculadora limpiada exitosamente', 'success');
-            }
-
-        } catch (error) {
-            console.error('Error limpiando calculadora:', error);
-            if (window.utils) {
-                window.utils.showNotification('Error al limpiar la calculadora', 'error');
-            }
-        }
-    }
-}
-
-// =================================================================
-// MODALES
-// =================================================================
-
-function setupCalculatorModals() {
-    // Modal de guardar proyecto
-    const saveProjectModal = document.getElementById('saveProjectModal');
-    const confirmSaveBtn = document.getElementById('confirmSaveProject');
-    const cancelSaveBtn = document.getElementById('cancelSaveProject');
-
-    if (confirmSaveBtn) {
-        confirmSaveBtn.addEventListener('click', saveProject);
-    }
-
-    if (cancelSaveBtn) {
-        cancelSaveBtn.addEventListener('click', () => {
-            if (saveProjectModal) saveProjectModal.style.display = 'none';
-        });
-    }
-
-    // Modal de crear documento
-    const createDocumentModal = document.getElementById('createDocumentModal');
-    const confirmCreateBtn = document.getElementById('confirmCreateDocument');
-    const cancelCreateBtn = document.getElementById('cancelCreateDocument');
-
-    if (confirmCreateBtn) {
-        confirmCreateBtn.addEventListener('click', createDocumentFromCalculator);
-    }
-
-    if (cancelCreateBtn) {
-        cancelCreateBtn.addEventListener('click', () => {
-            if (createDocumentModal) createDocumentModal.style.display = 'none';
-        });
-    }
-
-    // Cerrar modales con X
-    document.querySelectorAll('.modal .close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', (e) => {
-            const modal = e.target.closest('.modal');
-            if (modal) modal.style.display = 'none';
-        });
-    });
-
-    // Cerrar modales al hacer clic fuera
-    window.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
-        }
-    });
-}
-
-// =================================================================
-// UTILIDADES
-// =================================================================
-
+// Función debounce para optimizar rendimiento
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -1545,21 +419,94 @@ function debounce(func, wait) {
 }
 
 // =================================================================
-// EXPORTAR FUNCIONES GLOBALES
+// INICIALIZACIÓN Y EVENT LISTENERS
 // =================================================================
 
-// Hacer funciones disponibles globalmente para otros módulos
-window.calculatorSystem = {
-    calculateMetalPrice,
-    calculateDiamondPrice,
-    calculateGemstonePrice,
-    calculateTotals,
-    saveProject,
-    loadProject,
-    resetCalculator,
-    printCalculation,
-    getProjectData: () => calculatorProject,
-    getProjectHistory: () => calculatorHistory
-};
+function setupCalculatorEventListeners() {
+    console.log('🔧 Configurando event listeners de calculadora...');
 
-console.log('✅ Sistema de Calculadora de Precios v1.0 inicializado correctamente');
+    // === METALES ===
+    const metalType = document.getElementById('metalType');
+    const goldKarats = document.getElementById('goldKarats');
+    const metalWeight = document.getElementById('metalWeight');
+
+    if (metalType) {
+        metalType.addEventListener('change', () => {
+            const karatsContainer = document.getElementById('goldKaratsContainer');
+            if (karatsContainer) {
+                karatsContainer.style.display = metalType.value === 'oro' ? 'block' : 'none';
+            }
+            calculateMetalPrice();
+        });
+    }
+
+    if (goldKarats) {
+        goldKarats.addEventListener('change', calculateMetalPrice);
+    }
+
+    if (metalWeight) {
+        metalWeight.addEventListener('input', debounce(calculateMetalPrice, CALCULATOR_CONFIG.debounceDelay));
+    }
+
+    // === DIAMANTES ===
+    const diamondInputs = ['diamondCarats', 'diamondClarity', 'diamondColor', 'diamondCut', 'diamondQuantity'];
+    diamondInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('change', calculateDiamondPrice);
+        }
+    });
+
+    // === GEMAS ===
+    const gemstoneInputs = ['gemstoneType', 'gemstoneCarats', 'gemstoneQuality', 'gemstoneQuantity'];
+    gemstoneInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('change', calculateGemstonePrice);
+        }
+    });
+
+    console.log('✅ Event listeners configurados');
+}
+
+function initializeCalculatorSystem() {
+    console.log('🚀 Inicializando sistema de calculadora...');
+    
+    // Crear instancia de calculadora
+    priceCalculator = new PriceCalculator();
+    
+    // Configurar event listeners
+    setupCalculatorEventListeners();
+    
+    // Establecer fecha actual
+    const dateField = document.getElementById('calculatorDate');
+    if (dateField && !dateField.value) {
+        dateField.value = new Date().toISOString().split('T')[0];
+    }
+    
+    console.log('✅ Sistema de calculadora inicializado');
+}
+
+// =================================================================
+// INICIALIZACIÓN AUTOMÁTICA
+// =================================================================
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📋 DOM cargado, esperando inicialización...');
+    
+    // Esperar un poco para que pricing-master.js se inicialice
+    setTimeout(() => {
+        initializeCalculatorSystem();
+    }, 1000);
+});
+
+// API pública para compatibilidad
+window.calculateMetalPrice = calculateMetalPrice;
+window.calculateDiamondPrice = calculateDiamondPrice;
+window.calculateGemstonePrice = calculateGemstonePrice;
+window.calculateTotals = calculateTotals;
+
+console.log('✅ Calculator System Clean v5.0 cargado');
+console.log('💎 Integración: PricingMaster únicamente');
+console.log('🔧 API: window.calculateMetalPrice(), etc.');
