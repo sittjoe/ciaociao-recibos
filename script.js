@@ -89,40 +89,54 @@ function generateReceiptNumber() {
 
 function initializeSignaturePad() {
     try {
+        // Configuración común para ambas firmas
+        const signatureConfig = {
+            backgroundColor: 'rgb(255, 255, 255)',
+            penColor: 'rgb(0, 0, 0)',
+            velocityFilterWeight: 0.7,
+            minWidth: 0.5,
+            maxWidth: 2.5
+        };
+        
         // Firma del cliente
         const clientCanvas = document.getElementById('signatureCanvas');
         if (clientCanvas) {
-            signaturePad = new SignaturePad(clientCanvas, {
-                backgroundColor: 'rgb(255, 255, 255)',
-                penColor: 'rgb(0, 0, 0)'
-            });
+            signaturePad = new SignaturePad(clientCanvas, signatureConfig);
+            console.log('✅ Firma del cliente inicializada');
         }
         
-        // Firma de la empresa - con verificación mejorada
+        // Firma de la empresa - inicialización mejorada
         const companyCanvas = document.getElementById('companySignatureCanvas');
-        if (companyCanvas && companyCanvas.offsetParent !== null) {
-            companySignaturePad = new SignaturePad(companyCanvas, {
-                backgroundColor: 'rgb(255, 255, 255)',
-                penColor: 'rgb(0, 0, 0)'
-            });
-            console.log('✅ Firma de empresa inicializada correctamente');
-        } else if (companyCanvas) {
-            // Retry si el canvas no está visible aún
-            setTimeout(() => {
-                companySignaturePad = new SignaturePad(companyCanvas, {
-                    backgroundColor: 'rgb(255, 255, 255)',
-                    penColor: 'rgb(0, 0, 0)'
-                });
-                console.log('✅ Firma de empresa inicializada con retry');
-            }, 200);
+        if (companyCanvas) {
+            // Asegurar dimensiones antes de inicializar
+            if (companyCanvas.offsetWidth === 0) {
+                console.log('🔄 Canvas de empresa no visible, reintentando...');
+                setTimeout(() => initializeCompanySignature(companyCanvas, signatureConfig), 300);
+            } else {
+                initializeCompanySignature(companyCanvas, signatureConfig);
+            }
         }
         
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         
-        console.log('✅ Firmas digitales inicializadas');
+        console.log('✅ Firmas digitales configuradas');
     } catch (error) {
         console.error('❌ Error inicializando firma digital:', error);
+    }
+}
+
+// Función auxiliar para inicializar firma de empresa
+function initializeCompanySignature(canvas, config) {
+    try {
+        if (canvas && canvas.offsetWidth > 0) {
+            companySignaturePad = new SignaturePad(canvas, config);
+            console.log('✅ Firma de empresa inicializada correctamente');
+        } else {
+            console.warn('⚠️ Canvas de empresa aún no está listo');
+        }
+    } catch (error) {
+        console.error('❌ Error inicializando firma de empresa:', error);
     }
 }
 

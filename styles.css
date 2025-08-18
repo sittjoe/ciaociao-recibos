@@ -167,6 +167,17 @@ textarea {
     touch-action: none;
 }
 
+/* Estilos para canvas de firma de empresa */
+#companySignatureCanvas {
+    width: 100%;
+    height: 200px;
+    border: 1px dashed var(--medium-gray);
+    border-radius: 5px;
+    cursor: crosshair;
+    touch-action: none;
+    background-color: var(--white);
+}
+
 .signature-controls {
     margin-top: 10px;
     text-align: right;
