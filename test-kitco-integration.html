@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Integración Kitco Real - CiaoCiao</title>
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(212, 175, 55, 0.3);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-left: 5px solid #D4AF37;
+        }
+        
+        .test-section h2 {
+            color: #D4AF37;
+            margin-top: 0;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-result {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        
+        .success {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            color: #2e7d32;
+        }
+        
+        .error {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            color: #c62828;
+        }
+        
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            color: #ef6c00;
+        }
+        
+        .info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            color: #1565c0;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px 5px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .price-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .price-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+        
+        .price-card.kitco {
+            border-color: #D4AF37;
+            background: #fefbf3;
+        }
+        
+        .price-card h4 {
+            margin: 0 0 10px 0;
+            color: #D4AF37;
+        }
+        
+        .price-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .price-source {
+            font-size: 0.8em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online { background-color: #4CAF50; }
+        .status-offline { background-color: #f44336; }
+        .status-warning { background-color: #ff9800; }
+        
+        .quick-actions {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .quick-actions h3 {
+            margin-top: 0;
+            color: #D4AF37;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🥇 Test de Integración Kitco Real</h1>
+        <p>Sistema de Precios REALES con Fallbacks Inteligentes - CiaoCiao.mx</p>
+    </div>
+    
+    <div class="quick-actions">
+        <h3>⚡ Acciones Rápidas</h3>
+        <button onclick="runFullTest()">🧪 Ejecutar Test Completo</button>
+        <button onclick="testRealTimeConversion()">💰 Test Conversión Tiempo Real</button>
+        <button onclick="compareAllSources()">📊 Comparar Todas las Fuentes</button>
+        <button onclick="stressTest()">🔥 Test de Estrés</button>
+        <button onclick="clearAllResults()">🗑️ Limpiar Resultados</button>
+    </div>
+    
+    <div class="test-grid">
+        <!-- Test de Inicialización -->
+        <div class="test-section">
+            <h2>🚀 Inicialización del Sistema</h2>
+            <button onclick="testSystemInitialization()">Probar Inicialización</button>
+            <div id="init-results"></div>
+        </div>
+        
+        <!-- Test de KitcoRealAPI -->
+        <div class="test-section">
+            <h2>🥇 KitcoRealAPI Principal</h2>
+            <button onclick="testKitcoAPI()">Probar Kitco</button>
+            <button onclick="testKitcoFailover()">Probar Failover</button>
+            <div id="kitco-results"></div>
+        </div>
+        
+        <!-- Test de Conversiones -->
+        <div class="test-section">
+            <h2>🔄 Conversiones Exactas</h2>
+            <button onclick="testConversions()">Probar Conversiones</button>
+            <div id="conversion-results"></div>
+        </div>
+        
+        <!-- Test de Tipo de Cambio -->
+        <div class="test-section">
+            <h2>💱 Tipo de Cambio USD/MXN</h2>
+            <button onclick="testExchangeRates()">Obtener Tipos de Cambio</button>
+            <div id="exchange-results"></div>
+        </div>
+        
+        <!-- Test de Precios por Metal -->
+        <div class="test-section">
+            <h2>💎 Precios por Metal y Pureza</h2>
+            <button onclick="testMetalPrices()">Obtener Precios Actuales</button>
+            <div id="metal-results"></div>
+        </div>
+        
+        <!-- Test de Integración con Calculadora -->
+        <div class="test-section">
+            <h2>🧮 Integración Calculadora</h2>
+            <button onclick="testCalculatorIntegration()">Probar Integración</button>
+            <div id="calculator-results"></div>
+        </div>
+    </div>
+    
+    <!-- Sección de Comparación de Precios -->
+    <div class="test-section">
+        <h2>📊 Comparación de Fuentes de Precios</h2>
+        <button onclick="compareAllSources()">Comparar Todas las Fuentes</button>
+        <div id="comparison-results"></div>
+    </div>
+    
+    <!-- Sección de Estado del Sistema -->
+    <div class="test-section">
+        <h2>📡 Estado del Sistema en Tiempo Real</h2>
+        <button onclick="getSystemStatus()">Obtener Estado</button>
+        <button onclick="startRealTimeMonitoring()">Monitoreo en Vivo</button>
+        <button onclick="stopRealTimeMonitoring()">Detener Monitoreo</button>
+        <div id="status-results"></div>
+    </div>
+
+    <!-- Cargar scripts necesarios -->
+    <script src="api-config.js"></script>
+    <script src="kitco-real-api.js"></script>
+    <script src="real-metals-api-improved.js"></script>
+    <script src="calculator-system.js"></script>
+    
+    <script>
+        let monitoringInterval = null;
+        
+        // =================================================================
+        // FUNCIONES DE TESTING
+        // =================================================================
+        
+        async function testSystemInitialization() {
+            const resultsDiv = document.getElementById('init-results');
+            resultsDiv.innerHTML = '<div class="test-result info">🔄 Inicializando sistemas...</div>';
+            
+            try {
+                const results = [];
+                
+                // Test 1: KitcoRealAPI
+                if (window.kitcoRealAPI) {
+                    const kitcoStatus = await window.kitcoRealAPI.initialize();
+                    results.push(`✅ KitcoRealAPI: ${kitcoStatus ? 'Inicializado' : 'Error'}`);
+                } else {
+                    results.push('❌ KitcoRealAPI: No encontrado');
+                }
+                
+                // Test 2: API Configuration
+                if (window.apiConfiguration) {
+                    const apiStatus = window.apiConfiguration.getStatusReport();
+                    results.push(`✅ APIConfiguration: ${apiStatus.configuredAPIs} APIs configuradas`);
+                } else {
+                    results.push('❌ APIConfiguration: No encontrado');
+                }
+                
+                // Test 3: Calculator System
+                if (window.PriceCalculator) {
+                    const calculator = new window.PriceCalculator();
+                    results.push('✅ PriceCalculator: Disponible');
+                } else {
+                    results.push('❌ PriceCalculator: No encontrado');
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div class="test-result success">
+                        <strong>✅ Inicialización Completada</strong>
+                        <pre>${results.join('\\n')}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error en Inicialización</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testKitcoAPI() {
+            const resultsDiv = document.getElementById('kitco-results');
+            resultsDiv.innerHTML = '<div class="test-result info">🥇 Probando KitcoRealAPI...</div>';
+            
+            try {
+                if (!window.kitcoRealAPI) {
+                    throw new Error('KitcoRealAPI no está disponible');
+                }
+                
+                // Asegurar inicialización
+                if (!window.kitcoRealAPI.isInitialized) {
+                    await window.kitcoRealAPI.initialize();
+                }
+                
+                // Test de obtención de precios
+                const goldPrice = await window.kitcoRealAPI.getMetalPricePerGramMXN('gold', '14k');
+                const silverPrice = await window.kitcoRealAPI.getMetalPricePerGramMXN('silver', '925');
+                
+                const status = window.kitcoRealAPI.getSystemStatus();
+                
+                resultsDiv.innerHTML = `
+                    <div class="test-result success">
+                        <strong>✅ KitcoRealAPI Funcional</strong>
+                        <div class="price-comparison">
+                            <div class="price-card kitco">
+                                <h4>Oro 14k</h4>
+                                <div class="price-value">$${goldPrice.price_per_gram_mxn.toFixed(2)} MXN/g</div>
+                                <div class="price-source">Fuente: ${goldPrice.source}</div>
+                            </div>
+                            <div class="price-card kitco">
+                                <h4>Plata 925</h4>
+                                <div class="price-value">$${silverPrice.price_per_gram_mxn.toFixed(2)} MXN/g</div>
+                                <div class="price-source">Fuente: ${silverPrice.source}</div>
+                            </div>
+                        </div>
+                        <pre>${JSON.stringify(status, null, 2)}</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error en KitcoRealAPI</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testConversions() {
+            const resultsDiv = document.getElementById('conversion-results');
+            resultsDiv.innerHTML = '<div class="test-result info">🔄 Probando conversiones exactas...</div>';
+            
+            try {
+                if (!window.kitcoRealAPI) {
+                    throw new Error('KitcoRealAPI no está disponible');
+                }
+                
+                const tests = [
+                    { metal: 'gold', purity: '24k', description: 'Oro 24k (puro)' },
+                    { metal: 'gold', purity: '18k', description: 'Oro 18k (75%)' },
+                    { metal: 'gold', purity: '14k', description: 'Oro 14k (58.33%)' },
+                    { metal: 'silver', purity: '925', description: 'Plata 925 (esterlina)' },
+                    { metal: 'platinum', purity: '950', description: 'Platino 950' }
+                ];
+                
+                let resultsHTML = '<div class="test-result success"><strong>✅ Conversiones Exactas</strong><br>';
+                
+                for (const test of tests) {
+                    const result = await window.kitcoRealAPI.getMetalPricePerGramMXN(test.metal, test.purity);
+                    
+                    resultsHTML += `
+                        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                            <strong>${test.description}</strong><br>
+                            USD/oz: $${result.price_per_ounce_usd.toFixed(2)} | 
+                            USD/g: $${result.price_per_gram_usd.toFixed(2)} | 
+                            MXN/g: $${result.price_per_gram_mxn.toFixed(2)}<br>
+                            Factor pureza: ${result.purity_factor} | 
+                            TC: $${result.exchange_rate} MXN/USD | 
+                            Fuente: ${result.source}
+                        </div>
+                    `;
+                }
+                
+                resultsHTML += '</div>';
+                resultsDiv.innerHTML = resultsHTML;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error en Conversiones</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testExchangeRates() {
+            const resultsDiv = document.getElementById('exchange-results');
+            resultsDiv.innerHTML = '<div class="test-result info">💱 Obteniendo tipos de cambio...</div>';
+            
+            try {
+                // Test múltiples fuentes de tipo de cambio
+                const sources = [];
+                
+                // KitcoRealAPI
+                if (window.kitcoRealAPI) {
+                    await window.kitcoRealAPI.updateExchangeRate();
+                    sources.push({
+                        name: 'KitcoRealAPI',
+                        rate: window.kitcoRealAPI.exchangeRate,
+                        status: '✅'
+                    });
+                }
+                
+                // API directa
+                try {
+                    const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                    const data = await response.json();
+                    sources.push({
+                        name: 'ExchangeRate-API',
+                        rate: data.rates.MXN,
+                        status: '✅'
+                    });
+                } catch {
+                    sources.push({
+                        name: 'ExchangeRate-API',
+                        rate: 'Error',
+                        status: '❌'
+                    });
+                }
+                
+                let html = '<div class="test-result success"><strong>💱 Tipos de Cambio USD/MXN</strong><br>';
+                
+                sources.forEach(source => {
+                    html += `
+                        <div style="margin: 8px 0; padding: 8px; background: #f8f9fa; border-radius: 4px;">
+                            ${source.status} <strong>${source.name}:</strong> $${source.rate} MXN/USD
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error obteniendo tipos de cambio</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testMetalPrices() {
+            const resultsDiv = document.getElementById('metal-results');
+            resultsDiv.innerHTML = '<div class="test-result info">💎 Obteniendo precios de metales...</div>';
+            
+            try {
+                if (!window.kitcoRealAPI) {
+                    throw new Error('KitcoRealAPI no está disponible');
+                }
+                
+                const metals = [
+                    { metal: 'gold', purities: ['10k', '14k', '18k', '22k', '24k'] },
+                    { metal: 'silver', purities: ['800', '900', '925', '958', '999'] },
+                    { metal: 'platinum', purities: ['850', '900', '950', '999'] }
+                ];
+                
+                let html = '<div class="test-result success"><strong>💎 Precios por Metal y Pureza</strong><br>';
+                
+                for (const metalGroup of metals) {
+                    html += `<h4 style="color: #D4AF37; margin: 15px 0 10px 0;">${metalGroup.metal.toUpperCase()}</h4>`;
+                    
+                    for (const purity of metalGroup.purities) {
+                        try {
+                            const result = await window.kitcoRealAPI.getMetalPricePerGramMXN(metalGroup.metal, purity);
+                            html += `
+                                <div style="margin: 5px 0; padding: 8px; background: #f8f9fa; border-radius: 4px; font-family: monospace;">
+                                    ${metalGroup.metal} ${purity}: $${result.price_per_gram_mxn.toFixed(2)} MXN/g 
+                                    (${result.source})
+                                </div>
+                            `;
+                        } catch (error) {
+                            html += `
+                                <div style="margin: 5px 0; padding: 8px; background: #ffebee; border-radius: 4px; color: #c62828;">
+                                    ${metalGroup.metal} ${purity}: Error - ${error.message}
+                                </div>
+                            `;
+                        }
+                    }
+                }
+                
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error obteniendo precios de metales</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testCalculatorIntegration() {
+            const resultsDiv = document.getElementById('calculator-results');
+            resultsDiv.innerHTML = '<div class="test-result info">🧮 Probando integración con calculadora...</div>';
+            
+            try {
+                // Inicializar calculadora si no existe
+                if (!window.priceCalculator) {
+                    window.priceCalculator = new window.PriceCalculator();
+                }
+                
+                // Test de cálculo de precios usando la calculadora
+                const tests = [
+                    { metal: 'oro', karats: '14k', weight: 5.5, description: 'Anillo oro 14k (5.5g)' },
+                    { metal: 'plata', karats: '925', weight: 15.0, description: 'Collar plata 925 (15g)' },
+                    { metal: 'oro', karats: '18k', weight: 3.2, description: 'Aretes oro 18k (3.2g)' }
+                ];
+                
+                let html = '<div class="test-result success"><strong>🧮 Integración Calculadora</strong><br>';
+                
+                for (const test of tests) {
+                    try {
+                        const price = await window.priceCalculator.calculateMetalPrice(test.metal, test.karats, test.weight);
+                        html += `
+                            <div style="margin: 10px 0; padding: 12px; background: #e8f5e9; border-radius: 6px; border-left: 4px solid #4CAF50;">
+                                <strong>${test.description}</strong><br>
+                                Precio total: $${price.toFixed(2)} MXN<br>
+                                Por gramo: $${(price / test.weight).toFixed(2)} MXN/g
+                            </div>
+                        `;
+                    } catch (error) {
+                        html += `
+                            <div style="margin: 10px 0; padding: 12px; background: #ffebee; border-radius: 6px; border-left: 4px solid #f44336;">
+                                <strong>${test.description}</strong><br>
+                                Error: ${error.message}
+                            </div>
+                        `;
+                    }
+                }
+                
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error en integración con calculadora</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function compareAllSources() {
+            const resultsDiv = document.getElementById('comparison-results');
+            resultsDiv.innerHTML = '<div class="test-result info">📊 Comparando todas las fuentes...</div>';
+            
+            try {
+                const metals = ['gold', 'silver', 'platinum'];
+                let html = '<div class="test-result success"><strong>📊 Comparación de Fuentes</strong><br>';
+                
+                for (const metal of metals) {
+                    html += `<h4 style="color: #D4AF37; margin: 15px 0 10px 0;">${metal.toUpperCase()}</h4>`;
+                    
+                    // KitcoRealAPI
+                    try {
+                        const kitcoResult = await window.kitcoRealAPI.getMetalPricePerGramMXN(metal);
+                        html += `
+                            <div class="price-card kitco" style="margin: 8px 0; padding: 10px; background: #fefbf3; border-radius: 6px; border: 2px solid #D4AF37;">
+                                <strong>🥇 Kitco Real:</strong> $${kitcoResult.price_per_gram_mxn.toFixed(2)} MXN/g 
+                                (${kitcoResult.source}, Prioridad: ${kitcoResult.priority})
+                            </div>
+                        `;
+                    } catch (error) {
+                        html += `<div style="color: #c62828;">❌ Kitco: ${error.message}</div>`;
+                    }
+                    
+                    // Improved Metals API
+                    try {
+                        if (window.improvedMetalsAPI) {
+                            const improvedResult = await window.improvedMetalsAPI.getMetalPrice(metal === 'gold' ? 'oro' : metal === 'silver' ? 'plata' : 'platino');
+                            html += `
+                                <div style="margin: 8px 0; padding: 10px; background: #f0f8ff; border-radius: 6px; border: 2px solid #2196F3;">
+                                    <strong>🔄 Improved API:</strong> $${improvedResult.price_per_gram_mxn.toFixed(2)} MXN/g 
+                                    (${improvedResult.source})
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        html += `<div style="color: #c62828;">❌ Improved API: ${error.message}</div>`;
+                    }
+                }
+                
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error comparando fuentes</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        async function getSystemStatus() {
+            const resultsDiv = document.getElementById('status-results');
+            resultsDiv.innerHTML = '<div class="test-result info">📡 Obteniendo estado del sistema...</div>';
+            
+            try {
+                const statuses = [];
+                
+                // KitcoRealAPI Status
+                if (window.kitcoRealAPI) {
+                    const kitcoStatus = window.kitcoRealAPI.getSystemStatus();
+                    statuses.push({
+                        name: 'KitcoRealAPI',
+                        status: kitcoStatus,
+                        online: kitcoStatus.isInitialized
+                    });
+                }
+                
+                // API Configuration Status
+                if (window.apiConfiguration) {
+                    const apiStatus = window.apiConfiguration.getStatusReport();
+                    statuses.push({
+                        name: 'API Configuration',
+                        status: apiStatus,
+                        online: apiStatus.initialized
+                    });
+                }
+                
+                let html = '<div class="test-result success"><strong>📡 Estado del Sistema</strong><br>';
+                
+                statuses.forEach(item => {
+                    const indicator = item.online ? 'status-online' : 'status-offline';
+                    html += `
+                        <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                            <h4><span class="status-indicator ${indicator}"></span>${item.name}</h4>
+                            <pre style="font-size: 0.8em; max-height: 200px; overflow-y: auto;">${JSON.stringify(item.status, null, 2)}</pre>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error obteniendo estado</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        // =================================================================
+        // FUNCIONES AUXILIARES
+        // =================================================================
+        
+        async function runFullTest() {
+            console.log('🧪 Ejecutando test completo...');
+            await testSystemInitialization();
+            await new Promise(r => setTimeout(r, 1000));
+            await testKitcoAPI();
+            await new Promise(r => setTimeout(r, 1000));
+            await testConversions();
+            await new Promise(r => setTimeout(r, 1000));
+            await testExchangeRates();
+            await new Promise(r => setTimeout(r, 1000));
+            await testMetalPrices();
+            await new Promise(r => setTimeout(r, 1000));
+            await testCalculatorIntegration();
+            console.log('✅ Test completo finalizado');
+        }
+        
+        async function testRealTimeConversion() {
+            if (!window.kitcoRealAPI) return;
+            
+            const peso = prompt('Ingresa el peso en gramos:', '5.0');
+            const metal = prompt('Metal (gold/silver/platinum):', 'gold');
+            const pureza = prompt('Pureza (14k, 18k, 925, etc.):', '14k');
+            
+            if (peso && metal && pureza) {
+                try {
+                    const result = await window.kitcoRealAPI.getMetalPricePerGramMXN(metal, pureza);
+                    const totalPrice = result.price_per_gram_mxn * parseFloat(peso);
+                    
+                    alert(`💰 Precio calculado:\\n\\n${metal.toUpperCase()} ${pureza}\\nPeso: ${peso}g\\nPrecio por gramo: $${result.price_per_gram_mxn.toFixed(2)} MXN\\nPrecio total: $${totalPrice.toFixed(2)} MXN\\n\\nFuente: ${result.source}\\nTipo de cambio: $${result.exchange_rate} MXN/USD`);
+                } catch (error) {
+                    alert(`❌ Error: ${error.message}`);
+                }
+            }
+        }
+        
+        function startRealTimeMonitoring() {
+            if (monitoringInterval) return;
+            
+            monitoringInterval = setInterval(async () => {
+                await getSystemStatus();
+            }, 5000);
+            
+            console.log('📡 Monitoreo en tiempo real iniciado (cada 5 segundos)');
+        }
+        
+        function stopRealTimeMonitoring() {
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+                monitoringInterval = null;
+                console.log('📡 Monitoreo en tiempo real detenido');
+            }
+        }
+        
+        function clearAllResults() {
+            const resultDivs = ['init-results', 'kitco-results', 'conversion-results', 'exchange-results', 'metal-results', 'calculator-results', 'comparison-results', 'status-results'];
+            resultDivs.forEach(id => {
+                const div = document.getElementById(id);
+                if (div) div.innerHTML = '';
+            });
+            console.log('🗑️ Todos los resultados limpiados');
+        }
+        
+        async function stressTest() {
+            console.log('🔥 Iniciando test de estrés...');
+            const resultsDiv = document.getElementById('status-results');
+            resultsDiv.innerHTML = '<div class="test-result warning">🔥 Ejecutando test de estrés...</div>';
+            
+            try {
+                const promises = [];
+                const metals = ['gold', 'silver', 'platinum'];
+                const purities = ['14k', '18k', '925', '950'];
+                
+                // Crear 20 requests simultáneas
+                for (let i = 0; i < 20; i++) {
+                    const metal = metals[i % metals.length];
+                    const purity = purities[i % purities.length];
+                    promises.push(window.kitcoRealAPI.getMetalPricePerGramMXN(metal, purity));
+                }
+                
+                const startTime = Date.now();
+                const results = await Promise.allSettled(promises);
+                const endTime = Date.now();
+                
+                const successful = results.filter(r => r.status === 'fulfilled').length;
+                const failed = results.filter(r => r.status === 'rejected').length;
+                
+                resultsDiv.innerHTML = `
+                    <div class="test-result ${failed === 0 ? 'success' : 'warning'}">
+                        <strong>🔥 Test de Estrés Completado</strong><br>
+                        Requests totales: 20<br>
+                        Exitosas: ${successful}<br>
+                        Fallidas: ${failed}<br>
+                        Tiempo total: ${endTime - startTime}ms<br>
+                        Promedio por request: ${((endTime - startTime) / 20).toFixed(2)}ms
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result error">
+                        <strong>❌ Error en test de estrés</strong>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        // =================================================================
+        // INICIALIZACIÓN AUTOMÁTICA
+        // =================================================================
+        
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Sistema de testing KitcoRealAPI iniciado');
+            
+            // Esperar a que los scripts se carguen
+            setTimeout(async () => {
+                await testSystemInitialization();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

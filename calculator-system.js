@@ -82,6 +82,12 @@ class PriceCalculator {
     async initializePricingSystems() {
         console.log('🚀 Inicializando sistemas de precios...');
         
+        // Prioridad 1: Inicializar KitcoRealAPI si está disponible
+        if (window.kitcoRealAPI) {
+            await window.kitcoRealAPI.initialize();
+            console.log('✅ KitcoRealAPI inicializado como fuente primaria');
+        }
+        
         // Inicializar configuración de APIs si está disponible
         if (this.apiConfig) {
             console.log('✅ Configuración de APIs detectada');
@@ -177,9 +183,39 @@ class PriceCalculator {
             let pricePerGramMXN = 0;
             
             // Intentar obtener precio del sistema integrado si está disponible
-            // Prioridad 1: Sistema de APIs mejorado v4.0
-            if (window.improvedMetalsAPI) {
-                console.log(`🔄 Obteniendo precio real de ${metalType} ${karats || ''} desde sistema mejorado...`);
+            // Prioridad 1: KitcoRealAPI - Precios REALES de Kitco
+            if (window.kitcoRealAPI && window.kitcoRealAPI.isInitialized) {
+                console.log(`🥇 Obteniendo precio REAL de ${metalType} ${karats || ''} desde Kitco...`);
+                
+                try {
+                    // Normalizar el tipo de metal para Kitco
+                    const metalName = metalType.toLowerCase() === 'oro' ? 'gold' : 
+                                    metalType.toLowerCase() === 'plata' ? 'silver' : 
+                                    metalType.toLowerCase() === 'platino' ? 'platinum' : 
+                                    metalType.toLowerCase() === 'paladio' ? 'palladium' : metalType;
+                    
+                    const priceData = await window.kitcoRealAPI.getMetalPricePerGramMXN(metalName, karats);
+                    
+                    if (priceData && priceData.price_per_gram_mxn) {
+                        pricePerGramMXN = priceData.price_per_gram_mxn * weight;
+                        console.log(`✅ Precio REAL de Kitco obtenido: $${pricePerGramMXN.toFixed(2)} MXN total`);
+                        console.log(`   Por gramo: $${priceData.price_per_gram_mxn.toFixed(2)} MXN/g`);
+                        console.log(`   Fuente: ${priceData.source}, Prioridad: ${priceData.priority}`);
+                        console.log(`   Tipo de cambio: $${priceData.exchange_rate} MXN/USD`);
+                        
+                        // Actualizar tipo de cambio local
+                        if (priceData.exchange_rate) {
+                            this.exchangeRate = priceData.exchange_rate;
+                        }
+                    }
+                } catch (apiError) {
+                    console.warn(`⚠️ KitcoRealAPI no disponible, usando sistemas de respaldo...`, apiError);
+                }
+            }
+            
+            // Prioridad 2: Sistema de APIs mejorado (fallback)
+            if (!pricePerGramMXN && window.improvedMetalsAPI) {
+                console.log(`🔄 Obteniendo precio desde sistema mejorado (fallback)...`);
                 
                 try {
                     // Normalizar el tipo de metal
