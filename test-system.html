@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sistema - ciaociao.mx</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Sistema de Pruebas - ciaociao.mx</h1>
+    <div id="results"></div>
+
+    <script>
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-section ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+
+        // Test 1: Basic JavaScript
+        try {
+            addResult('✅ JavaScript básico funcionando', 'success');
+        } catch (e) {
+            addResult('❌ Error en JavaScript básico: ' + e.message, 'error');
+        }
+
+        // Test 2: Local Storage
+        try {
+            localStorage.setItem('test', 'value');
+            const value = localStorage.getItem('test');
+            if (value === 'value') {
+                addResult('✅ LocalStorage funcionando', 'success');
+                localStorage.removeItem('test');
+            } else {
+                addResult('❌ LocalStorage no funciona correctamente', 'error');
+            }
+        } catch (e) {
+            addResult('❌ Error en LocalStorage: ' + e.message, 'error');
+        }
+
+        // Test 3: Check existing data
+        try {
+            const receipts = localStorage.getItem('receipts_ciaociao');
+            const quotations = localStorage.getItem('quotations_ciaociao');
+            const calculatorProjects = localStorage.getItem('calculator_projects');
+            
+            addResult(`📊 Datos existentes:`, 'info');
+            addResult(`- Recibos: ${receipts ? JSON.parse(receipts).length : 0}`, 'info');
+            addResult(`- Cotizaciones: ${quotations ? JSON.parse(quotations).length : 0}`, 'info');
+            addResult(`- Proyectos calculadora: ${calculatorProjects ? JSON.parse(calculatorProjects).length : 0}`, 'info');
+        } catch (e) {
+            addResult('❌ Error leyendo datos: ' + e.message, 'error');
+        }
+
+        // Test 4: Authentication check
+        try {
+            const session = localStorage.getItem('ciaociao_auth_session');
+            if (session) {
+                const sessionData = JSON.parse(session);
+                const now = new Date().getTime();
+                const isValid = sessionData.timestamp && (now - sessionData.timestamp) < (8 * 60 * 60 * 1000);
+                addResult(`🔐 Sesión existente: ${isValid ? 'Válida' : 'Expirada'}`, isValid ? 'success' : 'info');
+            } else {
+                addResult('🔐 No hay sesión activa', 'info');
+            }
+        } catch (e) {
+            addResult('❌ Error verificando sesión: ' + e.message, 'error');
+        }
+
+        // Test 5: Check external libraries availability
+        const libraries = [
+            { name: 'jsPDF', url: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js' },
+            { name: 'SignaturePad', url: 'https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js' },
+            { name: 'html2canvas', url: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js' }
+        ];
+
+        libraries.forEach(lib => {
+            const script = document.createElement('script');
+            script.src = lib.url;
+            script.onload = () => addResult(`✅ ${lib.name} cargado correctamente`, 'success');
+            script.onerror = () => addResult(`❌ Error cargando ${lib.name}`, 'error');
+            document.head.appendChild(script);
+        });
+    </script>
+</body>
+</html>
