@@ -1,4 +1,4 @@
-// auth.js - Sistema de autenticación para ciaociao.mx
+// auth.js - Sistema de autenticación simplificado para ciaociao.mx
 class AuthManager {
     constructor() {
         this.correctPassword = '27181730';
@@ -51,150 +51,257 @@ class AuthManager {
                 selectorContainer.style.display = 'none';
             }
 
-            // Crear pantalla de login si no existe
-            if (!document.getElementById('loginScreen')) {
-                this.createLoginScreen();
-            }
+            // Crear o mostrar pantalla de login si no existe
+            this.createLoginScreen();
 
-            // Mostrar pantalla de login
-            const loginScreen = document.getElementById('loginScreen');
-            if (loginScreen) {
-                loginScreen.style.display = 'flex';
-            }
+            // Configurar event listeners
+            this.setupLoginEventListeners();
+
+            console.log('🔒 Pantalla de login mostrada');
 
         } catch (error) {
             console.error('❌ Error mostrando pantalla de login:', error);
+            // Mostrar error al usuario
+            document.body.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
+                    <div style="text-align: center; color: #721c24; background: #f8d7da; padding: 20px; border-radius: 8px;">
+                        <h2>❌ Error de Inicialización</h2>
+                        <p>Error iniciando la aplicación. Por favor recarga la página.</p>
+                        <button onclick="window.location.reload()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            🔄 Recargar Página
+                        </button>
+                    </div>
+                </div>
+            `;
         }
     }
 
     createLoginScreen() {
-        const loginHTML = `
-            <div id="loginScreen" class="login-screen">
+        // Verificar si ya existe
+        let loginScreen = document.getElementById('loginScreen');
+        
+        if (!loginScreen) {
+            // Crear nueva pantalla de login
+            loginScreen = document.createElement('div');
+            loginScreen.id = 'loginScreen';
+            loginScreen.innerHTML = `
                 <div class="login-container">
                     <div class="login-header">
                         <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" class="login-logo">
-                        <h1>Acceso Restringido</h1>
-                        <p>Sistema de Gestión - ciaociao.mx</p>
+                        <h1>Sistema de Gestión</h1>
+                        <p>Ingrese la contraseña para acceder</p>
                     </div>
-                    
-                    <form id="loginForm" class="login-form">
+                    <div class="login-form">
                         <div class="form-group">
-                            <label for="passwordInput">Contraseña de Acceso</label>
-                            <input type="password" id="passwordInput" placeholder="Ingrese la contraseña" required>
+                            <label for="passwordInput">Contraseña</label>
+                            <input type="password" id="passwordInput" placeholder="Ingrese su contraseña" autocomplete="current-password">
                         </div>
-                        
-                        <button type="submit" id="loginBtn" class="login-btn">
+                        <div id="errorMessage" class="error-message" style="display: none;">
+                            ❌ Contraseña incorrecta. Inténtelo de nuevo.
+                        </div>
+                        <button type="button" id="loginBtn" class="login-btn">
                             🔓 Acceder al Sistema
                         </button>
-                        
-                        <div id="errorMessage" class="error-message" style="display: none;">
-                            ❌ Contraseña incorrecta. Intente nuevamente.
-                        </div>
-                    </form>
-                    
-                    <div class="login-footer">
-                        <p><strong>Sistema Seguro</strong></p>
-                        <p>Solo personal autorizado de ciaociao.mx</p>
                     </div>
                 </div>
-            </div>
-        `;
-
-        // Agregar al body
-        document.body.insertAdjacentHTML('beforeend', loginHTML);
+            `;
+            
+            // Agregar estilos si no existen
+            this.addLoginStyles();
+            
+            document.body.appendChild(loginScreen);
+        }
         
-        // Configurar event listeners
-        this.setupLoginEventListeners();
+        loginScreen.style.display = 'flex';
+    }
+
+    addLoginStyles() {
+        // Verificar si ya existen los estilos
+        if (document.getElementById('authStyles')) return;
+        
+        const style = document.createElement('style');
+        style.id = 'authStyles';
+        style.textContent = `
+            #loginScreen {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            }
+            
+            .login-container {
+                background: white;
+                padding: 40px;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+                animation: fadeIn 0.5s ease;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            .login-container.shake {
+                animation: shake 0.5s ease-in-out;
+            }
+            
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+            
+            .login-logo {
+                max-width: 150px;
+                height: auto;
+                margin-bottom: 20px;
+            }
+            
+            .login-header h1 {
+                color: #1a1a1a;
+                margin: 10px 0;
+                font-family: 'Playfair Display', serif;
+            }
+            
+            .login-header p {
+                color: #666;
+                margin-bottom: 30px;
+            }
+            
+            .form-group {
+                margin-bottom: 20px;
+                text-align: left;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: #333;
+            }
+            
+            #passwordInput {
+                width: 100%;
+                padding: 12px 15px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 16px;
+                box-sizing: border-box;
+                transition: border-color 0.3s ease;
+            }
+            
+            #passwordInput:focus {
+                outline: none;
+                border-color: #D4AF37;
+                box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+            }
+            
+            .login-btn {
+                width: 100%;
+                padding: 15px;
+                background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 10px;
+            }
+            
+            .login-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+            }
+            
+            .error-message {
+                background: #f8d7da;
+                color: #721c24;
+                padding: 10px;
+                border-radius: 6px;
+                margin-bottom: 15px;
+                border: 1px solid #f5c6cb;
+            }
+        `;
+        
+        document.head.appendChild(style);
     }
 
     setupLoginEventListeners() {
         try {
-            const loginForm = document.getElementById('loginForm');
             const passwordInput = document.getElementById('passwordInput');
             const loginBtn = document.getElementById('loginBtn');
 
-            // Submit del formulario
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.validatePassword();
-            });
+            if (passwordInput) {
+                // Focus automático
+                setTimeout(() => passwordInput.focus(), 100);
+                
+                // Enter para login
+                passwordInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.attemptLogin();
+                    }
+                });
+            }
 
-            // Enter en el campo de contraseña
-            passwordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    this.validatePassword();
-                }
-            });
-
-            // Limpiar mensaje de error al escribir
-            passwordInput.addEventListener('input', () => {
-                this.hideErrorMessage();
-            });
-
-            // Focus automático en el campo de contraseña
-            setTimeout(() => {
-                passwordInput.focus();
-            }, 100);
+            if (loginBtn) {
+                loginBtn.addEventListener('click', () => this.attemptLogin());
+            }
 
         } catch (error) {
-            console.error('❌ Error configurando eventos de login:', error);
+            console.error('❌ Error configurando event listeners:', error);
         }
     }
 
-    validatePassword() {
+    attemptLogin() {
         try {
             const passwordInput = document.getElementById('passwordInput');
-            const loginBtn = document.getElementById('loginBtn');
-            const enteredPassword = passwordInput.value.trim();
+            const enteredPassword = passwordInput ? passwordInput.value : '';
 
-            // Deshabilitar botón mientras valida
-            loginBtn.disabled = true;
-            loginBtn.textContent = '⏳ Validando...';
-
-            // Simular un pequeño delay para mejor UX
-            setTimeout(() => {
-                if (enteredPassword === this.correctPassword) {
-                    this.onSuccessfulLogin();
-                } else {
-                    this.onFailedLogin();
-                }
-
-                // Rehabilitar botón
-                loginBtn.disabled = false;
-                loginBtn.textContent = '🔓 Acceder al Sistema';
-            }, 500);
-
+            if (enteredPassword === this.correctPassword) {
+                this.handleSuccessfulLogin();
+            } else {
+                this.handleFailedLogin();
+            }
         } catch (error) {
-            console.error('❌ Error validando contraseña:', error);
-            this.onFailedLogin();
+            console.error('❌ Error en intento de login:', error);
         }
     }
 
-    onSuccessfulLogin() {
+    handleSuccessfulLogin() {
         try {
-            // Guardar sesión
-            const sessionData = {
-                timestamp: new Date().getTime(),
-                user: 'ciaociao_user'
-            };
-            localStorage.setItem(this.sessionKey, JSON.stringify(sessionData));
-
             // Mostrar mensaje de éxito
             this.showSuccessMessage();
 
-            // Mostrar aplicación principal después de un momento
+            // Crear nueva sesión
+            const sessionData = {
+                authenticated: true,
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem(this.sessionKey, JSON.stringify(sessionData));
+
+            // Mostrar aplicación principal después de una breve pausa
             setTimeout(() => {
                 this.showMainApplication();
             }, 1000);
 
         } catch (error) {
             console.error('❌ Error en login exitoso:', error);
-            this.showMainApplication(); // Mostrar app aunque haya error guardando sesión
         }
     }
 
-    onFailedLogin() {
+    handleFailedLogin() {
         try {
             // Mostrar mensaje de error
             this.showErrorMessage();
@@ -269,7 +376,7 @@ class AuthManager {
                 loginScreen.style.display = 'none';
             }
 
-            // Mostrar aplicación principal (puede ser selector de modo o página específica)
+            // Mostrar aplicación principal
             const mainContainer = document.querySelector('.container');
             const selectorContainer = document.querySelector('.mode-selector-container');
             
@@ -282,11 +389,45 @@ class AuthManager {
             }
 
             // Inicializar aplicación según el tipo de página
+            this.initializeApplicationSystems();
+
+            console.log('✅ Aplicación principal mostrada e inicializada');
+
+        } catch (error) {
+            console.error('❌ Error mostrando aplicación principal:', error);
+        }
+    }
+
+    initializeApplicationSystems() {
+        try {
+            // Detectar y inicializar el sistema apropiado
+            const selectorContainer = document.querySelector('.mode-selector-container');
+            const mainContainer = document.querySelector('.container');
+            const quotationMode = document.querySelector('.quotation-mode');
+            const calculatorMode = document.querySelector('.calculator-mode');
+
             if (selectorContainer && typeof initializeModeSelector === 'function' && !window.selectorInitialized) {
                 // Página del selector de modo
                 console.log('🏠 Inicializando selector de modo...');
                 initializeModeSelector();
                 window.selectorInitialized = true;
+                
+            } else if (quotationMode && typeof initializeQuotationSystem === 'function' && !window.quotationInitialized) {
+                // Página de cotizaciones
+                console.log('💰 Inicializando sistema de cotizaciones...');
+                setTimeout(() => {
+                    initializeQuotationSystem();
+                    window.quotationInitialized = true;
+                }, 200);
+                
+            } else if (calculatorMode && typeof initializeCalculatorSystem === 'function' && !window.calculatorInitialized) {
+                // Página de calculadora
+                console.log('🔧 Inicializando sistema de calculadora...');
+                setTimeout(() => {
+                    initializeCalculatorSystem();
+                    window.calculatorInitialized = true;
+                }, 200);
+                
             } else if (mainContainer && typeof initializeApp === 'function' && !window.appInitialized) {
                 // Página de recibos
                 console.log('📄 Inicializando sistema de recibos...');
@@ -294,327 +435,40 @@ class AuthManager {
                 window.appInitialized = true;
             }
             
-            // NUEVO SISTEMA BULLETPROOF: Usar SystemInitializationManager
-            if (window.systemManager) {
-                console.log('🎯 [AUTH] Delegando inicialización al SystemManager...');
-                
-                // Registrar sistemas disponibles según la página
-                this.registerAvailableSystems();
-                
-                // Inicializar página específica de forma robusta
-                window.systemManager.initializePage()
-                    .then(() => {
-                        console.log('✅ [AUTH] Inicialización de página completada exitosamente');
-                        window.authSystemInitialized = true;
-                    })
-                    .catch((error) => {
-                        console.error('❌ [AUTH] Error en inicialización de página:', error);
-                        this.handleInitializationFailure(error);
-                    });
-            } else {
-                console.error('❌ [AUTH] SystemManager no disponible - fallback requerido');
-                this.fallbackInitialization();
-            }
-
-            console.log('✅ Aplicación principal mostrada y inicializada');
-
         } catch (error) {
-            console.error('❌ Error mostrando aplicación principal:', error);
+            console.error('❌ Error inicializando sistemas:', error);
         }
-    }
-
-    // ==========================================
-    // MÉTODOS AUXILIARES PARA BULLETPROOF SYSTEM
-    // ==========================================
-
-    registerAvailableSystems() {
-        console.log('📋 [AUTH] Registrando sistemas disponibles...');
-        
-        try {
-            // Registrar sistema de cotizaciones si está disponible
-            if (typeof window.initializeQuotationSystem === 'function') {
-                window.systemManager.register(
-                    'quotationSystem',
-                    window.initializeQuotationSystem,
-                    ['database'], // Dependencias
-                    {
-                        timeout: 15000,
-                        retryOnFailure: true,
-                        critical: true
-                    }
-                );
-                console.log('✅ [AUTH] Sistema de cotizaciones registrado');
-            }
-
-            // Registrar sistema de recibos si está disponible  
-            if (typeof window.initializeApp === 'function') {
-                window.systemManager.register(
-                    'receiptSystem',
-                    window.initializeApp,
-                    ['database'],
-                    {
-                        timeout: 10000,
-                        retryOnFailure: true,
-                        critical: true
-                    }
-                );
-                console.log('✅ [AUTH] Sistema de recibos registrado');
-            }
-
-            // Registrar selector de modo si está disponible
-            if (typeof window.initializeModeSelector === 'function') {
-                window.systemManager.register(
-                    'modeSelector',
-                    window.initializeModeSelector,
-                    [],
-                    {
-                        timeout: 5000,
-                        retryOnFailure: false,
-                        critical: false
-                    }
-                );
-                console.log('✅ [AUTH] Selector de modo registrado');
-            }
-
-            // Registrar base de datos como dependencia común
-            window.systemManager.register(
-                'database',
-                () => {
-                    console.log('🗄️ [AUTH] Inicializando dependencias de base de datos...');
-                    return Promise.resolve(true);
-                },
-                [],
-                {
-                    timeout: 3000,
-                    retryOnFailure: true,
-                    critical: true
-                }
-            );
-
-        } catch (error) {
-            console.error('❌ [AUTH] Error registrando sistemas:', error);
-        }
-    }
-
-    handleInitializationFailure(error) {
-        console.error('🚨 [AUTH] Manejando falla de inicialización:', error);
-        
-        // Mostrar mensaje de error al usuario
-        this.showUserErrorMessage(error);
-        
-        // Intentar recuperación después de 3 segundos
-        setTimeout(() => {
-            console.log('🔄 [AUTH] Intentando recuperación automática...');
-            this.attemptRecovery();
-        }, 3000);
-    }
-
-    showUserErrorMessage(error) {
-        const errorContainer = document.createElement('div');
-        errorContainer.className = 'auth-error-message';
-        errorContainer.innerHTML = `
-            <div class="error-content">
-                <h3>⚠️ Error de Inicialización</h3>
-                <p>El sistema está experimentando dificultades técnicas.</p>
-                <button onclick="window.location.reload()" class="retry-btn">🔄 Reintentar</button>
-                <details style="margin-top: 10px;">
-                    <summary>Detalles técnicos</summary>
-                    <small>${error.message}</small>
-                </details>
-            </div>
-        `;
-
-        const style = document.createElement('style');
-        style.textContent = `
-            .auth-error-message {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #ffe6e6;
-                border: 2px solid #ffcccc;
-                border-radius: 8px;
-                padding: 15px;
-                max-width: 300px;
-                z-index: 10000;
-                font-family: Arial, sans-serif;
-            }
-            .retry-btn {
-                background: #007bff;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 4px;
-                cursor: pointer;
-                margin-top: 10px;
-            }
-            .retry-btn:hover { background: #0056b3; }
-        `;
-
-        document.head.appendChild(style);
-        document.body.appendChild(errorContainer);
-
-        // Auto-remover después de 10 segundos
-        setTimeout(() => {
-            if (errorContainer.parentNode) {
-                errorContainer.remove();
-            }
-        }, 10000);
-    }
-
-    attemptRecovery() {
-        console.log('🔧 [AUTH] Ejecutando procedimiento de recuperación...');
-        
-        try {
-            // Re-verificar disponibilidad del SystemManager
-            if (window.systemManager) {
-                console.log('✅ [AUTH] SystemManager disponible para recuperación');
-                
-                // Intentar re-registro y inicialización
-                this.registerAvailableSystems();
-                
-                window.systemManager.initializePage()
-                    .then(() => {
-                        console.log('✅ [AUTH] Recuperación exitosa');
-                        // Limpiar mensajes de error
-                        const errorMsg = document.querySelector('.auth-error-message');
-                        if (errorMsg) errorMsg.remove();
-                    })
-                    .catch((recoveryError) => {
-                        console.error('❌ [AUTH] Recuperación fallida:', recoveryError);
-                    });
-            } else {
-                console.warn('⚠️ [AUTH] SystemManager no disponible para recuperación');
-                this.fallbackInitialization();
-            }
-        } catch (error) {
-            console.error('❌ [AUTH] Error en procedimiento de recuperación:', error);
-        }
-    }
-
-    fallbackInitialization() {
-        console.log('🆘 [AUTH] Ejecutando inicialización de respaldo...');
-        
-        // Inicialización básica sin SystemManager
-        const pageType = this.detectPageType();
-        
-        switch (pageType) {
-            case 'quotation':
-                if (typeof window.initializeQuotationSystem === 'function') {
-                    console.log('🔄 [AUTH] Fallback: Inicializando cotizaciones directamente...');
-                    setTimeout(() => {
-                        try {
-                            window.initializeQuotationSystem();
-                        } catch (e) {
-                            console.error('❌ [AUTH] Fallback falló:', e);
-                        }
-                    }, 1000);
-                }
-                break;
-            case 'receipt':
-                if (typeof window.initializeApp === 'function') {
-                    console.log('🔄 [AUTH] Fallback: Inicializando recibos directamente...');
-                    window.initializeApp();
-                }
-                break;
-            default:
-                console.log('ℹ️ [AUTH] Fallback: Sin inicialización específica requerida');
-        }
-    }
-
-    detectPageType() {
-        const path = window.location.pathname;
-        const title = document.title;
-        const body = document.body.className;
-
-        if (path.includes('quotation') || title.includes('Cotizaciones') || body.includes('quotation-mode')) {
-            return 'quotation';
-        }
-        if (path.includes('receipt') || title.includes('Recibos') || body.includes('receipt-mode')) {
-            return 'receipt';
-        }
-        return 'selector';
     }
 
     logout() {
         try {
-            // Confirmar logout
-            if (confirm('¿Está seguro de que desea cerrar sesión?')) {
-                // Limpiar sesión
-                localStorage.removeItem(this.sessionKey);
-                
-                // Mostrar pantalla de login
-                this.showLoginScreen();
-                
-                // Limpiar formularios por seguridad
-                this.clearFormData();
-                
-                console.log('✅ Sesión cerrada exitosamente');
-            }
+            // Remover sesión
+            localStorage.removeItem(this.sessionKey);
+            
+            // Limpiar flags de inicialización
+            window.selectorInitialized = false;
+            window.appInitialized = false;
+            window.quotationInitialized = false;
+            window.calculatorInitialized = false;
+            
+            // Mostrar pantalla de login
+            this.showLoginScreen();
+            
+            console.log('🔒 Usuario deslogueado exitosamente');
         } catch (error) {
-            console.error('❌ Error cerrando sesión:', error);
-        }
-    }
-
-    clearFormData() {
-        try {
-            // Limpiar formulario principal
-            const receiptForm = document.getElementById('receiptForm');
-            if (receiptForm) {
-                receiptForm.reset();
-            }
-
-            // Limpiar firma
-            if (window.signaturePad) {
-                window.signaturePad.clear();
-            }
-
-            // Limpiar imágenes
-            if (window.cameraManager) {
-                window.cameraManager.clearImages();
-            }
-
-        } catch (error) {
-            console.error('❌ Error limpiando datos del formulario:', error);
-        }
-    }
-
-    // Método para extender sesión (útil para actividad del usuario)
-    extendSession() {
-        try {
-            if (this.isValidSession()) {
-                const sessionData = {
-                    timestamp: new Date().getTime(),
-                    user: 'ciaociao_user'
-                };
-                localStorage.setItem(this.sessionKey, JSON.stringify(sessionData));
-            }
-        } catch (error) {
-            console.error('❌ Error extendiendo sesión:', error);
-        }
-    }
-
-    // Verificar sesión periódicamente
-    startSessionChecker() {
-        try {
-            setInterval(() => {
-                if (!this.isValidSession()) {
-                    console.log('⏰ Sesión expirada, redirigiendo al login');
-                    this.showLoginScreen();
-                }
-            }, 60000); // Verificar cada minuto
-        } catch (error) {
-            console.error('❌ Error iniciando verificador de sesión:', error);
+            console.error('❌ Error en logout:', error);
         }
     }
 }
 
-// Exportar para uso global
-window.AuthManager = AuthManager;
+// ============================================================
+// INICIALIZACIÓN GLOBAL
+// ============================================================
 
-// Auto-inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    if (!window.authManager) {
-        window.authManager = new AuthManager();
-        window.authManager.startSessionChecker();
-    }
-});
+// Crear instancia global
+window.authManager = new AuthManager();
+
+// Funciones globales para compatibilidad
+window.logout = () => window.authManager.logout();
+
+console.log('✅ Sistema de autenticación inicializado correctamente');
