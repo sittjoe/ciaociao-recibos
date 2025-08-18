@@ -235,6 +235,13 @@ function setupCompanySignature() {
             return;
         }
         
+        // Verificar que el canvas sea visible
+        if (canvas.offsetParent === null) {
+            console.log('🔄 Canvas no visible, reintentando en 300ms...');
+            setTimeout(setupCompanySignature, 300);
+            return;
+        }
+        
         // Configurar tamaño del canvas
         function resizeCanvas() {
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
@@ -255,6 +262,8 @@ function setupCompanySignature() {
             minWidth: 0.5,
             maxWidth: 2.5,
         });
+        
+        console.log('✅ Firma de empresa inicializada correctamente');
         
         // Botón limpiar firma
         const clearBtn = document.getElementById('clearCompanySignature');
@@ -667,7 +676,7 @@ function generateQuotationHTML(data) {
             
             ${data.companySignature ? `
             <div style="margin: 30px 0; padding: 20px; background: #f8f8f8; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Firma de Joyería Ciao Ciao MX</h3>
+                <h3 style="color: #1a1a1a; margin: 0 0 15px 0; font-size: 16px;">Firma de CIAOCIAO.MX</h3>
                 <div style="text-align: center; padding: 10px;">
                     <img src="${data.companySignature}" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
                 </div>

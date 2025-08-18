@@ -226,9 +226,17 @@ async function calculateMetalPrice() {
             priceField.value = 'Calculando...';
         }
 
-        // Obtener precio del metal
+        // Obtener precio del metal desde el panel de precios o API
         const karats = metalType === 'oro' ? goldKarats : null;
-        const pricePerGram = await priceCalculator.getMetalPrice(metalType, karats);
+        let pricePerGram;
+        
+        // Verificar si hay precio manual en el dashboard
+        if (window.priceDashboard) {
+            pricePerGram = window.priceDashboard.getCurrentPrice(metalType, karats);
+        } else {
+            pricePerGram = await priceCalculator.getMetalPrice(metalType, karats);
+        }
+        
         const totalCost = pricePerGram * metalWeight;
 
         // Actualizar campos

@@ -98,13 +98,23 @@ function initializeSignaturePad() {
             });
         }
         
-        // Firma de la empresa
+        // Firma de la empresa - con verificación mejorada
         const companyCanvas = document.getElementById('companySignatureCanvas');
-        if (companyCanvas) {
+        if (companyCanvas && companyCanvas.offsetParent !== null) {
             companySignaturePad = new SignaturePad(companyCanvas, {
                 backgroundColor: 'rgb(255, 255, 255)',
                 penColor: 'rgb(0, 0, 0)'
             });
+            console.log('✅ Firma de empresa inicializada correctamente');
+        } else if (companyCanvas) {
+            // Retry si el canvas no está visible aún
+            setTimeout(() => {
+                companySignaturePad = new SignaturePad(companyCanvas, {
+                    backgroundColor: 'rgb(255, 255, 255)',
+                    penColor: 'rgb(0, 0, 0)'
+                });
+                console.log('✅ Firma de empresa inicializada con retry');
+            }, 200);
         }
         
         resizeCanvas();
@@ -168,13 +178,18 @@ function setupEventListeners() {
             }
         });
 
-        // Botón limpiar firma de empresa
-        document.getElementById('clearCompanySignature').addEventListener('click', function() {
-            if (companySignaturePad) {
-                companySignaturePad.clear();
-                utils.showNotification('Firma de empresa limpiada', 'info');
-            }
-        });
+        // Botón limpiar firma de empresa - con verificación robusta
+        const clearCompanyBtn = document.getElementById('clearCompanySignature');
+        if (clearCompanyBtn) {
+            clearCompanyBtn.addEventListener('click', function() {
+                if (companySignaturePad) {
+                    companySignaturePad.clear();
+                    utils.showNotification('Firma de empresa limpiada', 'info');
+                } else {
+                    console.warn('⚠️ companySignaturePad no inicializado');
+                }
+            });
+        }
         
         // Botones principales
         document.getElementById('previewBtn').addEventListener('click', showPreview);
@@ -703,7 +718,7 @@ function generateReceiptHTML() {
                         '<div style="height: 80px;"></div>'
                     }
                     <div class="signature-line">
-                        <div class="signature-label">Joyería Ciao Ciao MX</div>
+                        <div class="signature-label">CIAOCIAO.MX</div>
                     </div>
                 </div>
             </div>

@@ -2020,6 +2020,183 @@ input[type="file"]:hover {
     min-width: 150px;
 }
 
+/* PANEL DE PRECIOS ACTUALES */
+.price-dashboard {
+    background: linear-gradient(135deg, #f8f9ff 0%, #e8f5e8 100%);
+    border: 2px solid #2E7D32;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.price-dashboard .collapsible-header {
+    background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px 10px 0 0;
+    margin: 0;
+}
+
+.price-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(46, 125, 50, 0.1);
+    border-bottom: 1px solid #A5D6A7;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn-mode {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-mode:hover {
+    background: #45a049;
+    transform: translateY(-1px);
+}
+
+.btn-mode.manual {
+    background: #FF9800;
+}
+
+.btn-mode.manual:hover {
+    background: #f57c00;
+}
+
+.price-timestamp {
+    font-size: 0.9em;
+    color: #666;
+    font-style: italic;
+}
+
+.price-sections {
+    padding: 20px;
+}
+
+.price-category {
+    margin-bottom: 25px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.price-category h3 {
+    margin: 0 0 15px 0;
+    color: #2E7D32;
+    font-size: 1.1em;
+    font-weight: 600;
+    border-bottom: 2px solid #A5D6A7;
+    padding-bottom: 8px;
+}
+
+.price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+}
+
+.price-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.price-label {
+    flex: 1;
+    font-weight: 500;
+    color: #333;
+    min-width: 140px;
+}
+
+.price-input {
+    flex: 0 0 100px;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: right;
+    font-weight: 500;
+    margin-right: 8px;
+    background: #fff;
+}
+
+.price-input:read-only {
+    background: #f8f9fa;
+    color: #666;
+}
+
+.price-input.manual {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.price-input.manual:focus {
+    background: #fff;
+    border-color: #ff9800;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.2);
+}
+
+.price-edit-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: all 0.3s ease;
+    min-width: 32px;
+}
+
+.price-edit-btn:hover {
+    background: #5a6268;
+    transform: scale(1.05);
+}
+
+.price-edit-btn.active {
+    background: #FF9800;
+}
+
+.price-edit-btn.active:hover {
+    background: #f57c00;
+}
+
+@media (max-width: 768px) {
+    .price-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .price-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .price-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .price-input {
+        width: 100%;
+        text-align: left;
+    }
+}
+
 .btn-back {
     position: absolute;
     left: 20px;

@@ -36,6 +36,101 @@
                     </div>
                 </section>
 
+                <!-- Panel de Precios Actuales -->
+                <section class="form-section price-dashboard">
+                    <h2 class="collapsible-header">
+                        <span>📊 Precios Actuales del Mercado</span>
+                        <button type="button" class="collapse-btn" id="togglePricePanel">−</button>
+                    </h2>
+                    <div class="collapsible-content" id="pricePanelContent">
+                        <div class="price-controls">
+                            <button type="button" id="refreshPrices" class="btn-secondary">🔄 Actualizar Precios</button>
+                            <button type="button" id="togglePriceMode" class="btn-mode">🔧 Modo: Automático</button>
+                            <span class="price-timestamp" id="priceTimestamp">Última actualización: --</span>
+                        </div>
+                        
+                        <div class="price-sections">
+                            <!-- Metales -->
+                            <div class="price-category">
+                                <h3>🥇 Metales Preciosos (USD/gramo)</h3>
+                                <div class="price-grid">
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 24k:</span>
+                                        <input type="number" id="priceGold24k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold24k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 18k:</span>
+                                        <input type="number" id="priceGold18k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold18k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 14k:</span>
+                                        <input type="number" id="priceGold14k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold14k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Plata 925:</span>
+                                        <input type="number" id="priceSilver925" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="silver925">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Platino:</span>
+                                        <input type="number" id="pricePlatinum" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="platinum">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Diamantes -->
+                            <div class="price-category">
+                                <h3>💎 Diamantes (USD/quilate)</h3>
+                                <div class="price-grid">
+                                    <div class="price-item">
+                                        <span class="price-label">Base (1ct, SI1, H, Good):</span>
+                                        <input type="number" id="priceDiamondBase" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="diamondBase">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Piedras Preciosas -->
+                            <div class="price-category">
+                                <h3>💍 Piedras Preciosas (USD/quilate)</h3>
+                                <div class="price-grid">
+                                    <div class="price-item">
+                                        <span class="price-label">Rubí:</span>
+                                        <input type="number" id="priceRuby" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="ruby">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Esmeralda:</span>
+                                        <input type="number" id="priceEmerald" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="emerald">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Zafiro:</span>
+                                        <input type="number" id="priceSapphire" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="sapphire">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tipo de Cambio -->
+                            <div class="price-category">
+                                <h3>💱 Tipo de Cambio</h3>
+                                <div class="price-grid">
+                                    <div class="price-item">
+                                        <span class="price-label">USD a MXN:</span>
+                                        <input type="number" id="priceExchangeRate" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="exchangeRate">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Metales Preciosos -->
                 <section class="form-section collapsible">
                     <h2 class="collapsible-header">
