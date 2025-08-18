@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Integración de APIs - CiaoCiao</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #D4AF37;
+            text-align: center;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #D4AF37;
+            background: #f9f9f9;
+        }
+        .success {
+            border-left-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        button {
+            background: #D4AF37;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #B8941F;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Integración de APIs - Sistema de Precios</h1>
+    
+    <div class="test-section">
+        <h2>Configuración de APIs</h2>
+        <button onclick="testAPIConfiguration()">Probar Configuración</button>
+        <div id="config-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sistema de Metales Mejorado</h2>
+        <button onclick="testImprovedMetalsAPI()">Probar API Mejorada</button>
+        <div id="metals-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Precios de Metales por Quilates</h2>
+        <button onclick="testMetalPrices()">Obtener Precios Actuales</button>
+        <div id="price-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sistema de Calculadora</h2>
+        <button onclick="testCalculatorIntegration()">Probar Integración Completa</button>
+        <div id="calculator-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Tipo de Cambio</h2>
+        <button onclick="testExchangeRate()">Obtener Tipo de Cambio</button>
+        <div id="exchange-results"></div>
+    </div>
+
+    <!-- Cargar scripts necesarios -->
+    <script src="api-config.js"></script>
+    <script src="real-metals-api-improved.js"></script>
+    <script src="calculator-system.js"></script>
+    
+    <script>
+        // Test de configuración de APIs
+        async function testAPIConfiguration() {
+            const resultsDiv = document.getElementById('config-results');
+            resultsDiv.innerHTML = '<div class="test-result">Probando configuración...</div>';
+            
+            try {
+                if (window.apiConfiguration) {
+                    const status = window.apiConfiguration.getStatusReport();
+                    resultsDiv.innerHTML = `
+                        <div class="test-result success">
+                            <strong>✅ Configuración de APIs Cargada</strong>
+                            <pre>${JSON.stringify(status, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = '<div class="test-result error">❌ apiConfiguration no está disponible</div>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Test del sistema de metales mejorado
+        async function testImprovedMetalsAPI() {
+            const resultsDiv = document.getElementById('metals-results');
+            resultsDiv.innerHTML = '<div class="test-result">Inicializando sistema...</div>';
+            
+            try {
+                if (window.improvedMetalsAPI) {
+                    await window.improvedMetalsAPI.initialize();
+                    const status = window.improvedMetalsAPI.getSystemStatus();
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="test-result success">
+                            <strong>✅ Sistema de Metales Mejorado Activo</strong>
+                            <pre>${JSON.stringify(status, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = '<div class="test-result error">❌ improvedMetalsAPI no está disponible</div>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Test de precios de metales
+        async function testMetalPrices() {
+            const resultsDiv = document.getElementById('price-results');
+            resultsDiv.innerHTML = '<div class="test-result">Obteniendo precios...</div>';
+            
+            try {
+                const tests = [
+                    { metal: 'oro', purity: '14k', weight: 1 },
+                    { metal: 'oro', purity: '18k', weight: 1 },
+                    { metal: 'plata', purity: '925', weight: 1 },
+                    { metal: 'platino', purity: '950', weight: 1 }
+                ];
+                
+                let html = '';
+                
+                for (const test of tests) {
+                    const result = await window.improvedMetalsAPI.getMetalPrice(test.metal, test.purity, test.weight);
+                    html += `
+                        <div class="test-result success">
+                            <strong>${test.metal.toUpperCase()} ${test.purity}</strong>
+                            <br>Precio por gramo: $${result.price_per_gram_mxn.toFixed(2)} MXN
+                            <br>Fuente: ${result.source}
+                        </div>
+                    `;
+                }
+                
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Test de integración con calculadora
+        async function testCalculatorIntegration() {
+            const resultsDiv = document.getElementById('calculator-results');
+            resultsDiv.innerHTML = '<div class="test-result">Probando integración...</div>';
+            
+            try {
+                // Inicializar calculadora
+                if (!window.priceCalculator) {
+                    window.priceCalculator = new PriceCalculator();
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Esperar inicialización
+                }
+                
+                // Probar cálculo de precio
+                const metalPrice = await window.priceCalculator.calculateMetalPrice('oro', '14k', 5);
+                
+                resultsDiv.innerHTML = `
+                    <div class="test-result success">
+                        <strong>✅ Calculadora Integrada</strong>
+                        <br>Precio de 5g de Oro 14k: $${metalPrice.toFixed(2)} MXN
+                        <br>Tipo de cambio: $${window.priceCalculator.exchangeRate.toFixed(2)} MXN/USD
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Test de tipo de cambio
+        async function testExchangeRate() {
+            const resultsDiv = document.getElementById('exchange-results');
+            resultsDiv.innerHTML = '<div class="test-result">Obteniendo tipo de cambio...</div>';
+            
+            try {
+                const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                const data = await response.json();
+                
+                if (data.rates && data.rates.MXN) {
+                    resultsDiv.innerHTML = `
+                        <div class="test-result success">
+                            <strong>✅ Tipo de Cambio Actualizado</strong>
+                            <br>1 USD = ${data.rates.MXN.toFixed(2)} MXN
+                            <br>Fecha: ${new Date(data.date).toLocaleDateString('es-MX')}
+                            <br>Fuente: ExchangeRate-API
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = '<div class="test-result error">❌ No se pudo obtener el tipo de cambio</div>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="test-result error">❌ Error: ${error.message}</div>`;
+            }
+        }
+        
+        // Ejecutar pruebas automáticamente al cargar
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Sistema de pruebas iniciado');
+            
+            // Esperar a que los scripts se carguen
+            setTimeout(async () => {
+                await testAPIConfiguration();
+                await testImprovedMetalsAPI();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

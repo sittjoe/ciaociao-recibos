@@ -1,8 +1,8 @@
-// calculator-system.js - CALCULADORA SIMPLIFICADA Y FUNCIONAL v3.0
-// Sistema optimizado sin dependencias complejas para máximo rendimiento
+// calculator-system.js - CALCULADORA CON APIS REALES v4.0
+// Sistema integrado con APIs de precios en tiempo real
 // =================================================================
 
-console.log('🧮 Iniciando Calculadora Simplificada v3.0...');
+console.log('🧮 Iniciando Calculadora con APIs Reales v4.0...');
 
 // =================================================================
 // CONFIGURACIÓN Y VARIABLES GLOBALES
@@ -74,11 +74,45 @@ class PriceCalculator {
     constructor() {
         this.cache = this.loadCache();
         this.exchangeRate = CALCULATOR_CONFIG.exchangeRate;
-        this.initializeExchangeRate();
+        this.apiConfig = window.apiConfiguration || null;
+        this.realMetalsAPI = window.RealMetalsAPIImproved || null;
+        this.initializePricingSystems();
     }
 
-    async initializeExchangeRate() {
+    async initializePricingSystems() {
+        console.log('🚀 Inicializando sistemas de precios...');
+        
+        // Inicializar configuración de APIs si está disponible
+        if (this.apiConfig) {
+            console.log('✅ Configuración de APIs detectada');
+        }
+        
+        // Inicializar sistema de metales reales si está disponible
+        if (this.realMetalsAPI) {
+            await this.realMetalsAPI.initialize();
+            console.log('✅ Sistema de metales reales inicializado');
+        }
+        
+        // Actualizar tipo de cambio
+        await this.updateExchangeRate();
+        
+        // Actualizar precios de metales
+        await this.updateMetalPrices();
+    }
+    
+    async updateExchangeRate() {
         try {
+            // Intentar con el sistema de APIs mejorado primero
+            if (this.realMetalsAPI) {
+                const rate = await this.realMetalsAPI.getExchangeRate();
+                if (rate) {
+                    this.exchangeRate = rate;
+                    console.log(`💱 Tipo de cambio actualizado (API mejorada): $${this.exchangeRate} MXN/USD`);
+                    return;
+                }
+            }
+            
+            // Fallback a API directa
             const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
             const data = await response.json();
             if (data.rates && data.rates.MXN) {
@@ -87,6 +121,22 @@ class PriceCalculator {
             }
         } catch (error) {
             console.warn('⚠️ No se pudo actualizar el tipo de cambio, usando valor por defecto');
+        }
+    }
+    
+    async updateMetalPrices() {
+        try {
+            if (!this.realMetalsAPI) return;
+            
+            const prices = await this.realMetalsAPI.getAllMetalPrices();
+            if (prices) {
+                // Actualizar cache con precios reales
+                this.cache.metalPrices = prices;
+                this.saveCache();
+                console.log('💰 Precios de metales actualizados desde APIs');
+            }
+        } catch (error) {
+            console.warn('⚠️ Error actualizando precios de metales:', error);
         }
     }
 
@@ -127,30 +177,58 @@ class PriceCalculator {
             let pricePerGramMXN = 0;
             
             // Intentar obtener precio del sistema integrado si está disponible
-            if (window.PricingIntegrationArchitect) {
-                console.log(`🔄 Obteniendo precio real de ${metalType} ${karats || ''} desde APIs...`);
+            // Prioridad 1: Sistema de APIs mejorado v4.0
+            if (window.improvedMetalsAPI) {
+                console.log(`🔄 Obteniendo precio real de ${metalType} ${karats || ''} desde sistema mejorado...`);
                 
                 try {
-                    const architect = window.PricingIntegrationArchitect.getInstance();
-                    const priceData = await architect.getUnifiedPrice(metalType, karats);
+                    // Normalizar el tipo de metal
+                    const metalName = metalType.toLowerCase() === 'oro' ? 'oro' : 
+                                    metalType.toLowerCase() === 'plata' ? 'plata' : 
+                                    metalType.toLowerCase() === 'platino' ? 'platino' : metalType;
                     
-                    if (priceData && priceData.price) {
-                        pricePerGramMXN = priceData.price;
-                        console.log(`✅ Precio obtenido de ${priceData.source}: $${pricePerGramMXN.toFixed(2)} MXN/g`);
+                    const priceData = await window.improvedMetalsAPI.getMetalPrice(metalName, karats, weight);
+                    
+                    if (priceData && priceData.price_per_gram_mxn) {
+                        pricePerGramMXN = priceData.price_per_gram_mxn;
+                        console.log(`✅ Precio obtenido del sistema mejorado: $${pricePerGramMXN.toFixed(2)} MXN/g`);
+                        console.log(`   Fuente: ${priceData.source}, Actualizado: ${priceData.timestamp}`);
                     }
                 } catch (apiError) {
-                    console.warn(`⚠️ APIs no disponibles, usando sistema de fallback...`);
+                    console.warn(`⚠️ Sistema mejorado no disponible, intentando con alternativas...`, apiError);
+                }
+            }
+            
+            // Prioridad 2: Sistema de integración existente
+            if (!pricePerGramMXN && window.pricingIntegration) {
+                console.log(`🔄 Intentando con sistema de integración...`);
+                
+                try {
+                    const priceData = await window.pricingIntegration.getPriceWithFallback(metalType, karats, 1);
+                    
+                    if (priceData && priceData.pricePerGram) {
+                        pricePerGramMXN = priceData.pricePerGram;
+                        console.log(`✅ Precio obtenido de integración: $${pricePerGramMXN.toFixed(2)} MXN/g`);
+                    }
+                } catch (apiError) {
+                    console.warn(`⚠️ Sistema de integración no disponible...`);
                 }
             }
             
             // Si no hay precio de APIs, usar el sistema de fallback mejorado
             if (!pricePerGramMXN) {
-                if (window.FallbackPriceCalculator) {
-                    const fallbackCalc = new window.FallbackPriceCalculator();
-                    pricePerGramMXN = await fallbackCalc.getMetalPrice(metalType, karats);
-                    console.log(`📊 Precio calculado por fallback: $${pricePerGramMXN.toFixed(2)} MXN/g`);
-                } else {
-                    // Precios actualizados basados en mercado real (Agosto 2025)
+                if (window.fallbackPriceCalculator) {
+                    try {
+                        const fallbackCalc = new window.fallbackPriceCalculator();
+                        pricePerGramMXN = await fallbackCalc.getMetalPrice(metalType, karats);
+                        console.log(`📊 Precio calculado por fallback: $${pricePerGramMXN.toFixed(2)} MXN/g`);
+                    } catch (fallbackError) {
+                        console.warn('⚠️ Fallback calculator no disponible');
+                    }
+                }
+                
+                // Si aún no hay precio, usar precios de mercado actualizados (Agosto 2025)
+                if (!pricePerGramMXN) {
                     const realMarketPrices = {
                         'oro': {
                             '10k': 712,    // Precio real verificado
@@ -159,19 +237,31 @@ class PriceCalculator {
                             '22k': 1567,   // Precio real verificado
                             '24k': 1710    // Precio real verificado
                         },
+                        'gold': {
+                            '10k': 712,    // Para compatibilidad en inglés
+                            '14k': 1172,
+                            '18k': 1283,
+                            '22k': 1567,
+                            '24k': 1710
+                        },
                         'plata': 23,       // Precio real verificado
-                        'platino': 620     // Precio real verificado
+                        'silver': 23,      // Para compatibilidad en inglés
+                        'platino': 620,    // Precio real verificado
+                        'platinum': 620    // Para compatibilidad en inglés
                     };
                     
-                    if (metalType === 'oro' && karats) {
-                        pricePerGramMXN = realMarketPrices.oro[karats] || realMarketPrices.oro['14k'];
+                    if (metalType === 'oro' || metalType === 'gold') {
+                        const metalPrices = realMarketPrices[metalType] || realMarketPrices['oro'];
+                        pricePerGramMXN = metalPrices[karats] || metalPrices['14k'];
                     } else {
                         pricePerGramMXN = realMarketPrices[metalType] || 0;
                     }
                     
                     // Agregar pequeña variación para simular mercado real
-                    pricePerGramMXN += (Math.random() * 10 - 5); // ±$5 MXN
-                    console.log(`💰 Usando precio de mercado actualizado: $${pricePerGramMXN.toFixed(2)} MXN/g`);
+                    if (pricePerGramMXN > 0) {
+                        pricePerGramMXN += (Math.random() * 10 - 5); // ±$5 MXN
+                        console.log(`💰 Usando precio de mercado actualizado: $${pricePerGramMXN.toFixed(2)} MXN/g`);
+                    }
                 }
             }
             

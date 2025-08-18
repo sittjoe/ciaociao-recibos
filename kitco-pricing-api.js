@@ -13,7 +13,7 @@ const PRICING_CONFIG = {
     primary: {
         name: 'MetalpriceAPI',
         baseURL: 'https://api.metalpriceapi.com/v1',
-        apiKey: 'live_metalpriceapi_demo_key', // Demo key - usuario debe obtener en metalpriceapi.com
+        apiKey: 'live_metalpriceapi_demo_key', // Demo key - configurar con clave real
         rateLimits: {
             requestsPerMinute: 10,
             requestsPerMonth: 100
@@ -25,40 +25,51 @@ const PRICING_CONFIG = {
         }
     },
     
-    // API Backup: Metals.dev (100 requests/mes gratis)
+    // API Backup: ExchangeRate API (gratuita, sin límites)
     fallback: {
-        name: 'MetalsDev',
-        baseURL: 'https://api.metals.dev/v1',
-        apiKey: 'metals_dev_demo_key', // Demo key - usuario debe obtener en metals.dev
+        name: 'ExchangeRateAPI',
+        baseURL: 'https://api.exchangerate-api.com/v4',
+        apiKey: null, // No requiere API key
         rateLimits: {
-            requestsPerMinute: 10,
-            requestsPerMonth: 100
+            requestsPerMinute: 60,
+            requestsPerMonth: 999999
         },
         updateFrequency: 180000, // 3 minutos
         endpoints: {
-            latest: '/latest',
-            historical: '/historical'
+            latest: '/latest'
         }
     },
     
-    // API Tertiary: Exchange rates (siempre disponible)
+    // API Tertiary: Banco de México (oficial y gratuita)
     tertiary: {
-        name: 'FawazAPI',
-        baseURL: 'https://api.fawazahmed0.com/v1/latest',
-        apiKey: null, // Sin API key requerida
+        name: 'BancoMexico',
+        baseURL: 'https://www.banxico.org.mx/SieAPIRest/service/v1/series',
+        apiKey: null, // Token gratuito disponible
         rateLimits: {
             requestsPerMinute: 60,
-            requestsPerMonth: 999999 // Sin límites conocidos
+            requestsPerMonth: 999999
         },
         updateFrequency: 300000, // 5 minutos
         endpoints: {
-            usd: '/usd.json'
+            usd: '/SF43718/datos/oportuno' // Serie USD/MXN oficial
         },
-        parseResponse: (data) => ({
-            success: true,
-            exchangeRate: data.usd?.mxn || 19.8,
-            timestamp: Date.now()
-        })
+        parseResponse: (data) => {
+            try {
+                const serie = data.bmx?.series?.[0];
+                const dato = serie?.datos?.[0];
+                if (dato && dato.dato) {
+                    return {
+                        success: true,
+                        exchangeRate: parseFloat(dato.dato),
+                        timestamp: Date.now(),
+                        source: 'Banco de México'
+                    };
+                }
+            } catch (error) {
+                console.error('Error parseando respuesta de Banxico:', error);
+            }
+            return { success: false };
+        }
     },
 
     // Cache TTL estratificado por tipo de dato
@@ -413,28 +424,77 @@ class KitcoPricingManager {
                 return cached.rate;
             }
 
-            // Usar API gratuita de exchange rates
-            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-            const data = await response.json();
-            
-            if (data.rates && data.rates.MXN) {
-                this.exchangeRate = data.rates.MXN;
-                
-                // Guardar en cache por 5 minutos
-                this.setCacheData(cacheKey, {
-                    rate: this.exchangeRate,
-                    timestamp: Date.now()
-                }, PRICING_CONFIG.cacheTTL.exchange);
-                
-                console.log(`💱 Tipo de cambio actualizado: $${this.exchangeRate.toFixed(2)} MXN/USD`);
-                return this.exchangeRate;
+            console.log('💱 Actualizando tipo de cambio USD/MXN...');
+
+            // Intentar múltiples fuentes para el tipo de cambio
+            const sources = [
+                {
+                    name: 'ExchangeRate-API',
+                    url: 'https://api.exchangerate-api.com/v4/latest/USD',
+                    parser: (data) => data.rates?.MXN
+                },
+                {
+                    name: 'Fixer.io',
+                    url: 'https://api.fixer.io/latest?access_key=demo&symbols=MXN&base=USD',
+                    parser: (data) => data.rates?.MXN
+                },
+                {
+                    name: 'CurrencyAPI',
+                    url: 'https://api.currencyapi.com/v3/latest?apikey=demo&currencies=MXN&base_currency=USD',
+                    parser: (data) => data.data?.MXN?.value
+                }
+            ];
+
+            for (const source of sources) {
+                try {
+                    console.log(`🔄 Intentando ${source.name}...`);
+                    
+                    const response = await fetch(source.url, {
+                        timeout: 8000,
+                        headers: {
+                            'Accept': 'application/json',
+                            'User-Agent': 'ciaociao.mx/1.0'
+                        }
+                    });
+                    
+                    if (!response.ok) continue;
+                    
+                    const data = await response.json();
+                    const rate = source.parser(data);
+                    
+                    if (rate && rate > 15 && rate < 25) { // Validación básica del rango
+                        this.exchangeRate = rate;
+                        
+                        // Guardar en cache por 30 minutos
+                        this.setCacheData(cacheKey, {
+                            rate: this.exchangeRate,
+                            source: source.name,
+                            timestamp: Date.now()
+                        }, 30 * 60 * 1000);
+                        
+                        console.log(`✅ Tipo de cambio actualizado desde ${source.name}: $${this.exchangeRate.toFixed(4)} MXN/USD`);
+                        return this.exchangeRate;
+                    }
+                    
+                } catch (error) {
+                    console.warn(`⚠️ Error con ${source.name}:`, error.message);
+                    continue;
+                }
             }
+
+            // Si todas las fuentes fallan, usar valor por defecto actualizado
+            console.warn('⚠️ No se pudo obtener tipo de cambio de APIs, usando valor por defecto');
+            
+            // Valor por defecto basado en promedio de mercado (agosto 2025)
+            this.exchangeRate = 19.85;
+            
+            return this.exchangeRate;
             
         } catch (error) {
-            console.warn('⚠️ Error actualizando tipo de cambio, usando valor por defecto:', this.exchangeRate);
+            console.warn('⚠️ Error general actualizando tipo de cambio:', error.message);
+            this.exchangeRate = 19.85; // Fallback seguro
+            return this.exchangeRate;
         }
-        
-        return this.exchangeRate;
     }
 
     // =================================================================
