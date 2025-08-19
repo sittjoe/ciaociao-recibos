@@ -1000,8 +1000,8 @@ Garantía de por vida en mano de obra.`;
             yPos += obsHeight + 10;
         }
         
-        // Firma de la empresa si está presente
-        if (quotationData.companySignature) {
+        // Firma de la empresa si está presente y es válida
+        if (quotationData.companySignature && quotationData.companySignature.startsWith('data:image/')) {
             yPos += 15;
             
             // Verificar si hay espacio suficiente para la firma

@@ -98,27 +98,45 @@ function initializeSignaturePad() {
             maxWidth: 2.5
         };
         
-        // Firma del cliente
+        // Firma del cliente con verificación robusta
         const clientCanvas = document.getElementById('signatureCanvas');
-        if (clientCanvas) {
+        if (clientCanvas && clientCanvas.offsetParent !== null) {
             signaturePad = new SignaturePad(clientCanvas, signatureConfig);
             console.log('✅ Firma del cliente inicializada');
+        } else if (clientCanvas) {
+            console.log('🔄 Canvas de cliente no visible, reintentando...');
+            setTimeout(() => {
+                if (clientCanvas.offsetParent !== null) {
+                    signaturePad = new SignaturePad(clientCanvas, signatureConfig);
+                    console.log('✅ Firma del cliente inicializada (retry)');
+                }
+            }, 500);
         }
         
         // Firma de la empresa - inicialización mejorada
         const companyCanvas = document.getElementById('companySignatureCanvas');
-        if (companyCanvas) {
-            // Asegurar dimensiones antes de inicializar
-            if (companyCanvas.offsetWidth === 0) {
-                console.log('🔄 Canvas de empresa no visible, reintentando...');
-                setTimeout(() => initializeCompanySignature(companyCanvas, signatureConfig), 300);
-            } else {
-                initializeCompanySignature(companyCanvas, signatureConfig);
-            }
+        if (companyCanvas && companyCanvas.offsetParent !== null) {
+            initializeCompanySignature(companyCanvas, signatureConfig);
+        } else if (companyCanvas) {
+            console.log('🔄 Canvas de empresa no visible, reintentando...');
+            setTimeout(() => {
+                if (companyCanvas.offsetParent !== null) {
+                    initializeCompanySignature(companyCanvas, signatureConfig);
+                }
+            }, 500);
         }
         
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        // Configurar resize con debounce
+        let resizeTimeout;
+        const debouncedResize = () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(resizeCanvas, 250);
+        };
+        
+        window.addEventListener('resize', debouncedResize);
+        
+        // Inicializar dimensiones
+        setTimeout(resizeCanvas, 100);
         
         console.log('✅ Firmas digitales configuradas');
     } catch (error) {
@@ -146,23 +164,51 @@ function resizeCanvas() {
         
         // Redimensionar canvas del cliente
         const clientCanvas = document.getElementById('signatureCanvas');
-        if (clientCanvas) {
+        if (clientCanvas && clientCanvas.offsetWidth > 0) {
+            // Guardar firma existente si existe
+            let clientSignatureData = null;
+            if (signaturePad && !signaturePad.isEmpty()) {
+                clientSignatureData = signaturePad.toDataURL();
+            }
+            
             clientCanvas.width = clientCanvas.offsetWidth * ratio;
             clientCanvas.height = clientCanvas.offsetHeight * ratio;
             clientCanvas.getContext('2d').scale(ratio, ratio);
-            if (signaturePad) {
-                signaturePad.clear();
+            
+            // Restaurar firma si existía
+            if (clientSignatureData && signaturePad) {
+                const img = new Image();
+                img.onload = () => {
+                    const ctx = clientCanvas.getContext('2d');
+                    ctx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
+                    ctx.drawImage(img, 0, 0, clientCanvas.offsetWidth, clientCanvas.offsetHeight);
+                };
+                img.src = clientSignatureData;
             }
         }
         
         // Redimensionar canvas de la empresa
         const companyCanvas = document.getElementById('companySignatureCanvas');
-        if (companyCanvas) {
+        if (companyCanvas && companyCanvas.offsetWidth > 0) {
+            // Guardar firma existente si existe
+            let companySignatureData = null;
+            if (companySignaturePad && !companySignaturePad.isEmpty()) {
+                companySignatureData = companySignaturePad.toDataURL();
+            }
+            
             companyCanvas.width = companyCanvas.offsetWidth * ratio;
             companyCanvas.height = companyCanvas.offsetHeight * ratio;
             companyCanvas.getContext('2d').scale(ratio, ratio);
-            if (companySignaturePad) {
-                companySignaturePad.clear();
+            
+            // Restaurar firma si existía
+            if (companySignatureData && companySignaturePad) {
+                const img = new Image();
+                img.onload = () => {
+                    const ctx = companyCanvas.getContext('2d');
+                    ctx.clearRect(0, 0, companyCanvas.width, companyCanvas.height);
+                    ctx.drawImage(img, 0, 0, companyCanvas.offsetWidth, companyCanvas.offsetHeight);
+                };
+                img.src = companySignatureData;
             }
         }
     } catch (error) {
@@ -406,17 +452,46 @@ function handleClientInput(event) {
 
 function calculateBalance() {
     try {
-        const price = parseFloat(document.getElementById('price').value) || 0;
-        const contribution = parseFloat(document.getElementById('contribution').value) || 0;
-        const deposit = parseFloat(document.getElementById('deposit').value) || 0;
+        // Obtener elementos con validación
+        const priceInput = document.getElementById('price');
+        const contributionInput = document.getElementById('contribution');
+        const depositInput = document.getElementById('deposit');
+        const subtotalInput = document.getElementById('subtotal');
+        const balanceInput = document.getElementById('balance');
+        
+        if (!priceInput || !contributionInput || !depositInput || !subtotalInput || !balanceInput) {
+            console.warn('⚠️ Algunos campos de cálculo no están disponibles');
+            return;
+        }
+        
+        // Obtener valores y validar
+        const price = Math.max(0, parseFloat(priceInput.value) || 0);
+        const contribution = Math.max(0, parseFloat(contributionInput.value) || 0);
+        const deposit = Math.max(0, parseFloat(depositInput.value) || 0);
         
         // Calcular subtotal (precio + aportación)
         const subtotal = price + contribution;
-        document.getElementById('subtotal').value = utils.formatNumber(subtotal);
         
         // Calcular saldo pendiente
         const balance = Math.max(0, subtotal - deposit);
-        document.getElementById('balance').value = utils.formatNumber(balance);
+        
+        // Actualizar campos con formato correcto
+        if (utils && typeof utils.formatNumber === 'function') {
+            subtotalInput.value = utils.formatNumber(subtotal);
+            balanceInput.value = utils.formatNumber(balance);
+        } else {
+            // Fallback si utils no está disponible
+            subtotalInput.value = subtotal.toFixed(2);
+            balanceInput.value = balance.toFixed(2);
+        }
+        
+        // Validar que el anticipo no sea mayor que el subtotal
+        if (deposit > subtotal && deposit > 0) {
+            utils.showNotification('El anticipo no puede ser mayor al subtotal', 'warning');
+            depositInput.value = subtotal.toFixed(2);
+            calculateBalance(); // Recalcular
+        }
+        
     } catch (error) {
         console.error('❌ Error calculando saldo:', error);
     }
@@ -479,6 +554,23 @@ function updateImageGallery() {
 
 // ==================== VALIDACIÓN Y FORMULARIO ====================
 
+// Función helper para obtener datos válidos de firma
+function getValidSignatureData(signaturePad) {
+    try {
+        if (signaturePad && typeof signaturePad.isEmpty === 'function' && !signaturePad.isEmpty()) {
+            const signatureData = signaturePad.toDataURL();
+            // Verificar que los datos de la firma no estén corruptos
+            if (signatureData && signatureData.startsWith('data:image/')) {
+                return signatureData;
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error('❌ Error obteniendo datos de firma:', error);
+        return null;
+    }
+}
+
 function validateForm() {
     try {
         const requiredFields = [
@@ -534,8 +626,8 @@ function collectFormData() {
             paymentMethod: document.getElementById('paymentMethod').value,
             observations: document.getElementById('observations').value,
             images: cameraManager.getImages(),
-            signature: signaturePad && !signaturePad.isEmpty() ? signaturePad.toDataURL() : null,
-            companySignature: companySignaturePad && !companySignaturePad.isEmpty() ? companySignaturePad.toDataURL() : null,
+            signature: getValidSignatureData(signaturePad),
+            companySignature: getValidSignatureData(companySignaturePad),
             paymentPlan: currentPaymentPlan
         };
     } catch (error) {
@@ -792,8 +884,23 @@ async function generatePDF() {
         tempDiv.style.padding = '40px';
         document.body.appendChild(tempDiv);
         
-        // Esperar un momento para que se carguen las imágenes
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Esperar a que todas las imágenes se carguen completamente
+        const images = tempDiv.querySelectorAll('img');
+        const imageLoadPromises = Array.from(images).map(img => {
+            return new Promise((resolve) => {
+                if (img.complete && img.naturalWidth !== 0) {
+                    resolve();
+                } else {
+                    img.onload = resolve;
+                    img.onerror = resolve; // Continuar aunque la imagen falle
+                }
+            });
+        });
+        
+        await Promise.all(imageLoadPromises);
+        
+        // Esperar tiempo adicional para renderizado
+        await new Promise(resolve => setTimeout(resolve, 1500));
         
         // Generar imagen con html2canvas
         const canvas = await html2canvas(tempDiv, {
@@ -848,7 +955,24 @@ async function generatePDF() {
     } catch (error) {
         console.error('❌ Error generando PDF:', error);
         utils.hideLoading();
-        utils.showNotification('Error al generar PDF: ' + error.message, 'error');
+        
+        // Limpiar elemento temporal si existe
+        const tempDiv = document.querySelector('div[style*="position: absolute"][style*="left: -9999px"]');
+        if (tempDiv && tempDiv.parentNode) {
+            document.body.removeChild(tempDiv);
+        }
+        
+        // Mostrar error específico según el tipo
+        let errorMessage = 'Error al generar PDF';
+        if (error.message.includes('Canvas') || error.message.includes('html2canvas')) {
+            errorMessage = 'Error procesando imágenes. Intente nuevamente sin fotos.';
+        } else if (error.message.includes('jsPDF') || error.message.includes('pdf')) {
+            errorMessage = 'Error generando archivo PDF. Verifique los datos del formulario.';
+        } else if (error.message.includes('signature') || error.message.includes('firma')) {
+            errorMessage = 'Error procesando firmas digitales. Intente limpiar y re-firmar.';
+        }
+        
+        utils.showNotification(errorMessage, 'error');
     }
 }
 

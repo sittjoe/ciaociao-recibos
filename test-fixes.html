@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Correcciones - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .test-pass {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .test-fail {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .test-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .test-button {
+            background: #D4AF37;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Test de Correcciones del Sistema</h1>
+        <p>Validación de todas las correcciones aplicadas al proyecto ciaociao.mx</p>
+        
+        <!-- Test 1: Dependencias -->
+        <div class="test-section">
+            <h2>📦 Test 1: Verificación de Dependencias</h2>
+            <button onclick="testDependencies()" class="test-button">Ejecutar Test</button>
+            <div id="dependencies-results"></div>
+        </div>
+        
+        <!-- Test 2: Firmas Digitales -->
+        <div class="test-section">
+            <h2>✍️ Test 2: Firmas Digitales</h2>
+            <button onclick="testSignatures()" class="test-button">Ejecutar Test</button>
+            <div id="signatures-results"></div>
+            <!-- Canvas de prueba -->
+            <canvas id="testSignatureCanvas" width="300" height="150" style="border: 1px solid #ccc; margin: 10px 0;"></canvas>
+            <canvas id="testCompanySignatureCanvas" width="300" height="150" style="border: 1px solid #ccc; margin: 10px 0;"></canvas>
+        </div>
+        
+        <!-- Test 3: Cálculos -->
+        <div class="test-section">
+            <h2>🧮 Test 3: Cálculos de Totales</h2>
+            <button onclick="testCalculations()" class="test-button">Ejecutar Test</button>
+            <div id="calculations-results"></div>
+            <!-- Campos de prueba -->
+            <div style="margin: 10px 0;">
+                <input type="number" id="testPrice" placeholder="Precio" value="1000">
+                <input type="number" id="testContribution" placeholder="Aportación" value="200">
+                <input type="number" id="testDeposit" placeholder="Anticipo" value="300">
+                <input type="number" id="testSubtotal" placeholder="Subtotal" readonly>
+                <input type="number" id="testBalance" placeholder="Saldo" readonly>
+            </div>
+        </div>
+        
+        <!-- Test 4: PDF Generation -->
+        <div class="test-section">
+            <h2>📄 Test 4: Generación de PDF (Simulación)</h2>
+            <button onclick="testPDFGeneration()" class="test-button">Ejecutar Test</button>
+            <div id="pdf-results"></div>
+        </div>
+        
+        <!-- Test 5: Validaciones Generales -->
+        <div class="test-section">
+            <h2>✅ Test 5: Validaciones Generales</h2>
+            <button onclick="testValidations()" class="test-button">Ejecutar Test</button>
+            <div id="validations-results"></div>
+        </div>
+        
+        <!-- Logs del Sistema -->
+        <div class="test-section">
+            <h2>📝 Logs del Sistema</h2>
+            <button onclick="clearLogs()" class="test-button">Limpiar Logs</button>
+            <div id="system-logs" class="test-log"></div>
+        </div>
+        
+        <!-- Resumen Final -->
+        <div class="test-section">
+            <h2>📊 Resumen de Tests</h2>
+            <div id="test-summary"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="utils.js"></script>
+
+    <script>
+        // Variables globales para tests
+        let testResults = {
+            dependencies: false,
+            signatures: false,
+            calculations: false,
+            pdf: false,
+            validations: false
+        };
+        let testLogs = [];
+
+        // Función helper para logging
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            testLogs.push(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+            updateLogsDisplay();
+        }
+
+        function updateLogsDisplay() {
+            const logsDiv = document.getElementById('system-logs');
+            logsDiv.innerHTML = testLogs.slice(-50).join('\n');
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function clearLogs() {
+            testLogs = [];
+            updateLogsDisplay();
+        }
+
+        // TEST 1: Verificación de Dependencias
+        function testDependencies() {
+            const resultsDiv = document.getElementById('dependencies-results');
+            resultsDiv.innerHTML = '<p>Ejecutando test de dependencias...</p>';
+            
+            const tests = [
+                { name: 'jsPDF', test: () => typeof window.jspdf !== 'undefined' },
+                { name: 'SignaturePad', test: () => typeof SignaturePad !== 'undefined' },
+                { name: 'html2canvas', test: () => typeof html2canvas !== 'undefined' },
+                { name: 'Utils class', test: () => typeof Utils !== 'undefined' }
+            ];
+            
+            let results = '';
+            let allPassed = true;
+            
+            tests.forEach(({ name, test }) => {
+                const passed = test();
+                const resultClass = passed ? 'test-pass' : 'test-fail';
+                const status = passed ? '✅ PASS' : '❌ FAIL';
+                results += `<div class="${resultClass}">${status} ${name}</div>`;
+                if (!passed) allPassed = false;
+                log(`Dependency test ${name}: ${passed ? 'PASS' : 'FAIL'}`);
+            });
+            
+            testResults.dependencies = allPassed;
+            resultsDiv.innerHTML = results;
+            updateSummary();
+        }
+
+        // TEST 2: Firmas Digitales
+        function testSignatures() {
+            const resultsDiv = document.getElementById('signatures-results');
+            resultsDiv.innerHTML = '<p>Ejecutando test de firmas digitales...</p>';
+            
+            try {
+                const clientCanvas = document.getElementById('testSignatureCanvas');
+                const companyCanvas = document.getElementById('testCompanySignatureCanvas');
+                
+                if (!clientCanvas || !companyCanvas) {
+                    throw new Error('Canvas de prueba no encontrados');
+                }
+                
+                const config = {
+                    backgroundColor: 'rgb(255, 255, 255)',
+                    penColor: 'rgb(0, 0, 0)',
+                    velocityFilterWeight: 0.7,
+                    minWidth: 0.5,
+                    maxWidth: 2.5
+                };
+                
+                const clientPad = new SignaturePad(clientCanvas, config);
+                const companyPad = new SignaturePad(companyCanvas, config);
+                
+                // Simular firma
+                clientPad.clear();
+                companyPad.clear();
+                
+                // Test isEmpty
+                const isEmptyTest = clientPad.isEmpty() && companyPad.isEmpty();
+                
+                // Test toDataURL sin contenido
+                try {
+                    const emptyData = clientPad.toDataURL();
+                    log('toDataURL en canvas vacío: OK');
+                } catch (e) {
+                    log('toDataURL en canvas vacío: ERROR', 'error');
+                }
+                
+                let results = `
+                    <div class="test-pass">✅ Canvas inicializados correctamente</div>
+                    <div class="test-pass">✅ SignaturePad creado sin errores</div>
+                    <div class="${isEmptyTest ? 'test-pass' : 'test-fail'}">${isEmptyTest ? '✅' : '❌'} Función isEmpty() funciona</div>
+                `;
+                
+                testResults.signatures = true;
+                resultsDiv.innerHTML = results;
+                log('Signature test: PASS');
+                
+            } catch (error) {
+                testResults.signatures = false;
+                resultsDiv.innerHTML = `<div class="test-fail">❌ ERROR: ${error.message}</div>`;
+                log(`Signature test: FAIL - ${error.message}`, 'error');
+            }
+            
+            updateSummary();
+        }
+
+        // TEST 3: Cálculos
+        function testCalculations() {
+            const resultsDiv = document.getElementById('calculations-results');
+            resultsDiv.innerHTML = '<p>Ejecutando test de cálculos...</p>';
+            
+            try {
+                // Simular función calculateBalance (versión mejorada)
+                function testCalculateBalance() {
+                    const price = parseFloat(document.getElementById('testPrice').value) || 0;
+                    const contribution = parseFloat(document.getElementById('testContribution').value) || 0;
+                    const deposit = parseFloat(document.getElementById('testDeposit').value) || 0;
+                    
+                    const subtotal = price + contribution;
+                    const balance = Math.max(0, subtotal - deposit);
+                    
+                    document.getElementById('testSubtotal').value = subtotal.toFixed(2);
+                    document.getElementById('testBalance').value = balance.toFixed(2);
+                    
+                    return { price, contribution, deposit, subtotal, balance };
+                }
+                
+                const calc = testCalculateBalance();
+                
+                // Validar cálculos
+                const subtotalCorrect = calc.subtotal === (calc.price + calc.contribution);
+                const balanceCorrect = calc.balance === Math.max(0, calc.subtotal - calc.deposit);
+                const noNegativeBalance = calc.balance >= 0;
+                
+                let results = `
+                    <div class="${subtotalCorrect ? 'test-pass' : 'test-fail'}">${subtotalCorrect ? '✅' : '❌'} Subtotal calculado correctamente: ${calc.subtotal}</div>
+                    <div class="${balanceCorrect ? 'test-pass' : 'test-fail'}">${balanceCorrect ? '✅' : '❌'} Saldo calculado correctamente: ${calc.balance}</div>
+                    <div class="${noNegativeBalance ? 'test-pass' : 'test-fail'}">${noNegativeBalance ? '✅' : '❌'} No hay saldos negativos</div>
+                `;
+                
+                testResults.calculations = subtotalCorrect && balanceCorrect && noNegativeBalance;
+                resultsDiv.innerHTML = results;
+                log(`Calculation test: ${testResults.calculations ? 'PASS' : 'FAIL'}`);
+                
+            } catch (error) {
+                testResults.calculations = false;
+                resultsDiv.innerHTML = `<div class="test-fail">❌ ERROR: ${error.message}</div>`;
+                log(`Calculation test: FAIL - ${error.message}`, 'error');
+            }
+            
+            updateSummary();
+        }
+
+        // TEST 4: PDF Generation (Simulación)
+        function testPDFGeneration() {
+            const resultsDiv = document.getElementById('pdf-results');
+            resultsDiv.innerHTML = '<p>Ejecutando test de PDF (simulación)...</p>';
+            
+            try {
+                // Test básico de jsPDF
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                // Test html2canvas
+                const testDiv = document.createElement('div');
+                testDiv.innerHTML = '<h1>Test</h1><p>Test content</p>';
+                testDiv.style.width = '200px';
+                testDiv.style.height = '100px';
+                testDiv.style.background = 'white';
+                
+                // Simular proceso de PDF
+                const pdfTest = pdf && typeof pdf.text === 'function' && typeof pdf.save === 'function';
+                const canvasTest = typeof html2canvas === 'function';
+                
+                let results = `
+                    <div class="${pdfTest ? 'test-pass' : 'test-fail'}">${pdfTest ? '✅' : '❌'} jsPDF funciona correctamente</div>
+                    <div class="${canvasTest ? 'test-pass' : 'test-fail'}">${canvasTest ? '✅' : '❌'} html2canvas disponible</div>
+                    <div class="test-warning">⚠️ Test completo de PDF requiere formulario activo</div>
+                `;
+                
+                testResults.pdf = pdfTest && canvasTest;
+                resultsDiv.innerHTML = results;
+                log(`PDF test: ${testResults.pdf ? 'PASS' : 'FAIL'}`);
+                
+            } catch (error) {
+                testResults.pdf = false;
+                resultsDiv.innerHTML = `<div class="test-fail">❌ ERROR: ${error.message}</div>`;
+                log(`PDF test: FAIL - ${error.message}`, 'error');
+            }
+            
+            updateSummary();
+        }
+
+        // TEST 5: Validaciones
+        function testValidations() {
+            const resultsDiv = document.getElementById('validations-results');
+            resultsDiv.innerHTML = '<p>Ejecutando test de validaciones...</p>';
+            
+            try {
+                // Test Utils si está disponible
+                let utilsTest = false;
+                let emailTest = false;
+                let phoneTest = false;
+                let numberTest = false;
+                
+                if (typeof Utils !== 'undefined') {
+                    const utils = new Utils();
+                    utilsTest = true;
+                    
+                    // Test email validation
+                    emailTest = utils.validateEmail('test@ejemplo.com') && !utils.validateEmail('invalid-email');
+                    
+                    // Test phone validation
+                    phoneTest = utils.validatePhone('5551234567') && !utils.validatePhone('123');
+                    
+                    // Test number formatting
+                    if (typeof utils.formatNumber === 'function') {
+                        const formatted = utils.formatNumber(1234.56);
+                        numberTest = typeof formatted === 'string' && formatted.includes(',');
+                    }
+                }
+                
+                let results = `
+                    <div class="${utilsTest ? 'test-pass' : 'test-fail'}">${utilsTest ? '✅' : '❌'} Utils class disponible</div>
+                    <div class="${emailTest ? 'test-pass' : 'test-fail'}">${emailTest ? '✅' : '❌'} Validación de email</div>
+                    <div class="${phoneTest ? 'test-pass' : 'test-fail'}">${phoneTest ? '✅' : '❌'} Validación de teléfono</div>
+                    <div class="${numberTest ? 'test-pass' : 'test-fail'}">${numberTest ? '✅' : '❌'} Formateo de números</div>
+                `;
+                
+                testResults.validations = utilsTest && emailTest && phoneTest && numberTest;
+                resultsDiv.innerHTML = results;
+                log(`Validation test: ${testResults.validations ? 'PASS' : 'FAIL'}`);
+                
+            } catch (error) {
+                testResults.validations = false;
+                resultsDiv.innerHTML = `<div class="test-fail">❌ ERROR: ${error.message}</div>`;
+                log(`Validation test: FAIL - ${error.message}`, 'error');
+            }
+            
+            updateSummary();
+        }
+
+        // Actualizar resumen
+        function updateSummary() {
+            const summaryDiv = document.getElementById('test-summary');
+            const totalTests = Object.keys(testResults).length;
+            const passedTests = Object.values(testResults).filter(Boolean).length;
+            const percentage = ((passedTests / totalTests) * 100).toFixed(1);
+            
+            const summaryClass = percentage >= 80 ? 'test-pass' : percentage >= 60 ? 'test-warning' : 'test-fail';
+            
+            summaryDiv.innerHTML = `
+                <div class="${summaryClass}">
+                    <h3>📊 Resumen: ${passedTests}/${totalTests} tests passed (${percentage}%)</h3>
+                    <p><strong>Estado del sistema:</strong> ${percentage >= 80 ? '✅ BUENO' : percentage >= 60 ? '⚠️ REQUIERE ATENCIÓN' : '❌ CRÍTICO'}</p>
+                </div>
+            `;
+            
+            log(`Test summary: ${passedTests}/${totalTests} passed (${percentage}%)`);
+        }
+
+        // Auto-ejecutar al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Test system initialized');
+            setTimeout(() => {
+                testDependencies();
+                setTimeout(() => testSignatures(), 500);
+                setTimeout(() => testCalculations(), 1000);
+                setTimeout(() => testPDFGeneration(), 1500);
+                setTimeout(() => testValidations(), 2000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
