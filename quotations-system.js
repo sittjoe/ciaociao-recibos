@@ -5,6 +5,175 @@
 console.log('📄 Iniciando Sistema de Cotizaciones v2.1...');
 
 // ===========================================
+// INICIALIZACIÓN DIRECTA (COMO SCRIPT.JS)
+// ===========================================
+
+// *** INICIALIZACIÓN DIRECTA - PATRÓN QUE FUNCIONA EN RECIBOS ***
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 DOMContentLoaded - Inicializando cotizaciones directamente...');
+    
+    try {
+        // Configuración básica inmediata (sin verificaciones complejas)
+        initializeQuotationSystemDirect();
+        console.log('✅ Inicialización directa completada');
+    } catch (error) {
+        console.error('❌ Error en inicialización directa:', error);
+        // Fallback: intentar con el sistema complejo
+        setTimeout(() => initializeQuotationSystem(), 2000);
+    }
+});
+
+// Función de inicialización directa (sin dependencias complejas)
+function initializeQuotationSystemDirect() {
+    console.log('🔧 Configurando sistema básico...');
+    
+    // 1. Cargar historial
+    loadQuotationsHistory();
+    
+    // 2. Configurar fecha
+    setCurrentDate();
+    
+    // 3. Generar número
+    generateQuotationNumber();
+    
+    // 4. CONFIGURAR EVENT LISTENERS INMEDIATAMENTE
+    setupEventListenersBasic();
+    
+    // 5. Configurar valores por defecto
+    setupDefaultValues();
+    
+    // 6. Setup firma (sin CDN dependencies - se configura después)
+    setTimeout(() => setupCompanySignature(), 1000);
+    
+    console.log('✅ Sistema básico de cotizaciones configurado');
+}
+
+// Configuración básica de event listeners (sin verificaciones complejas)
+function setupEventListenersBasic() {
+    console.log('🎯 Configurando event listeners básicos...');
+    
+    // BOTÓN AGREGAR PRODUCTO - CONFIGURACIÓN DIRECTA
+    const addProductBtn = document.getElementById('addProductBtn');
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', function() {
+            console.log('🔥 BOTÓN CLICKED - Abriendo modal...');
+            showAddProductModal();
+        });
+        console.log('✅ Botón agregar producto configurado DIRECTAMENTE');
+        
+        // Exposición global inmediata
+        window.showAddProductModal = showAddProductModal;
+    } else {
+        console.error('❌ addProductBtn no encontrado');
+    }
+    
+    // Otros event listeners básicos
+    setupOtherBasicListeners();
+}
+
+function setupOtherBasicListeners() {
+    // Radio buttons para tipo de descuento
+    const discountTypeRadios = document.querySelectorAll('input[name="discountType"]');
+    discountTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            discountType = this.value;
+            updateDiscountInputType();
+            calculateTotals();
+        });
+    });
+    
+    // Modal de Producto - Botones
+    const saveProductBtn = document.getElementById('saveProductBtn');
+    if (saveProductBtn) {
+        saveProductBtn.addEventListener('click', saveProduct);
+    }
+    
+    const cancelProductBtn = document.getElementById('cancelProductBtn');
+    if (cancelProductBtn) {
+        cancelProductBtn.addEventListener('click', hideAddProductModal);
+    }
+    
+    // Cerrar modales con X
+    const closeButtons = document.querySelectorAll('.close');
+    closeButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+    
+    // Otros botones
+    const previewBtn = document.getElementById('previewQuotationBtn');
+    if (previewBtn) {
+        previewBtn.addEventListener('click', showQuotationPreview);
+    }
+    
+    const generateBtn = document.getElementById('generateQuotationPdfBtn');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', generateQuotationPDF);
+    }
+    
+    const whatsappBtn = document.getElementById('shareQuotationWhatsappBtn');
+    if (whatsappBtn) {
+        whatsappBtn.addEventListener('click', shareQuotationWhatsApp);
+    }
+    
+    console.log('✅ Event listeners básicos configurados');
+}
+
+// ===========================================
+// FUNCIONES BÁSICAS REQUERIDAS
+// ===========================================
+
+// Funciones que deben estar disponibles para los event listeners
+function showAddProductModal() {
+    console.log('📦 Abriendo modal de producto...');
+    const modal = document.getElementById('addProductModal');
+    if (modal) {
+        clearProductForm();
+        modal.style.display = 'block';
+    }
+}
+
+function hideAddProductModal() {
+    const modal = document.getElementById('addProductModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function clearProductForm() {
+    const elements = [
+        'productType', 'productMaterial', 'productDescription', 
+        'productSKU', 'productQuantity', 'productPrice', 'productDiscount'
+    ];
+    
+    elements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            if (id === 'productQuantity') {
+                element.value = '1';
+            } else if (id === 'productDiscount') {
+                element.value = '0';
+            } else {
+                element.value = '';
+            }
+        }
+    });
+    
+    // Reset editing index
+    if (typeof editingProductIndex !== 'undefined') {
+        editingProductIndex = -1;
+    }
+}
+
+// Exposición global inmediata
+window.showAddProductModal = showAddProductModal;
+window.hideAddProductModal = hideAddProductModal;
+
+// ===========================================
 // CONFIGURACIÓN Y VARIABLES GLOBALES
 // ===========================================
 
@@ -558,35 +727,8 @@ async function setupCompanySignature(retryCount = 0) {
 // GESTIÓN DE PRODUCTOS
 // ===========================================
 
-function showAddProductModal() {
-    console.log('📦 Abriendo modal de producto...');
-    const modal = document.getElementById('addProductModal');
-    if (modal) {
-        clearProductForm();
-        modal.style.display = 'block';
-    }
-}
-
-// Exposición global para verificación desde auth.js
-window.showAddProductModal = showAddProductModal;
-
-function hideAddProductModal() {
-    const modal = document.getElementById('addProductModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-function clearProductForm() {
-    document.getElementById('productType').value = '';
-    document.getElementById('productMaterial').value = '';
-    document.getElementById('productDescription').value = '';
-    document.getElementById('productSKU').value = '';
-    document.getElementById('productQuantity').value = '1';
-    document.getElementById('productPrice').value = '';
-    document.getElementById('productDiscount').value = '0';
-    editingProductIndex = -1;
-}
+// Las funciones showAddProductModal, hideAddProductModal y clearProductForm
+// están definidas arriba en la sección "FUNCIONES BÁSICAS REQUERIDAS"
 
 function saveProduct() {
     console.log('💾 Guardando producto...');

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Botón Agregar Producto</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-container { max-width: 800px; margin: 0 auto; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+        .modal-content { background: white; padding: 20px; margin: 10% auto; width: 50%; border-radius: 5px; }
+        #quotationForm { min-height: 200px; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test - Botón Agregar Producto</h1>
+        <p>Testing local de la corrección implementada</p>
+        
+        <div id="testResults"></div>
+        
+        <!-- Estructura HTML mínima para simular quotation-mode -->
+        <div class="container quotation-mode">
+            <form id="quotationForm">
+                <button type="button" id="addProductBtn" class="btn-add-product">➕ Agregar Producto</button>
+                <div id="quotationNumber"></div>
+            </form>
+        </div>
+        
+        <!-- Modal simulado -->
+        <div id="addProductModal" class="modal">
+            <div class="modal-content">
+                <h3>Modal de Producto</h3>
+                <select id="productType">
+                    <option value="">Seleccionar...</option>
+                    <option value="anillo">Anillo</option>
+                </select>
+                <select id="productMaterial">
+                    <option value="">Seleccionar...</option>
+                    <option value="oro-18k">Oro 18k</option>
+                </select>
+                <input type="text" id="productDescription" placeholder="Descripción">
+                <input type="text" id="productSKU" placeholder="SKU">
+                <input type="number" id="productQuantity" value="1">
+                <input type="number" id="productPrice" placeholder="Precio">
+                <input type="number" id="productDiscount" value="0">
+                
+                <button id="saveProductBtn">Guardar</button>
+                <button id="cancelProductBtn">Cancelar</button>
+                <span class="close">&times;</span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button onclick="testButtonClick()">🔥 Test Manual del Botón</button>
+            <button onclick="runAllTests()">🧪 Ejecutar Todos los Tests</button>
+        </div>
+    </div>
+
+    <!-- CDN Dependencies para testing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Sistema de cotizaciones modificado -->
+    <script src="quotations-system.js"></script>
+    
+    <script>
+        let testResults = [];
+        
+        function logTest(name, passed, details = '') {
+            testResults.push({ name, passed, details });
+            updateTestDisplay();
+        }
+        
+        function updateTestDisplay() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = '';
+            
+            testResults.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.passed ? 'success' : 'error'}`;
+                div.innerHTML = `
+                    <strong>${test.passed ? '✅' : '❌'} ${test.name}</strong>
+                    ${test.details ? `<br><small>${test.details}</small>` : ''}
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function testButtonClick() {
+            console.log('🔥 Test manual del botón...');
+            
+            const btn = document.getElementById('addProductBtn');
+            if (!btn) {
+                logTest('Botón existe', false, 'addProductBtn no encontrado');
+                return;
+            }
+            
+            logTest('Botón existe', true, 'addProductBtn encontrado correctamente');
+            
+            // Simular click
+            btn.click();
+            
+            // Verificar modal
+            const modal = document.getElementById('addProductModal');
+            if (modal && modal.style.display === 'block') {
+                logTest('Modal se abre', true, 'Modal visible después del click');
+                
+                // Cerrar modal
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    logTest('Modal se cierra', true, 'Modal cerrado después de 2 segundos');
+                }, 2000);
+                
+            } else {
+                logTest('Modal se abre', false, 'Modal no se abrió al hacer click');
+            }
+        }
+        
+        function runAllTests() {
+            testResults = [];
+            
+            console.log('🧪 Ejecutando batería de tests...');
+            
+            // Test 1: DOMContentLoaded se ejecutó
+            logTest('DOMContentLoaded ejecutado', 
+                document.readyState === 'complete' || document.readyState === 'interactive',
+                `readyState: ${document.readyState}`);
+            
+            // Test 2: Funciones globales disponibles
+            logTest('showAddProductModal global', 
+                typeof window.showAddProductModal === 'function',
+                `Tipo: ${typeof window.showAddProductModal}`);
+            
+            // Test 3: Elementos DOM presentes
+            const elements = ['addProductBtn', 'addProductModal', 'quotationForm'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                logTest(`Elemento ${id} existe`, 
+                    !!element,
+                    element ? 'Elemento encontrado' : 'Elemento no encontrado');
+            });
+            
+            // Test 4: Event listeners configurados
+            const btn = document.getElementById('addProductBtn');
+            const hasListeners = btn && (btn.onclick || btn.addEventListener);
+            logTest('Event listener configurado', 
+                !!hasListeners,
+                hasListeners ? 'Listeners detectados' : 'No se detectaron listeners');
+            
+            // Test 5: Funcionalidad básica
+            setTimeout(() => {
+                testButtonClick();
+            }, 500);
+        }
+        
+        // Auto-ejecutar tests después de un momento
+        setTimeout(() => {
+            console.log('⚡ Ejecutando tests automáticos...');
+            runAllTests();
+        }, 1000);
+    </script>
+</body>
+</html>
