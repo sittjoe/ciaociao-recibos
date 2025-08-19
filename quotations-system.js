@@ -30,14 +30,96 @@ let discountType = 'percentage'; // 'percentage' o 'amount'
 let companySignaturePad = null; // Firma de la empresa
 
 // ===========================================
-// INICIALIZACIÓN DEL SISTEMA
+// VERIFICACIÓN DE DEPENDENCIAS Y CARGA SECUENCIAL
+// ===========================================
+
+// Sistema robusto de verificación de dependencias CDN
+async function verifyDependencies() {
+    console.log('🔍 Verificando dependencias CDN...');
+    
+    const dependencies = {
+        jsPDF: () => typeof window.jspdf !== 'undefined',
+        SignaturePad: () => typeof SignaturePad !== 'undefined',
+        html2canvas: () => typeof html2canvas !== 'undefined'
+    };
+    
+    const maxRetries = 20; // 20 intentos = 10 segundos máximo
+    const retryDelay = 500; // 500ms entre intentos
+    
+    for (const [name, checkFn] of Object.entries(dependencies)) {
+        let attempts = 0;
+        while (attempts < maxRetries) {
+            if (checkFn()) {
+                console.log(`✅ ${name} disponible`);
+                break;
+            }
+            
+            attempts++;
+            console.log(`⏳ Esperando ${name}... (${attempts}/${maxRetries})`);
+            
+            if (attempts >= maxRetries) {
+                throw new Error(`Timeout: ${name} no se cargó después de ${maxRetries * retryDelay}ms`);
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+    }
+    
+    console.log('✅ Todas las dependencias CDN están disponibles');
+    return true;
+}
+
+// Verificación robusta de elementos DOM
+function verifyDOMElements() {
+    console.log('🔍 Verificando elementos DOM críticos...');
+    
+    const criticalElements = [
+        'quotationNumber',
+        'addProductBtn', 
+        'companySignatureCanvas',
+        'quotationForm',
+        'productsList',
+        'quotationSubtotal',
+        'quotationTotal'
+    ];
+    
+    const missingElements = [];
+    
+    for (const elementId of criticalElements) {
+        const element = document.getElementById(elementId);
+        if (!element) {
+            missingElements.push(elementId);
+        } else if (element.offsetParent === null) {
+            console.warn(`⚠️ Elemento ${elementId} existe pero no es visible`);
+        } else {
+            console.log(`✅ Elemento ${elementId} disponible y visible`);
+        }
+    }
+    
+    if (missingElements.length > 0) {
+        throw new Error(`Elementos DOM faltantes: ${missingElements.join(', ')}`);
+    }
+    
+    console.log('✅ Todos los elementos DOM críticos están disponibles');
+    return true;
+}
+
+// ===========================================
+// INICIALIZACIÓN DEL SISTEMA CON VERIFICACIÓN ROBUSTA
 // ===========================================
 
 // Función global para inicialización controlada desde auth.js
-function initializeQuotationSystem() {
+async function initializeQuotationSystem() {
     console.log('🚀 Inicializando sistema de cotizaciones...');
     
     try {
+        // FASE 1: Verificar dependencias CDN
+        await verifyDependencies();
+        
+        // FASE 2: Verificar elementos DOM
+        verifyDOMElements();
+        
+        // FASE 3: Inicialización normal
         // Cargar historial desde localStorage
         loadQuotationsHistory();
         
@@ -57,7 +139,21 @@ function initializeQuotationSystem() {
         
     } catch (error) {
         console.error('❌ Error durante inicialización:', error);
-        alert('Error al inicializar el sistema. Por favor recarga la página.');
+        
+        // Mostrar error específico al usuario
+        const errorMsg = error.message.includes('Timeout') 
+            ? 'Error: No se pudieron cargar las bibliotecas necesarias. Por favor revisa tu conexión a internet y recarga la página.'
+            : error.message.includes('DOM') 
+            ? 'Error: La página no cargó correctamente. Por favor recarga la página.'
+            : 'Error al inicializar el sistema. Por favor recarga la página.';
+            
+        alert(errorMsg);
+        
+        // Retry automático después de 3 segundos
+        setTimeout(() => {
+            console.log('🔄 Reintentando inicialización automáticamente...');
+            initializeQuotationSystem();
+        }, 3000);
     }
 }
 
@@ -267,17 +363,18 @@ function updateDiscountInputType() {
 // CONFIGURACIÓN DE FIRMA
 // ===========================================
 
-function setupCompanySignature(retryCount = 0) {
+async function setupCompanySignature(retryCount = 0) {
     console.log('🖊️ Configurando firma de empresa... (intento ' + (retryCount + 1) + ')');
     
     // Limitar reintentos para evitar loops infinitos
-    if (retryCount >= 5) {
-        console.error('❌ No se pudo configurar la firma después de 5 intentos');
+    if (retryCount >= 10) {
+        console.error('❌ No se pudo configurar la firma después de 10 intentos');
         return;
     }
     
     try {
-        // Verificar que SignaturePad esté disponible
+        // VERIFICACIÓN ROBUSTA DE DEPENDENCIAS
+        // Usar el mismo sistema de verificación que la inicialización principal
         if (typeof SignaturePad === 'undefined') {
             console.warn('⚠️ SignaturePad no está cargado, reintentando...');
             setTimeout(() => setupCompanySignature(retryCount + 1), 500);
@@ -286,30 +383,60 @@ function setupCompanySignature(retryCount = 0) {
         
         const canvas = document.getElementById('companySignatureCanvas');
         if (!canvas) {
-            console.warn('⚠️ Canvas de firma no encontrado');
-            return;
-        }
-        
-        // Verificar que el canvas sea visible Y tenga dimensiones
-        if (canvas.offsetParent === null || canvas.offsetWidth === 0) {
-            console.log('🔄 Canvas no visible o sin dimensiones, reintentando en 500ms...');
+            console.warn('⚠️ Canvas de firma no encontrado, reintentando...');
             setTimeout(() => setupCompanySignature(retryCount + 1), 500);
             return;
         }
         
-        // Configurar tamaño del canvas
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * ratio;
-            canvas.height = rect.height * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
+        // VERIFICACIÓN MEJORADA DE VISIBILIDAD
+        // Verificar que el canvas sea visible Y tenga dimensiones válidas
+        const isVisible = canvas.offsetParent !== null;
+        const hasWidth = canvas.offsetWidth > 0;
+        const hasHeight = canvas.offsetHeight > 0;
+        
+        if (!isVisible || !hasWidth || !hasHeight) {
+            console.log(`🔄 Canvas no listo - Visible: ${isVisible}, Width: ${canvas.offsetWidth}, Height: ${canvas.offsetHeight}`);
+            setTimeout(() => setupCompanySignature(retryCount + 1), 500);
+            return;
         }
         
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+        // CONFIGURACIÓN MEJORADA DEL CANVAS
+        function resizeCanvas() {
+            try {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                const rect = canvas.getBoundingClientRect();
+                
+                // Verificar que el rect tenga dimensiones válidas
+                if (rect.width === 0 || rect.height === 0) {
+                    console.warn('⚠️ Canvas rect tiene dimensiones 0, saltando resize');
+                    return;
+                }
+                
+                canvas.width = rect.width * ratio;
+                canvas.height = rect.height * ratio;
+                
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                    ctx.scale(ratio, ratio);
+                    console.log(`📐 Canvas redimensionado: ${rect.width}x${rect.height} (ratio: ${ratio})`);
+                }
+            } catch (resizeError) {
+                console.error('❌ Error redimensionando canvas:', resizeError);
+            }
+        }
         
-        // Inicializar SignaturePad con validación
+        // Aplicar tamaño inicial
+        resizeCanvas();
+        
+        // Listener de resize con debounce
+        let resizeTimeout;
+        const debouncedResize = () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(resizeCanvas, 250);
+        };
+        window.addEventListener('resize', debouncedResize);
+        
+        // INICIALIZACIÓN ROBUSTA DE SIGNATUREPAD
         try {
             companySignaturePad = new SignaturePad(canvas, {
                 backgroundColor: 'rgba(255, 255, 255, 0)',
@@ -317,33 +444,58 @@ function setupCompanySignature(retryCount = 0) {
                 velocityFilterWeight: 0.7,
                 minWidth: 0.5,
                 maxWidth: 2.5,
+                throttle: 16 // 60 FPS para mejor performance
             });
             
-            // Verificar que se inicializó correctamente
-            if (companySignaturePad && typeof companySignaturePad.isEmpty === 'function') {
-                console.log('✅ Firma de empresa inicializada correctamente');
-            } else {
-                throw new Error('SignaturePad no se inicializó correctamente');
+            // VERIFICACIÓN EXHAUSTIVA DE LA INICIALIZACIÓN
+            const isValidSignaturePad = companySignaturePad && 
+                typeof companySignaturePad.isEmpty === 'function' &&
+                typeof companySignaturePad.clear === 'function' &&
+                typeof companySignaturePad.toDataURL === 'function';
+            
+            if (!isValidSignaturePad) {
+                throw new Error('SignaturePad no se inicializó con todas las funciones necesarias');
             }
+            
+            // Test básico de funcionalidad
+            const isEmpty = companySignaturePad.isEmpty();
+            console.log(`✅ SignaturePad funcional - isEmpty: ${isEmpty}`);
+            
         } catch (sigError) {
             console.error('❌ Error inicializando SignaturePad:', sigError);
             setTimeout(() => setupCompanySignature(retryCount + 1), 1000);
             return;
         }
         
-        // Botón limpiar firma
+        // CONFIGURAR BOTÓN LIMPIAR CON VERIFICACIÓN
         const clearBtn = document.getElementById('clearCompanySignature');
         if (clearBtn) {
-            clearBtn.addEventListener('click', function() {
-                companySignaturePad.clear();
-                console.log('🧹 Firma de empresa limpiada');
+            // Remover listeners previos para evitar duplicados
+            clearBtn.replaceWith(clearBtn.cloneNode(true));
+            const newClearBtn = document.getElementById('clearCompanySignature');
+            
+            newClearBtn.addEventListener('click', function() {
+                try {
+                    if (companySignaturePad && typeof companySignaturePad.clear === 'function') {
+                        companySignaturePad.clear();
+                        console.log('🧹 Firma de empresa limpiada');
+                    } else {
+                        console.error('❌ companySignaturePad no está disponible para limpiar');
+                    }
+                } catch (clearError) {
+                    console.error('❌ Error limpiando firma:', clearError);
+                }
             });
+            console.log('✅ Botón limpiar firma configurado');
         }
         
-        console.log('✅ Firma de empresa configurada correctamente');
+        console.log('✅ Firma de empresa configurada completamente');
         
     } catch (error) {
         console.error('❌ Error configurando firma de empresa:', error);
+        // Retry con delay exponencial
+        const delay = Math.min(1000 * Math.pow(1.5, retryCount), 5000);
+        setTimeout(() => setupCompanySignature(retryCount + 1), delay);
     }
 }
 

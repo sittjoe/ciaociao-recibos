@@ -413,45 +413,98 @@ class AuthManager {
                 window.selectorInitialized = true;
                 
             } else if (quotationMode && typeof initializeQuotationSystem === 'function' && !window.quotationInitialized) {
-                // Página de cotizaciones
+                // Página de cotizaciones - Sistema mejorado sin race conditions
                 console.log('💰 Inicializando sistema de cotizaciones...');
                 
-                // Función para verificar si los elementos están listos
-                function checkElementsAndInitialize(attempt = 1) {
-                    console.log(`🔍 Verificando elementos DOM (intento ${attempt})...`);
+                // Sistema coordinado de inicialización que evita race conditions
+                async function initializeQuotationsCoordinated(attempt = 1) {
+                    const maxAttempts = 15; // Más tiempo para conexiones lentas
+                    const baseDelay = 400; // Delay más conservador
                     
-                    const quotationNumber = document.getElementById('quotationNumber');
-                    const addProductBtn = document.getElementById('addProductBtn');
-                    const companyCanvas = document.getElementById('companySignatureCanvas');
+                    console.log(`🔍 Verificación coordinada de sistema (intento ${attempt}/${maxAttempts})...`);
                     
-                    if (quotationNumber && addProductBtn && companyCanvas) {
-                        console.log('✅ Elementos DOM listos, inicializando sistema...');
-                        try {
-                            initializeQuotationSystem();
-                            window.quotationInitialized = true;
-                            console.log('✅ Sistema de cotizaciones inicializado exitosamente');
-                        } catch (error) {
-                            console.error('❌ Error en inicialización:', error);
-                            alert('Error iniciando sistema de cotizaciones. Ver consola para detalles.');
+                    try {
+                        // PASO 1: Verificar que la función esté disponible
+                        if (typeof initializeQuotationSystem !== 'function') {
+                            throw new Error('initializeQuotationSystem no está disponible');
                         }
-                    } else {
-                        console.warn(`⚠️ Elementos no listos (intento ${attempt}):`, {
-                            quotationNumber: !!quotationNumber,
-                            addProductBtn: !!addProductBtn, 
-                            companyCanvas: !!companyCanvas
-                        });
                         
-                        if (attempt < 10) {
-                            setTimeout(() => checkElementsAndInitialize(attempt + 1), 300);
+                        // PASO 2: Verificar elementos DOM críticos con visibilidad
+                        const criticalElements = {
+                            quotationNumber: document.getElementById('quotationNumber'),
+                            quotationForm: document.getElementById('quotationForm'),
+                            addProductBtn: document.getElementById('addProductBtn'),
+                            companyCanvas: document.getElementById('companySignatureCanvas'),
+                            productsList: document.getElementById('productsList')
+                        };
+                        
+                        // Verificar existencia
+                        const missingElements = Object.entries(criticalElements)
+                            .filter(([name, element]) => !element)
+                            .map(([name]) => name);
+                        
+                        if (missingElements.length > 0) {
+                            throw new Error(`Elementos faltantes: ${missingElements.join(', ')}`);
+                        }
+                        
+                        // Verificar visibilidad de elementos críticos
+                        const invisibleElements = Object.entries(criticalElements)
+                            .filter(([name, element]) => element.offsetParent === null)
+                            .map(([name]) => name);
+                        
+                        if (invisibleElements.length > 0) {
+                            throw new Error(`Elementos no visibles: ${invisibleElements.join(', ')}`);
+                        }
+                        
+                        // PASO 3: Verificar que scripts CDN estén cargados
+                        const cdnDependencies = [
+                            { name: 'jsPDF', check: () => typeof window.jspdf !== 'undefined' },
+                            { name: 'SignaturePad', check: () => typeof SignaturePad !== 'undefined' },
+                            { name: 'html2canvas', check: () => typeof html2canvas !== 'undefined' }
+                        ];
+                        
+                        const missingCDN = cdnDependencies
+                            .filter(dep => !dep.check())
+                            .map(dep => dep.name);
+                        
+                        if (missingCDN.length > 0) {
+                            throw new Error(`CDN no cargado: ${missingCDN.join(', ')}`);
+                        }
+                        
+                        console.log('✅ Todos los prerequisitos están listos');
+                        
+                        // PASO 4: Inicializar el sistema (ahora con verificaciones internas)
+                        console.log('🚀 Ejecutando initializeQuotationSystem...');
+                        await initializeQuotationSystem();
+                        
+                        // Marcar como inicializado
+                        window.quotationInitialized = true;
+                        console.log('✅ Sistema de cotizaciones inicializado exitosamente');
+                        
+                    } catch (error) {
+                        console.warn(`⚠️ Intento ${attempt} fallido: ${error.message}`);
+                        
+                        if (attempt < maxAttempts) {
+                            // Delay progresivo: 400ms, 600ms, 800ms, etc.
+                            const delay = baseDelay + (attempt * 200);
+                            setTimeout(() => initializeQuotationsCoordinated(attempt + 1), delay);
                         } else {
-                            console.error('❌ Timeout: No se pudieron encontrar los elementos necesarios');
-                            alert('Error: Los elementos de la página no cargaron correctamente. Recarga la página.');
+                            console.error('❌ No se pudo inicializar después de todos los intentos');
+                            
+                            // Error específico para el usuario
+                            const userMessage = error.message.includes('CDN') 
+                                ? 'Error: No se pudieron cargar las bibliotecas necesarias. Verifica tu conexión a internet y recarga la página.'
+                                : error.message.includes('Elementos') 
+                                ? 'Error: La página no cargó correctamente. Recarga la página.'
+                                : 'Error al inicializar el sistema de cotizaciones. Recarga la página.';
+                                
+                            alert(userMessage);
                         }
                     }
                 }
                 
-                // Iniciar verificación con delay inicial
-                setTimeout(checkElementsAndInitialize, 500);
+                // Iniciar el proceso coordinado con delay inicial más conservador
+                setTimeout(() => initializeQuotationsCoordinated(), 800);
                 
             } else if (calculatorMode && typeof initializeCalculatorSystem === 'function' && !window.calculatorInitialized) {
                 // Página de calculadora
