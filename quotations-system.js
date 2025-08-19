@@ -33,8 +33,9 @@ let companySignaturePad = null; // Firma de la empresa
 // INICIALIZACIÓN DEL SISTEMA
 // ===========================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 DOM Cargado - Inicializando sistema...');
+// Función global para inicialización controlada desde auth.js
+function initializeQuotationSystem() {
+    console.log('🚀 Inicializando sistema de cotizaciones...');
     
     try {
         // Cargar historial desde localStorage
@@ -58,7 +59,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('❌ Error durante inicialización:', error);
         alert('Error al inicializar el sistema. Por favor recarga la página.');
     }
-});
+}
+
+// Exportar función globalmente para auth.js
+window.initializeQuotationSystem = initializeQuotationSystem;
 
 // ===========================================
 // FUNCIONES DE INICIALIZACIÓN
@@ -186,7 +190,30 @@ function setupEventListeners() {
         });
     });
     
-    // Cerrar modales clickeando fuera
+    // Botones de cerrar modales
+    const closePreviewBtn = document.getElementById('closeQuotationPreview');
+    if (closePreviewBtn) {
+        closePreviewBtn.addEventListener('click', function() {
+            document.getElementById('quotationPreviewModal').style.display = 'none';
+        });
+    }
+    
+    const confirmPdfBtn = document.getElementById('confirmGenerateQuotationPdf');
+    if (confirmPdfBtn) {
+        confirmPdfBtn.addEventListener('click', function() {
+            document.getElementById('quotationPreviewModal').style.display = 'none';
+            generateQuotationPDF();
+        });
+    }
+    
+    const closeHistoryBtn = document.getElementById('closeQuotationHistory');
+    if (closeHistoryBtn) {
+        closeHistoryBtn.addEventListener('click', function() {
+            document.getElementById('quotationHistoryModal').style.display = 'none';
+        });
+    }
+    
+    // Cerrar modales clickeando fuera o con X
     const modals = document.querySelectorAll('.modal');
     modals.forEach(modal => {
         modal.addEventListener('click', function(e) {
@@ -194,6 +221,14 @@ function setupEventListeners() {
                 this.style.display = 'none';
             }
         });
+        
+        // Botón X de cerrar
+        const closeBtn = modal.querySelector('.close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+        }
     });
     
     // Configurar firma de la empresa
@@ -225,20 +260,33 @@ function updateDiscountInputType() {
 // CONFIGURACIÓN DE FIRMA
 // ===========================================
 
-function setupCompanySignature() {
-    console.log('🖊️ Configurando firma de empresa...');
+function setupCompanySignature(retryCount = 0) {
+    console.log('🖊️ Configurando firma de empresa... (intento ' + (retryCount + 1) + ')');
+    
+    // Limitar reintentos para evitar loops infinitos
+    if (retryCount >= 5) {
+        console.error('❌ No se pudo configurar la firma después de 5 intentos');
+        return;
+    }
     
     try {
+        // Verificar que SignaturePad esté disponible
+        if (typeof SignaturePad === 'undefined') {
+            console.warn('⚠️ SignaturePad no está cargado, reintentando...');
+            setTimeout(() => setupCompanySignature(retryCount + 1), 500);
+            return;
+        }
+        
         const canvas = document.getElementById('companySignatureCanvas');
         if (!canvas) {
             console.warn('⚠️ Canvas de firma no encontrado');
             return;
         }
         
-        // Verificar que el canvas sea visible
-        if (canvas.offsetParent === null) {
-            console.log('🔄 Canvas no visible, reintentando en 300ms...');
-            setTimeout(setupCompanySignature, 300);
+        // Verificar que el canvas sea visible Y tenga dimensiones
+        if (canvas.offsetParent === null || canvas.offsetWidth === 0) {
+            console.log('🔄 Canvas no visible o sin dimensiones, reintentando en 500ms...');
+            setTimeout(() => setupCompanySignature(retryCount + 1), 500);
             return;
         }
         
@@ -254,16 +302,27 @@ function setupCompanySignature() {
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         
-        // Inicializar SignaturePad
-        companySignaturePad = new SignaturePad(canvas, {
-            backgroundColor: 'rgba(255, 255, 255, 0)',
-            penColor: 'rgb(0, 0, 0)',
-            velocityFilterWeight: 0.7,
-            minWidth: 0.5,
-            maxWidth: 2.5,
-        });
-        
-        console.log('✅ Firma de empresa inicializada correctamente');
+        // Inicializar SignaturePad con validación
+        try {
+            companySignaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgba(255, 255, 255, 0)',
+                penColor: 'rgb(0, 0, 0)',
+                velocityFilterWeight: 0.7,
+                minWidth: 0.5,
+                maxWidth: 2.5,
+            });
+            
+            // Verificar que se inicializó correctamente
+            if (companySignaturePad && typeof companySignaturePad.isEmpty === 'function') {
+                console.log('✅ Firma de empresa inicializada correctamente');
+            } else {
+                throw new Error('SignaturePad no se inicializó correctamente');
+            }
+        } catch (sigError) {
+            console.error('❌ Error inicializando SignaturePad:', sigError);
+            setTimeout(() => setupCompanySignature(retryCount + 1), 1000);
+            return;
+        }
         
         // Botón limpiar firma
         const clearBtn = document.getElementById('clearCompanySignature');
@@ -557,9 +616,9 @@ function collectQuotationData() {
         number: document.getElementById('quotationNumber')?.value || '',
         date: document.getElementById('quotationDate')?.value || '',
         validity: document.getElementById('validity')?.value || '30',
-        clientName: document.getElementById('clientNameQuote')?.value || '',
-        clientPhone: document.getElementById('clientPhoneQuote')?.value || '',
-        clientEmail: document.getElementById('clientEmailQuote')?.value || '',
+        clientName: document.getElementById('clientName')?.value || '',
+        clientPhone: document.getElementById('clientPhone')?.value || '',
+        clientEmail: document.getElementById('clientEmail')?.value || '',
         products: quotationProducts,
         subtotal: subtotal,
         discountType: discountType,
@@ -1219,9 +1278,9 @@ function loadQuotation(index) {
         document.getElementById('quotationNumber').value = quotation.number;
         document.getElementById('quotationDate').value = quotation.date;
         document.getElementById('validity').value = quotation.validity;
-        document.getElementById('clientNameQuote').value = quotation.clientName;
-        document.getElementById('clientPhoneQuote').value = quotation.clientPhone;
-        document.getElementById('clientEmailQuote').value = quotation.clientEmail || '';
+        document.getElementById('clientName').value = quotation.clientName;
+        document.getElementById('clientPhone').value = quotation.clientPhone;
+        document.getElementById('clientEmail').value = quotation.clientEmail || '';
         document.getElementById('terms').value = quotation.terms || '';
         document.getElementById('quotationObservations').value = quotation.observations || '';
         
@@ -1366,30 +1425,7 @@ window.removeProduct = removeProduct;
 window.loadQuotation = loadQuotation;
 window.deleteQuotation = deleteQuotation;
 
-// Botón de cerrar preview modal
-document.addEventListener('DOMContentLoaded', function() {
-    const closePreviewBtn = document.getElementById('closeQuotationPreview');
-    if (closePreviewBtn) {
-        closePreviewBtn.addEventListener('click', function() {
-            document.getElementById('quotationPreviewModal').style.display = 'none';
-        });
-    }
-    
-    const confirmPdfBtn = document.getElementById('confirmGenerateQuotationPdf');
-    if (confirmPdfBtn) {
-        confirmPdfBtn.addEventListener('click', function() {
-            document.getElementById('quotationPreviewModal').style.display = 'none';
-            generateQuotationPDF();
-        });
-    }
-    
-    const closeHistoryBtn = document.getElementById('closeQuotationHistory');
-    if (closeHistoryBtn) {
-        closeHistoryBtn.addEventListener('click', function() {
-            document.getElementById('quotationHistoryModal').style.display = 'none';
-        });
-    }
-});
+// Sistema de Cotizaciones v2.2 - Inicialización controlada por auth.js
 
 console.log('✅ Sistema de Cotizaciones v2.1 - Cargado y Funcional');
 console.log('📌 Cambios incluidos:');
