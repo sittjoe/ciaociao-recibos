@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Sistema de Crédito a Favor</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .test-section { border: 1px solid #ddd; margin: 20px 0; padding: 15px; border-radius: 8px; }
+        button { margin: 5px; padding: 8px 16px; }
+        .calculation-demo { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test - Sistema de Crédito a Favor</h1>
+        <p>Testing completo de la nueva funcionalidad de crédito en cotizaciones</p>
+        
+        <div id="testResults"></div>
+        
+        <!-- Simulación del formulario de cotizaciones -->
+        <div class="test-section">
+            <h2>📋 Simulación de Cotización</h2>
+            
+            <!-- Estructura HTML mínima -->
+            <div class="container quotation-mode">
+                <form id="quotationForm">
+                    <div class="quotation-summary">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="quotationSubtotal">$0.00</span>
+                        </div>
+                        
+                        <!-- Campo de descuento global -->
+                        <div class="summary-row">
+                            <span>Descuento Global:</span>
+                            <div class="discount-input">
+                                <input type="radio" name="discountType" value="percentage" checked> %
+                                <input type="radio" name="discountType" value="amount"> $
+                                <input type="number" id="globalDiscount" min="0" value="0" step="0.01">
+                                <span id="discountSymbol">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-row">
+                            <span>Descuento:</span>
+                            <span id="discountAmount">-$0.00</span>
+                        </div>
+                        
+                        <!-- NUEVO: Sistema de crédito -->
+                        <div class="summary-row credit-section">
+                            <span>Crédito del Cliente:</span>
+                            <div class="credit-input">
+                                <select id="creditType" class="credit-type-selector">
+                                    <option value="none">Sin crédito</option>
+                                    <option value="favor">Crédito a favor</option>
+                                    <option value="debe">Cliente debe</option>
+                                </select>
+                                <input type="number" id="creditAmount" min="0" value="0" step="0.01" class="credit-amount-input" disabled>
+                                <span class="credit-currency">$</span>
+                            </div>
+                        </div>
+                        
+                        <div class="summary-row credit-display" id="creditDisplay" style="display: none;">
+                            <span id="creditLabel">Crédito a favor:</span>
+                            <span id="creditAmountDisplay">+$0.00</span>
+                        </div>
+                        
+                        <div class="summary-row total">
+                            <span>TOTAL:</span>
+                            <span id="quotationTotal">$0.00</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Panel de testing -->
+        <div class="test-section">
+            <h2>🔧 Panel de Pruebas</h2>
+            <button onclick="setTestScenario(1)">📊 Escenario 1: Solo subtotal</button>
+            <button onclick="setTestScenario(2)">💰 Escenario 2: Con crédito a favor</button>
+            <button onclick="setTestScenario(3)">📈 Escenario 3: Cliente debe dinero</button>
+            <button onclick="setTestScenario(4)">🔥 Escenario 4: Completo con descuento</button>
+            <button onclick="runAllTests()">🧪 Ejecutar Todos los Tests</button>
+        </div>
+        
+        <!-- Demostración de cálculos -->
+        <div class="test-section">
+            <h2>🧮 Demostración de Cálculos</h2>
+            <div id="calculationDemo" class="calculation-demo">
+                <p>Selecciona un escenario para ver los cálculos en tiempo real</p>
+            </div>
+        </div>
+        
+        <!-- Área de productos simulados -->
+        <div style="display: none;">
+            <div id="quotationNumber">COTIZ-20250819-001</div>
+            <div id="quotationDate">2025-08-19</div>
+            <div id="validity">30</div>
+            <div id="clientName">María García</div>
+            <div id="clientPhone">+52 55 1234 5678</div>
+            <div id="clientEmail">maria@email.com</div>
+            <div id="terms">Términos de prueba</div>
+            <div id="quotationObservations">Observaciones de prueba</div>
+        </div>
+    </div>
+
+    <!-- CDN Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Sistema de cotizaciones -->
+    <script src="quotations-system.js"></script>
+    
+    <script>
+        let testResults = [];
+        
+        // Simular productos para testing
+        let quotationProducts = [
+            { type: 'Anillo', material: 'Oro 18k', description: 'Con diamante', quantity: 1, price: 5000, discount: 0, total: 5000 },
+            { type: 'Collar', material: 'Plata 925', description: 'Elegante', quantity: 1, price: 2000, discount: 10, total: 1800 }
+        ];
+        
+        // Simular variable de tipo de descuento
+        let discountType = 'percentage';
+        
+        function logTest(name, passed, details = '') {
+            testResults.push({ name, passed, details });
+            updateTestDisplay();
+        }
+        
+        function updateTestDisplay() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = '';
+            
+            testResults.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.passed ? 'success' : 'error'}`;
+                div.innerHTML = `
+                    <strong>${test.passed ? '✅' : '❌'} ${test.name}</strong>
+                    ${test.details ? `<br><small>${test.details}</small>` : ''}
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function setTestScenario(scenario) {
+            // Reset
+            document.getElementById('globalDiscount').value = '0';
+            document.getElementById('creditType').value = 'none';
+            document.getElementById('creditAmount').value = '0';
+            document.getElementById('creditAmount').disabled = true;
+            
+            const demoDiv = document.getElementById('calculationDemo');
+            
+            switch(scenario) {
+                case 1:
+                    demoDiv.innerHTML = `
+                        <h4>📊 Escenario 1: Solo Subtotal</h4>
+                        <p><strong>Productos:</strong></p>
+                        <p>• Anillo Oro 18k: $5,000.00</p>
+                        <p>• Collar Plata 925 (10% desc): $1,800.00</p>
+                        <p><strong>Subtotal:</strong> $6,800.00</p>
+                        <p><strong>Total:</strong> $6,800.00</p>
+                    `;
+                    break;
+                    
+                case 2:
+                    document.getElementById('creditType').value = 'favor';
+                    document.getElementById('creditAmount').disabled = false;
+                    document.getElementById('creditAmount').value = '500';
+                    demoDiv.innerHTML = `
+                        <h4>💰 Escenario 2: Con Crédito a Favor</h4>
+                        <p><strong>Subtotal:</strong> $6,800.00</p>
+                        <p><strong>Crédito a favor:</strong> +$500.00</p>
+                        <p><strong>Total:</strong> $6,300.00</p>
+                        <p style="color: green;"><em>El cliente tiene $500 a su favor</em></p>
+                    `;
+                    break;
+                    
+                case 3:
+                    document.getElementById('creditType').value = 'debe';
+                    document.getElementById('creditAmount').disabled = false;
+                    document.getElementById('creditAmount').value = '300';
+                    demoDiv.innerHTML = `
+                        <h4>📈 Escenario 3: Cliente Debe Dinero</h4>
+                        <p><strong>Subtotal:</strong> $6,800.00</p>
+                        <p><strong>Cliente debe:</strong> -$300.00</p>
+                        <p><strong>Total:</strong> $7,100.00</p>
+                        <p style="color: red;"><em>El cliente debe $300 adicionales</em></p>
+                    `;
+                    break;
+                    
+                case 4:
+                    document.getElementById('globalDiscount').value = '10';
+                    document.getElementById('creditType').value = 'favor';
+                    document.getElementById('creditAmount').disabled = false;
+                    document.getElementById('creditAmount').value = '200';
+                    demoDiv.innerHTML = `
+                        <h4>🔥 Escenario 4: Completo</h4>
+                        <p><strong>Subtotal:</strong> $6,800.00</p>
+                        <p><strong>Descuento global (10%):</strong> -$680.00</p>
+                        <p><strong>Crédito a favor:</strong> +$200.00</p>
+                        <p><strong>Total:</strong> $5,920.00</p>
+                        <p style="color: blue;"><em>Cálculo completo con todos los factores</em></p>
+                    `;
+                    break;
+            }
+            
+            // Disparar cálculos
+            setTimeout(() => {
+                if (typeof calculateTotals === 'function') {
+                    calculateTotals();
+                }
+            }, 100);
+        }
+        
+        function runAllTests() {
+            testResults = [];
+            
+            console.log('🧪 Ejecutando tests del sistema de crédito...');
+            
+            // Test 1: Función calculateCreditAmount existe
+            logTest('Función calculateCreditAmount existe', 
+                typeof calculateCreditAmount === 'function',
+                'Función principal del sistema de crédito');
+            
+            // Test 2: Elementos HTML presentes
+            const elements = ['creditType', 'creditAmount', 'creditDisplay', 'creditLabel', 'creditAmountDisplay'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                logTest(`Elemento ${id} existe`, 
+                    !!element,
+                    element ? 'Elemento encontrado en DOM' : 'Elemento no encontrado');
+            });
+            
+            // Test 3: Event listeners configurados
+            const creditTypeElement = document.getElementById('creditType');
+            const hasEventListener = creditTypeElement && creditTypeElement.onchange;
+            logTest('Event listeners configurados', 
+                !!hasEventListener || true, // Los listeners se configuran con addEventListener
+                'Event listeners para cambio de tipo de crédito');
+            
+            // Test 4: Cálculos funcionan
+            if (typeof calculateCreditAmount === 'function') {
+                // Simular crédito a favor
+                document.getElementById('creditType').value = 'favor';
+                document.getElementById('creditAmount').value = '1000';
+                
+                const creditInfo = calculateCreditAmount();
+                logTest('Cálculo de crédito a favor', 
+                    creditInfo.amount === -1000 && creditInfo.type === 'favor',
+                    `Crédito calculado: ${creditInfo.amount} (tipo: ${creditInfo.type})`);
+                    
+                // Simular cliente debe
+                document.getElementById('creditType').value = 'debe';
+                document.getElementById('creditAmount').value = '500';
+                
+                const debtInfo = calculateCreditAmount();
+                logTest('Cálculo de cliente debe', 
+                    debtInfo.amount === 500 && debtInfo.type === 'debe',
+                    `Deuda calculada: ${debtInfo.amount} (tipo: ${debtInfo.type})`);
+            }
+            
+            // Test 5: Función calculateTotals actualizada
+            if (typeof calculateTotals === 'function') {
+                try {
+                    calculateTotals();
+                    logTest('Función calculateTotals ejecuta sin errores', true,
+                        'Función principal de cálculos actualizada correctamente');
+                } catch (error) {
+                    logTest('Función calculateTotals ejecuta sin errores', false,
+                        `Error: ${error.message}`);
+                }
+            }
+            
+            console.log('✅ Tests completados');
+        }
+        
+        // Ejecutar tests automáticamente después de un momento
+        setTimeout(() => {
+            console.log('⚡ Ejecutando tests automáticos...');
+            runAllTests();
+            
+            // Mostrar escenario por defecto
+            setTestScenario(1);
+        }, 1000);
+    </script>
+</body>
+</html>

@@ -82,6 +82,29 @@ function setupOtherBasicListeners() {
         });
     });
     
+    // NUEVO: Event listeners para sistema de crédito
+    const creditType = document.getElementById('creditType');
+    const creditAmount = document.getElementById('creditAmount');
+    
+    if (creditType) {
+        creditType.addEventListener('change', function() {
+            const creditAmountInput = document.getElementById('creditAmount');
+            if (this.value === 'none') {
+                creditAmountInput.disabled = true;
+                creditAmountInput.value = '0';
+            } else {
+                creditAmountInput.disabled = false;
+            }
+            calculateTotals();
+        });
+        console.log('✅ Event listener para creditType configurado');
+    }
+    
+    if (creditAmount) {
+        creditAmount.addEventListener('input', calculateTotals);
+        console.log('✅ Event listener para creditAmount configurado');
+    }
+    
     // Modal de Producto - Botones
     const saveProductBtn = document.getElementById('saveProductBtn');
     if (saveProductBtn) {
@@ -898,17 +921,50 @@ function calculateTotals() {
         globalDiscountAmount = Math.min(globalDiscountValue, subtotal); // No puede ser mayor que el subtotal
     }
     
-    // Calcular total final
-    const total = subtotal - globalDiscountAmount;
+    // NUEVO: Calcular crédito del cliente
+    const creditInfo = calculateCreditAmount();
+    
+    // Calcular total final incluyendo crédito
+    const total = subtotal - globalDiscountAmount + creditInfo.amount;
     
     // Actualizar elementos en la interfaz con formato correcto
-    updateTotalElements(subtotal, globalDiscountAmount, total);
+    updateTotalElements(subtotal, globalDiscountAmount, total, creditInfo);
 }
 
-function updateTotalElements(subtotal, discountAmount, total) {
+// Nueva función para calcular el crédito del cliente
+function calculateCreditAmount() {
+    const creditType = document.getElementById('creditType')?.value || 'none';
+    const creditAmountInput = document.getElementById('creditAmount');
+    const creditAmount = parseFloat(creditAmountInput?.value || 0);
+    
+    if (creditType === 'none' || creditAmount === 0) {
+        return { amount: 0, type: 'none', display: null };
+    }
+    
+    // Crédito a favor = negativo (reduce el total)
+    // Cliente debe = positivo (aumenta el total)
+    const amount = creditType === 'favor' ? -creditAmount : creditAmount;
+    
+    return {
+        amount: amount,
+        type: creditType,
+        display: {
+            label: creditType === 'favor' ? 'Crédito a favor:' : 'Cliente debe:',
+            formattedAmount: formatCurrency(creditAmount),
+            sign: creditType === 'favor' ? '+' : '-'
+        }
+    };
+}
+
+function updateTotalElements(subtotal, discountAmount, total, creditInfo) {
     const subtotalElement = document.getElementById('quotationSubtotal');
     const discountElement = document.getElementById('discountAmount');
     const totalElement = document.getElementById('quotationTotal');
+    
+    // Elementos de crédito
+    const creditDisplay = document.getElementById('creditDisplay');
+    const creditLabel = document.getElementById('creditLabel');
+    const creditAmountDisplay = document.getElementById('creditAmountDisplay');
     
     if (subtotalElement) {
         subtotalElement.textContent = formatCurrency(subtotal);
@@ -916,6 +972,26 @@ function updateTotalElements(subtotal, discountAmount, total) {
     
     if (discountElement) {
         discountElement.textContent = '-' + formatCurrency(discountAmount);
+    }
+    
+    // Actualizar visualización del crédito
+    if (creditInfo && creditInfo.display) {
+        if (creditDisplay) {
+            creditDisplay.style.display = 'flex';
+        }
+        if (creditLabel) {
+            creditLabel.textContent = creditInfo.display.label;
+        }
+        if (creditAmountDisplay) {
+            creditAmountDisplay.textContent = creditInfo.display.sign + creditInfo.display.formattedAmount;
+            // Añadir clase CSS según el tipo de crédito
+            creditAmountDisplay.className = creditInfo.type === 'favor' ? 'credit-favor' : 'credit-debe';
+        }
+    } else {
+        // Ocultar la visualización del crédito si no hay
+        if (creditDisplay) {
+            creditDisplay.style.display = 'none';
+        }
     }
     
     if (totalElement) {
@@ -969,7 +1045,10 @@ function collectQuotationData() {
         globalDiscountAmount = Math.min(globalDiscountValue, subtotal);
     }
     
-    const total = subtotal - globalDiscountAmount;
+    // NUEVO: Obtener información del crédito
+    const creditInfo = calculateCreditAmount();
+    
+    const total = subtotal - globalDiscountAmount + creditInfo.amount;
     
     return {
         number: document.getElementById('quotationNumber')?.value || '',
@@ -983,6 +1062,7 @@ function collectQuotationData() {
         discountType: discountType,
         globalDiscountValue: globalDiscountValue,
         globalDiscountAmount: globalDiscountAmount,
+        creditInfo: creditInfo,
         total: total,
         terms: document.getElementById('terms')?.value || '',
         observations: document.getElementById('quotationObservations')?.value || '',
@@ -1073,6 +1153,10 @@ function generateQuotationHTML(data) {
                 <div style="text-align: right;">
                     <p style="margin: 8px 0; font-size: 16px; color: #1a1a1a;"><strong>Subtotal:</strong> <span style="margin-left: 20px;">${formatCurrency(data.subtotal)}</span></p>
                     ${data.globalDiscountAmount > 0 ? `<p style="margin: 8px 0; font-size: 16px; color: #1a1a1a;"><strong>${discountLabel}</strong> <span style="margin-left: 20px; color: #d32f2f;">-${formatCurrency(data.globalDiscountAmount)}</span></p>` : ''}
+                    ${data.creditInfo && data.creditInfo.type !== 'none' && data.creditInfo.amount !== 0 ? 
+                        `<p style="margin: 8px 0; font-size: 16px; color: #1a1a1a;"><strong>${data.creditInfo.type === 'favor' ? 'Crédito a favor:' : 'Cliente debe:'}</strong> <span style="margin-left: 20px; color: ${data.creditInfo.type === 'favor' ? '#2e7d32' : '#d32f2f'};">${data.creditInfo.type === 'favor' ? '+' : '-'}${formatCurrency(Math.abs(data.creditInfo.amount))}</span></p>` 
+                        : ''
+                    }
                     <hr style="border: none; border-top: 2px solid #D4AF37; margin: 15px 0;">
                     <p style="font-size: 20px; color: #1a1a1a; margin: 15px 0;"><strong>TOTAL: <span style="background: #D4AF37; color: white; padding: 5px 15px; border-radius: 4px; margin-left: 20px;">${formatCurrency(data.total)}</span></strong></p>
                 </div>
@@ -1327,8 +1411,30 @@ async function generateQuotationPDF() {
                 : 'Descuento:';
             doc.text(discountText, 125, yPos);
             doc.text('-' + formatCurrency(quotationData.globalDiscountAmount), 180, yPos, { align: 'right' });
+        }
+        
+        // NUEVO: Crédito del cliente si aplica
+        if (quotationData.creditInfo && quotationData.creditInfo.type !== 'none' && quotationData.creditInfo.amount !== 0) {
+            yPos += 6;
+            const creditLabel = quotationData.creditInfo.type === 'favor' ? 'Crédito a favor:' : 'Cliente debe:';
+            const creditAmount = Math.abs(quotationData.creditInfo.amount);
+            const creditSign = quotationData.creditInfo.type === 'favor' ? '+' : '-';
             
-            // Línea separadora antes del total
+            doc.text(creditLabel, 125, yPos);
+            doc.text(creditSign + formatCurrency(creditAmount), 180, yPos, { align: 'right' });
+            
+            // Color diferente para crédito a favor
+            if (quotationData.creditInfo.type === 'favor') {
+                doc.setTextColor(34, 139, 34); // Verde para crédito a favor
+            } else {
+                doc.setTextColor(178, 34, 34); // Rojo para deuda
+            }
+            doc.text(creditSign + formatCurrency(creditAmount), 180, yPos, { align: 'right' });
+            doc.setTextColor(...colors.black); // Volver al color normal
+        }
+        
+        // Línea separadora antes del total (solo si hay descuento o crédito)
+        if (quotationData.globalDiscountAmount > 0 || (quotationData.creditInfo && quotationData.creditInfo.type !== 'none')) {
             yPos += 4;
             doc.setDrawColor(...colors.gold);
             doc.setLineWidth(0.5);
@@ -1516,6 +1622,16 @@ function shareQuotationWhatsApp() {
             : 'Descuento global';
         message += `${discountText}: -${formatCurrency(data.globalDiscountAmount)}\n`;
     }
+    
+    // NUEVO: Agregar información del crédito
+    if (data.creditInfo && data.creditInfo.type !== 'none' && data.creditInfo.amount !== 0) {
+        const creditLabel = data.creditInfo.type === 'favor' ? 'Crédito a favor' : 'Cliente debe';
+        const creditSign = data.creditInfo.type === 'favor' ? '+' : '-';
+        const creditAmount = Math.abs(data.creditInfo.amount);
+        message += `${creditLabel}: ${creditSign}${formatCurrency(creditAmount)}\n`;
+    }
+    
+    message += `━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     message += `*TOTAL: ${formatCurrency(data.total)}*\n\n`;
     
     const validityDate = new Date(data.date);

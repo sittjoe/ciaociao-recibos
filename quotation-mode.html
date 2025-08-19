@@ -96,6 +96,22 @@
                             <span>Descuento:</span>
                             <span id="discountAmount">-$0.00</span>
                         </div>
+                        <div class="summary-row credit-section">
+                            <span>Crédito del Cliente:</span>
+                            <div class="credit-input">
+                                <select id="creditType" class="credit-type-selector">
+                                    <option value="none">Sin crédito</option>
+                                    <option value="favor">Crédito a favor</option>
+                                    <option value="debe">Cliente debe</option>
+                                </select>
+                                <input type="number" id="creditAmount" min="0" value="0" step="0.01" class="credit-amount-input" disabled>
+                                <span class="credit-currency">$</span>
+                            </div>
+                        </div>
+                        <div class="summary-row credit-display" id="creditDisplay" style="display: none;">
+                            <span id="creditLabel">Crédito a favor:</span>
+                            <span id="creditAmountDisplay">+$0.00</span>
+                        </div>
                         <div class="summary-row total">
                             <span>TOTAL:</span>
                             <span id="quotationTotal">$0.00</span>
