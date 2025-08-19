@@ -415,10 +415,43 @@ class AuthManager {
             } else if (quotationMode && typeof initializeQuotationSystem === 'function' && !window.quotationInitialized) {
                 // Página de cotizaciones
                 console.log('💰 Inicializando sistema de cotizaciones...');
-                setTimeout(() => {
-                    initializeQuotationSystem();
-                    window.quotationInitialized = true;
-                }, 200);
+                
+                // Función para verificar si los elementos están listos
+                function checkElementsAndInitialize(attempt = 1) {
+                    console.log(`🔍 Verificando elementos DOM (intento ${attempt})...`);
+                    
+                    const quotationNumber = document.getElementById('quotationNumber');
+                    const addProductBtn = document.getElementById('addProductBtn');
+                    const companyCanvas = document.getElementById('companySignatureCanvas');
+                    
+                    if (quotationNumber && addProductBtn && companyCanvas) {
+                        console.log('✅ Elementos DOM listos, inicializando sistema...');
+                        try {
+                            initializeQuotationSystem();
+                            window.quotationInitialized = true;
+                            console.log('✅ Sistema de cotizaciones inicializado exitosamente');
+                        } catch (error) {
+                            console.error('❌ Error en inicialización:', error);
+                            alert('Error iniciando sistema de cotizaciones. Ver consola para detalles.');
+                        }
+                    } else {
+                        console.warn(`⚠️ Elementos no listos (intento ${attempt}):`, {
+                            quotationNumber: !!quotationNumber,
+                            addProductBtn: !!addProductBtn, 
+                            companyCanvas: !!companyCanvas
+                        });
+                        
+                        if (attempt < 10) {
+                            setTimeout(() => checkElementsAndInitialize(attempt + 1), 300);
+                        } else {
+                            console.error('❌ Timeout: No se pudieron encontrar los elementos necesarios');
+                            alert('Error: Los elementos de la página no cargaron correctamente. Recarga la página.');
+                        }
+                    }
+                }
+                
+                // Iniciar verificación con delay inicial
+                setTimeout(checkElementsAndInitialize, 500);
                 
             } else if (calculatorMode && typeof initializeCalculatorSystem === 'function' && !window.calculatorInitialized) {
                 // Página de calculadora

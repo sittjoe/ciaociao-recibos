@@ -69,11 +69,18 @@ window.initializeQuotationSystem = initializeQuotationSystem;
 // ===========================================
 
 function setCurrentDate() {
-    const today = new Date().toISOString().split('T')[0];
-    const dateElement = document.getElementById('quotationDate');
-    if (dateElement) {
-        dateElement.value = today;
-        console.log('📅 Fecha configurada:', today);
+    console.log('📅 Configurando fecha actual...');
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const dateElement = document.getElementById('quotationDate');
+        if (dateElement) {
+            dateElement.value = today;
+            console.log('✅ Fecha configurada:', today);
+        } else {
+            console.warn('⚠️ Elemento quotationDate no encontrado');
+        }
+    } catch (error) {
+        console.error('❌ Error configurando fecha:', error);
     }
 }
 
