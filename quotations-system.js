@@ -72,13 +72,21 @@ function setupEventListenersBasic() {
 }
 
 function setupOtherBasicListeners() {
-    // Radio buttons para tipo de descuento
+    // Radio buttons para tipo de descuento global
     const discountTypeRadios = document.querySelectorAll('input[name="discountType"]');
     discountTypeRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             discountType = this.value;
             updateDiscountInputType();
             calculateTotals();
+        });
+    });
+    
+    // Radio buttons para tipo de descuento del producto (en modal)
+    const productDiscountTypeRadios = document.querySelectorAll('input[name="productDiscountType"]');
+    productDiscountTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            updateProductDiscountType();
         });
     });
     
@@ -154,9 +162,27 @@ function setupOtherBasicListeners() {
 function showAddProductModal() {
     console.log('📦 Abriendo modal de producto...');
     const modal = document.getElementById('addProductModal');
+    const modalTitle = document.getElementById('productModalTitle');
+    
     if (modal) {
-        clearProductForm();
+        // Cambiar título según si estamos editando o agregando
+        if (modalTitle) {
+            if (editingProductIndex >= 0) {
+                modalTitle.innerHTML = '✏️ Editar Producto';
+            } else {
+                modalTitle.innerHTML = '➕ Agregar Producto';
+            }
+        }
+        
+        // Limpiar formulario solo si no estamos editando
+        if (editingProductIndex < 0) {
+            clearProductForm();
+        }
+        
         modal.style.display = 'block';
+        
+        // Actualizar botón de guardar
+        updateSaveButton();
     }
 }
 
@@ -164,6 +190,21 @@ function hideAddProductModal() {
     const modal = document.getElementById('addProductModal');
     if (modal) {
         modal.style.display = 'none';
+        // Reset editing index cuando se cierra el modal
+        editingProductIndex = -1;
+    }
+}
+
+function updateSaveButton() {
+    const saveBtn = document.getElementById('saveProductBtn');
+    if (saveBtn) {
+        if (editingProductIndex >= 0) {
+            saveBtn.textContent = 'Actualizar Producto';
+            saveBtn.className = 'btn-success';
+        } else {
+            saveBtn.textContent = 'Guardar Producto';
+            saveBtn.className = 'btn-success';
+        }
     }
 }
 
@@ -186,9 +227,33 @@ function clearProductForm() {
         }
     });
     
-    // Reset editing index
-    if (typeof editingProductIndex !== 'undefined') {
-        editingProductIndex = -1;
+    // Reset product discount type to percentage
+    const percentageRadio = document.querySelector('input[name="productDiscountType"][value="percentage"]');
+    const amountRadio = document.querySelector('input[name="productDiscountType"][value="amount"]');
+    const discountSymbol = document.getElementById('productDiscountSymbol');
+    
+    if (percentageRadio) percentageRadio.checked = true;
+    if (amountRadio) amountRadio.checked = false;
+    if (discountSymbol) discountSymbol.textContent = '%';
+}
+
+function updateProductDiscountType() {
+    const productDiscountType = document.querySelector('input[name="productDiscountType"]:checked')?.value;
+    const discountSymbol = document.getElementById('productDiscountSymbol');
+    const discountInput = document.getElementById('productDiscount');
+    
+    if (productDiscountType === 'percentage') {
+        if (discountSymbol) discountSymbol.textContent = '%';
+        if (discountInput) {
+            discountInput.max = '100';
+            discountInput.placeholder = 'Ej: 10';
+        }
+    } else {
+        if (discountSymbol) discountSymbol.textContent = '$';
+        if (discountInput) {
+            discountInput.removeAttribute('max');
+            discountInput.placeholder = 'Ej: 500';
+        }
     }
 }
 
@@ -765,15 +830,26 @@ function saveProduct() {
     const price = parseFloat(document.getElementById('productPrice').value) || 0;
     const discount = parseFloat(document.getElementById('productDiscount').value) || 0;
     
+    // Obtener tipo de descuento del producto
+    const productDiscountType = document.querySelector('input[name="productDiscountType"]:checked')?.value || 'percentage';
+    
     // Validación
     if (!type || !material || !description || price <= 0) {
         alert('Por favor complete todos los campos requeridos correctamente');
         return;
     }
     
-    // Calcular totales del producto
+    // Calcular totales del producto según tipo de descuento
     const subtotal = quantity * price;
-    const discountAmount = (subtotal * discount) / 100;
+    let discountAmount;
+    
+    if (productDiscountType === 'percentage') {
+        discountAmount = (subtotal * discount) / 100;
+    } else {
+        // Descuento por monto fijo
+        discountAmount = discount;
+    }
+    
     const total = subtotal - discountAmount;
     
     // Crear objeto producto
@@ -785,6 +861,7 @@ function saveProduct() {
         quantity,
         price,
         discount,
+        discountType: productDiscountType,
         subtotal,
         discountAmount,
         total
@@ -840,21 +917,31 @@ function renderProductsList() {
     `;
     
     quotationProducts.forEach((product, index) => {
+        // Formatear descuento según tipo
+        let discountDisplay;
+        const discountType = product.discountType || 'percentage';
+        
+        if (discountType === 'percentage') {
+            discountDisplay = `${product.discount}%`;
+        } else {
+            discountDisplay = `$${formatNumber(product.discount)}`;
+        }
+        
         html += `
             <tr>
                 <td>${index + 1}</td>
-                <td>
+                <td class="product-description">
                     <strong>${product.type} ${product.material}</strong><br>
-                    <small>${product.description}</small>
+                    <div class="description-text">${product.description}</div>
                 </td>
                 <td>${product.sku || '-'}</td>
                 <td>${formatNumber(product.quantity)}</td>
                 <td>${formatCurrency(product.price)}</td>
-                <td>${product.discount}%</td>
+                <td>${discountDisplay}</td>
                 <td><strong>${formatCurrency(product.total)}</strong></td>
-                <td>
-                    <button onclick="editProduct(${index})" class="btn-edit-product">✏️</button>
-                    <button onclick="removeProduct(${index})" class="btn-remove-product">🗑️</button>
+                <td class="action-buttons">
+                    <button onclick="editProduct(${index})" class="btn-edit-product" title="Editar producto">✏️</button>
+                    <button onclick="removeProduct(${index})" class="btn-remove-product" title="Eliminar producto">🗑️</button>
                 </td>
             </tr>
         `;
@@ -881,6 +968,22 @@ function editProduct(index) {
     document.getElementById('productQuantity').value = product.quantity;
     document.getElementById('productPrice').value = product.price;
     document.getElementById('productDiscount').value = product.discount;
+    
+    // Configurar tipo de descuento
+    const discountType = product.discountType || 'percentage';
+    const percentageRadio = document.querySelector('input[name="productDiscountType"][value="percentage"]');
+    const amountRadio = document.querySelector('input[name="productDiscountType"][value="amount"]');
+    const discountSymbol = document.getElementById('productDiscountSymbol');
+    
+    if (discountType === 'percentage') {
+        if (percentageRadio) percentageRadio.checked = true;
+        if (amountRadio) amountRadio.checked = false;
+        if (discountSymbol) discountSymbol.textContent = '%';
+    } else {
+        if (percentageRadio) percentageRadio.checked = false;
+        if (amountRadio) amountRadio.checked = true;
+        if (discountSymbol) discountSymbol.textContent = '$';
+    }
     
     editingProductIndex = index;
     showAddProductModal();
