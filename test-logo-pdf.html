@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Logo en PDFs</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .test-section { border: 1px solid #ddd; margin: 20px 0; padding: 15px; border-radius: 8px; }
+        button { margin: 5px; padding: 8px 16px; }
+        .logo-preview { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0; text-align: center; }
+        .cache-info { background: #fff3cd; padding: 10px; border-radius: 4px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test - Logo en PDFs de Cotizaciones</h1>
+        <p>Testing del sistema de conversión de logo a base64 y inclusión en PDFs</p>
+        
+        <div id="testResults"></div>
+        
+        <!-- Información del cache -->
+        <div class="test-section">
+            <h2>💾 Estado del Cache</h2>
+            <div id="cacheInfo" class="cache-info">
+                Verificando cache del logo...
+            </div>
+            <button onclick="clearLogoCache()">🗑️ Limpiar Cache</button>
+            <button onclick="checkCacheStatus()">🔍 Verificar Cache</button>
+        </div>
+        
+        <!-- Preview del logo -->
+        <div class="test-section">
+            <h2>🖼️ Preview del Logo</h2>
+            <div id="logoPreview" class="logo-preview">
+                <p>Cargando preview del logo...</p>
+            </div>
+            <button onclick="testLogoConversion()">🔄 Test Conversión a Base64</button>
+        </div>
+        
+        <!-- Simulación de generación de PDF -->
+        <div class="test-section">
+            <h2>📄 Test de PDF con Logo</h2>
+            <p>Simula el proceso de generación de PDF incluyendo logo</p>
+            <button onclick="testPDFGeneration()">📋 Test PDF Generation</button>
+            <button onclick="simulateOfflineMode()">📶 Test Modo Offline</button>
+        </div>
+        
+        <!-- Panel de testing -->
+        <div class="test-section">
+            <h2>🔧 Panel de Pruebas</h2>
+            <button onclick="testCacheSystem()">💾 Test Sistema de Cache</button>
+            <button onclick="testErrorHandling()">⚠️ Test Manejo de Errores</button>
+            <button onclick="testDimensions()">📐 Test Dimensiones</button>
+            <button onclick="runAllTests()">🧪 Ejecutar Todos los Tests</button>
+        </div>
+        
+        <!-- Logs -->
+        <div class="test-section">
+            <h2>📋 Logs del Sistema</h2>
+            <div id="systemLogs" style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+                Los logs aparecerán aquí...
+            </div>
+            <button onclick="clearLogs()">🧹 Limpiar Logs</button>
+        </div>
+    </div>
+
+    <!-- CDN Dependencies (mismo que cotizaciones) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script>
+        let testResults = [];
+        let systemLogs = [];
+        
+        // Configuración del logo
+        const LOGO_URL = 'https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png';
+        const LOGO_CACHE_KEY = 'ciaociao_logo_base64';
+        const LOGO_CACHE_TTL = 24 * 60 * 60 * 1000;
+        
+        function logTest(name, passed, details = '') {
+            testResults.push({ name, passed, details });
+            updateTestDisplay();
+        }
+        
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            systemLogs.push(`[${timestamp}] ${message}`);
+            updateLogsDisplay();
+        }
+        
+        function updateTestDisplay() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = '';
+            
+            testResults.forEach(test => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.passed ? 'success' : 'error'}`;
+                div.innerHTML = `
+                    <strong>${test.passed ? '✅' : '❌'} ${test.name}</strong>
+                    ${test.details ? `<br><small>${test.details}</small>` : ''}
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function updateLogsDisplay() {
+            const container = document.getElementById('systemLogs');
+            container.innerHTML = systemLogs.join('<br>');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function clearLogs() {
+            systemLogs = [];
+            updateLogsDisplay();
+        }
+        
+        function checkCacheStatus() {
+            const cached = localStorage.getItem(LOGO_CACHE_KEY);
+            const cacheInfo = document.getElementById('cacheInfo');
+            
+            if (cached) {
+                try {
+                    const cacheData = JSON.parse(cached);
+                    const age = Date.now() - cacheData.timestamp;
+                    const ageHours = Math.floor(age / (1000 * 60 * 60));
+                    const ageMinutes = Math.floor((age % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    cacheInfo.innerHTML = `
+                        ✅ <strong>Logo en cache</strong><br>
+                        📅 Edad: ${ageHours}h ${ageMinutes}m<br>
+                        📐 Dimensiones: ${cacheData.dimensions.width}x${cacheData.dimensions.height}px<br>
+                        💾 Tamaño: ~${Math.round(cacheData.data.length / 1024)}KB
+                    `;
+                    
+                    addLog(`Cache encontrado: ${ageHours}h ${ageMinutes}m de antigüedad`);
+                    
+                } catch (error) {
+                    cacheInfo.innerHTML = '❌ <strong>Cache corrupto</strong>';
+                    addLog(`Error parsing cache: ${error.message}`);
+                }
+            } else {
+                cacheInfo.innerHTML = '⚠️ <strong>No hay logo en cache</strong>';
+                addLog('No se encontró cache del logo');
+            }
+        }
+        
+        function clearLogoCache() {
+            localStorage.removeItem(LOGO_CACHE_KEY);
+            addLog('Cache del logo eliminado');
+            checkCacheStatus();
+        }
+        
+        async function testLogoConversion() {
+            addLog('Iniciando test de conversión de logo...');
+            
+            try {
+                // Simular la función loadImageAsBase64
+                const logoBase64 = await loadImageAsBase64(LOGO_URL);
+                
+                if (logoBase64) {
+                    const logoPreview = document.getElementById('logoPreview');
+                    logoPreview.innerHTML = `
+                        <img src="${logoBase64}" style="max-width: 200px; max-height: 80px; border: 1px solid #ddd; border-radius: 4px;">
+                        <p>✅ Logo convertido a base64 exitosamente</p>
+                        <small>Tamaño: ~${Math.round(logoBase64.length / 1024)}KB</small>
+                    `;
+                    
+                    logTest('Conversión de logo a base64', true, 'Logo cargado y convertido correctamente');
+                    addLog('Conversión exitosa');
+                } else {
+                    throw new Error('Conversión falló');
+                }
+                
+            } catch (error) {
+                logTest('Conversión de logo a base64', false, error.message);
+                addLog(`Error en conversión: ${error.message}`);
+            }
+        }
+        
+        function testPDFGeneration() {
+            addLog('Simulando generación de PDF...');
+            
+            if (typeof window.jspdf === 'undefined') {
+                logTest('jsPDF disponible', false, 'Librería jsPDF no cargada');
+                addLog('jsPDF no disponible');
+                return;
+            }
+            
+            logTest('jsPDF disponible', true, 'Librería cargada correctamente');
+            
+            // Simular el proceso de PDF
+            const cached = localStorage.getItem(LOGO_CACHE_KEY);
+            
+            if (cached) {
+                logTest('Logo disponible para PDF', true, 'Cache encontrado para incluir en PDF');
+                addLog('PDF podría generarse con logo');
+            } else {
+                logTest('Logo disponible para PDF', false, 'Sin cache, se usaría fallback de texto');
+                addLog('PDF se generaría con texto solamente');
+            }
+        }
+        
+        function simulateOfflineMode() {
+            addLog('Simulando modo offline...');
+            
+            // Verificar si hay cache disponible para modo offline
+            const cached = localStorage.getItem(LOGO_CACHE_KEY);
+            
+            if (cached) {
+                logTest('Modo offline funcional', true, 'Logo disponible desde cache para trabajar offline');
+                addLog('Modo offline soportado - logo en cache');
+            } else {
+                logTest('Modo offline funcional', false, 'Sin cache, requiere conexión para cargar logo');
+                addLog('Modo offline limitado - requiere conexión inicial');
+            }
+        }
+        
+        function testCacheSystem() {
+            addLog('Testing sistema de cache...');
+            
+            // Test TTL
+            const now = Date.now();
+            const testData = {
+                data: 'test-data',
+                timestamp: now - (25 * 60 * 60 * 1000), // 25 horas atrás
+                dimensions: { width: 200, height: 80 }
+            };
+            
+            localStorage.setItem(LOGO_CACHE_KEY + '_test', JSON.stringify(testData));
+            
+            // Verificar que se detecta como expirado
+            const cached = localStorage.getItem(LOGO_CACHE_KEY + '_test');
+            const cacheData = JSON.parse(cached);
+            const isExpired = (now - cacheData.timestamp) > LOGO_CACHE_TTL;
+            
+            logTest('Sistema TTL funciona', isExpired, `Cache de 25h detectado como ${isExpired ? 'expirado' : 'válido'}`);
+            
+            // Limpiar test
+            localStorage.removeItem(LOGO_CACHE_KEY + '_test');
+            addLog('Test de cache completado');
+        }
+        
+        function testErrorHandling() {
+            addLog('Testing manejo de errores...');
+            
+            // Test con URL inválida
+            const invalidUrl = 'https://invalid-url-that-does-not-exist.com/logo.png';
+            
+            loadImageAsBase64(invalidUrl)
+                .then(() => {
+                    logTest('Manejo de errores', false, 'Error: carga exitosa con URL inválida');
+                })
+                .catch(() => {
+                    logTest('Manejo de errores', true, 'Correctamente rechazada URL inválida');
+                    addLog('Error handling funcional');
+                });
+        }
+        
+        function testDimensions() {
+            addLog('Testing cálculo de dimensiones...');
+            
+            const cached = localStorage.getItem(LOGO_CACHE_KEY);
+            
+            if (cached) {
+                try {
+                    const cacheData = JSON.parse(cached);
+                    const dimensions = cacheData.dimensions;
+                    
+                    const hasValidDimensions = dimensions && 
+                                            typeof dimensions.width === 'number' && 
+                                            typeof dimensions.height === 'number' &&
+                                            dimensions.width > 0 && 
+                                            dimensions.height > 0;
+                    
+                    logTest('Dimensiones válidas', hasValidDimensions, 
+                           `Dimensiones: ${dimensions?.width || 'N/A'}x${dimensions?.height || 'N/A'}`);
+                    
+                    addLog(`Dimensiones: ${dimensions.width}x${dimensions.height}`);
+                } catch (error) {
+                    logTest('Dimensiones válidas', false, 'Error parsing dimensiones');
+                }
+            } else {
+                logTest('Dimensiones válidas', false, 'No hay logo en cache para verificar');
+            }
+        }
+        
+        function runAllTests() {
+            testResults = [];
+            addLog('=== INICIANDO TODOS LOS TESTS ===');
+            
+            checkCacheStatus();
+            
+            setTimeout(() => testLogoConversion(), 500);
+            setTimeout(() => testPDFGeneration(), 1000);
+            setTimeout(() => simulateOfflineMode(), 1500);
+            setTimeout(() => testCacheSystem(), 2000);
+            setTimeout(() => testErrorHandling(), 2500);
+            setTimeout(() => testDimensions(), 3000);
+            
+            setTimeout(() => {
+                addLog('=== TESTS COMPLETADOS ===');
+            }, 3500);
+        }
+        
+        // Función loadImageAsBase64 (copiada del sistema principal)
+        async function loadImageAsBase64(url) {
+            addLog(`Cargando imagen desde: ${url}`);
+            
+            try {
+                // Verificar cache primero
+                const cached = localStorage.getItem(LOGO_CACHE_KEY);
+                if (cached) {
+                    const cacheData = JSON.parse(cached);
+                    const now = Date.now();
+                    
+                    if (now - cacheData.timestamp < LOGO_CACHE_TTL) {
+                        addLog('Logo cargado desde cache');
+                        return cacheData.data;
+                    } else {
+                        localStorage.removeItem(LOGO_CACHE_KEY);
+                        addLog('Cache expirado, eliminado');
+                    }
+                }
+                
+                // Cargar imagen fresca
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    
+                    img.onload = function() {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            
+                            const maxWidth = 200;
+                            const maxHeight = 80;
+                            
+                            let { width, height } = img;
+                            
+                            if (width > maxWidth) {
+                                height = (height * maxWidth) / width;
+                                width = maxWidth;
+                            }
+                            if (height > maxHeight) {
+                                width = (width * maxHeight) / height;
+                                height = maxHeight;
+                            }
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const base64Data = canvas.toDataURL('image/png');
+                            
+                            const cacheData = {
+                                data: base64Data,
+                                timestamp: Date.now(),
+                                dimensions: { width, height }
+                            };
+                            localStorage.setItem(LOGO_CACHE_KEY, JSON.stringify(cacheData));
+                            
+                            addLog('Logo convertido y guardado en cache');
+                            resolve(base64Data);
+                            
+                        } catch (error) {
+                            addLog(`Error convirtiendo: ${error.message}`);
+                            reject(error);
+                        }
+                    };
+                    
+                    img.onerror = function() {
+                        addLog('Error cargando imagen');
+                        reject(new Error('Failed to load image'));
+                    };
+                    
+                    img.src = url;
+                });
+                
+            } catch (error) {
+                addLog(`Error general: ${error.message}`);
+                return null;
+            }
+        }
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('Sistema de testing inicializado');
+            checkCacheStatus();
+            
+            // Ejecutar tests básicos automáticamente
+            setTimeout(() => {
+                addLog('Ejecutando tests automáticos...');
+                checkCacheStatus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

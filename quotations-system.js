@@ -5,6 +5,121 @@
 console.log('📄 Iniciando Sistema de Cotizaciones v2.1...');
 
 // ===========================================
+// UTILIDADES PARA MANEJO DE IMÁGENES EN PDF
+// ===========================================
+
+// Cache del logo en base64 para performance
+let logoBase64Cache = null;
+const LOGO_CACHE_KEY = 'ciaociao_logo_base64';
+const LOGO_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 horas
+
+// Función para cargar imagen externa como base64
+async function loadImageAsBase64(url) {
+    console.log('🖼️ Cargando logo como base64...');
+    
+    try {
+        // Verificar cache primero
+        const cached = localStorage.getItem(LOGO_CACHE_KEY);
+        if (cached) {
+            const cacheData = JSON.parse(cached);
+            const now = Date.now();
+            
+            // Verificar TTL
+            if (now - cacheData.timestamp < LOGO_CACHE_TTL) {
+                console.log('✅ Logo cargado desde cache');
+                logoBase64Cache = cacheData.data;
+                return cacheData.data;
+            } else {
+                localStorage.removeItem(LOGO_CACHE_KEY);
+            }
+        }
+        
+        // Cargar imagen fresca
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous'; // Para evitar problemas de CORS
+            
+            img.onload = function() {
+                try {
+                    // Crear canvas para convertir a base64
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Establecer dimensiones (ajustar según necesidad)
+                    const maxWidth = 200;
+                    const maxHeight = 80;
+                    
+                    let { width, height } = img;
+                    
+                    // Mantener proporción
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                    if (height > maxHeight) {
+                        width = (width * maxHeight) / height;
+                        height = maxHeight;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Dibujar imagen en canvas
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Convertir a base64
+                    const base64Data = canvas.toDataURL('image/png');
+                    
+                    // Guardar en cache
+                    const cacheData = {
+                        data: base64Data,
+                        timestamp: Date.now(),
+                        dimensions: { width, height }
+                    };
+                    localStorage.setItem(LOGO_CACHE_KEY, JSON.stringify(cacheData));
+                    
+                    logoBase64Cache = base64Data;
+                    console.log('✅ Logo convertido a base64 y guardado en cache');
+                    resolve(base64Data);
+                    
+                } catch (error) {
+                    console.error('❌ Error convirtiendo imagen a base64:', error);
+                    reject(error);
+                }
+            };
+            
+            img.onerror = function() {
+                console.error('❌ Error cargando imagen desde URL:', url);
+                reject(new Error('Failed to load image'));
+            };
+            
+            // Cargar imagen
+            img.src = url;
+        });
+        
+    } catch (error) {
+        console.error('❌ Error en loadImageAsBase64:', error);
+        return null;
+    }
+}
+
+// Función para obtener dimensiones del logo desde cache
+function getLogoDimensions() {
+    try {
+        const cached = localStorage.getItem(LOGO_CACHE_KEY);
+        if (cached) {
+            const cacheData = JSON.parse(cached);
+            return cacheData.dimensions || { width: 200, height: 80 };
+        }
+    } catch (error) {
+        console.warn('⚠️ Error obteniendo dimensiones del logo:', error);
+    }
+    
+    // Dimensiones por defecto
+    return { width: 200, height: 80 };
+}
+
+// ===========================================
 // INICIALIZACIÓN DIRECTA (COMO SCRIPT.JS)
 // ===========================================
 
@@ -1331,37 +1446,108 @@ async function generateQuotationPDF() {
             lightGray: [229, 228, 226]   // #E5E4E2
         };
         
-        // ======= ENCABEZADO ELEGANTE =======
-        // Logo y nombre de empresa
-        doc.setFontSize(24);
-        doc.setTextColor(...colors.black);
-        doc.setFont('helvetica', 'bold');
-        doc.text('CIAOCIAO.MX', 105, 25, { align: 'center' });
+        // ======= ENCABEZADO ELEGANTE CON LOGO =======
+        // Intentar cargar logo primero
+        try {
+            const logoBase64 = await loadImageAsBase64(CONFIG.companyInfo.logo);
+            
+            if (logoBase64) {
+                // Logo cargado exitosamente
+                const logoDimensions = getLogoDimensions();
+                const logoWidth = Math.min(logoDimensions.width * 0.3, 40); // Máximo 40mm de ancho
+                const logoHeight = (logoWidth * logoDimensions.height) / logoDimensions.width;
+                
+                // Centrar logo
+                const logoX = 105 - (logoWidth / 2);
+                const logoY = 15;
+                
+                doc.addImage(logoBase64, 'PNG', logoX, logoY, logoWidth, logoHeight);
+                
+                // Ajustar posición del texto debajo del logo
+                doc.setFontSize(20);
+                doc.setTextColor(...colors.black);
+                doc.setFont('helvetica', 'bold');
+                doc.text('CIAOCIAO.MX', 105, logoY + logoHeight + 8, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.setTextColor(...colors.gray);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Joyería Fina', 105, logoY + logoHeight + 15, { align: 'center' });
+                doc.text('Tel: ' + CONFIG.companyInfo.phone, 105, logoY + logoHeight + 21, { align: 'center' });
+                
+                // Ajustar línea dorada
+                doc.setDrawColor(...colors.gold);
+                doc.setLineWidth(1);
+                doc.line(40, logoY + logoHeight + 28, 170, logoY + logoHeight + 28);
+                
+                // Título "COTIZACIÓN" más abajo
+                doc.setFontSize(18);
+                doc.setTextColor(...colors.black);
+                doc.setFont('helvetica', 'bold');
+                doc.text('COTIZACIÓN', 105, logoY + logoHeight + 41, { align: 'center' });
+                
+                // Línea dorada debajo del título
+                doc.setDrawColor(...colors.gold);
+                
+                console.log('✅ Logo incluido en PDF exitosamente');
+                
+            } else {
+                throw new Error('Logo no disponible');
+            }
+            
+        } catch (error) {
+            console.warn('⚠️ No se pudo cargar logo, usando fallback de texto:', error);
+            
+            // Fallback: usar texto como antes
+            doc.setFontSize(24);
+            doc.setTextColor(...colors.black);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CIAOCIAO.MX', 105, 25, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setTextColor(...colors.gray);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Joyería Fina', 105, 32, { align: 'center' });
+            doc.text('Tel: ' + CONFIG.companyInfo.phone, 105, 38, { align: 'center' });
+            
+            // Línea dorada elegante
+            doc.setDrawColor(...colors.gold);
+            doc.setLineWidth(1);
+            doc.line(40, 45, 170, 45);
+            
+            // Título "COTIZACIÓN"
+            doc.setFontSize(18);
+            doc.setTextColor(...colors.black);
+            doc.setFont('helvetica', 'bold');
+            doc.text('COTIZACIÓN', 105, 58, { align: 'center' });
+            
+            // Línea dorada debajo del título
+            doc.setDrawColor(...colors.gold);
+        }
         
-        doc.setFontSize(12);
-        doc.setTextColor(...colors.gray);
-        doc.setFont('helvetica', 'normal');
-        doc.text('Joyería Fina', 105, 32, { align: 'center' });
-        doc.text('Tel: ' + CONFIG.companyInfo.phone, 105, 38, { align: 'center' });
+        // Determinar posición inicial para el contenido según si hay logo
+        let headerHeight = 62; // Posición por defecto (texto solo)
+        let yPos = 75;
         
-        // Línea dorada elegante
-        doc.setDrawColor(...colors.gold);
-        doc.setLineWidth(1);
-        doc.line(40, 45, 170, 45);
+        // Si se cargó logo, ajustar posiciones
+        const cached = localStorage.getItem(LOGO_CACHE_KEY);
+        if (cached && logoBase64Cache) {
+            try {
+                const cacheData = JSON.parse(cached);
+                const logoDimensions = cacheData.dimensions;
+                const logoHeight = (40 * logoDimensions.height) / logoDimensions.width;
+                headerHeight = 15 + logoHeight + 45; // logoY + logoHeight + título + margen
+                yPos = headerHeight + 15;
+            } catch (error) {
+                console.warn('⚠️ Error calculando altura del header:', error);
+            }
+        }
         
-        // Título "COTIZACIÓN"
-        doc.setFontSize(18);
-        doc.setTextColor(...colors.black);
-        doc.setFont('helvetica', 'bold');
-        doc.text('COTIZACIÓN', 105, 58, { align: 'center' });
-        
-        // Línea dorada debajo del título
-        doc.setDrawColor(...colors.gold);
+        // Línea final del encabezado
         doc.setLineWidth(0.5);
-        doc.line(70, 62, 140, 62);
+        doc.line(70, headerHeight, 140, headerHeight);
         
         // ======= INFORMACIÓN DE LA COTIZACIÓN =======
-        let yPos = 75;
         
         // Información en dos columnas elegantes
         doc.setFont('helvetica', 'bold');
