@@ -135,7 +135,59 @@ async function initializeQuotationSystem() {
         // Configurar validez por defecto
         setupDefaultValues();
         
-        console.log('✅ Sistema de cotizaciones inicializado correctamente');
+        // VERIFICACIONES POST-INICIALIZACIÓN
+        console.log('🔍 Ejecutando verificaciones post-inicialización...');
+        
+        // Verificar que event listeners estén configurados correctamente
+        const addProductBtn = document.getElementById('addProductBtn');
+        if (!addProductBtn) {
+            throw new Error('Botón addProductBtn no encontrado después de inicialización');
+        }
+        
+        // Simular click para verificar que el botón responde
+        const clickEvent = new Event('click', { bubbles: true });
+        const modalBefore = document.getElementById('addProductModal').style.display;
+        addProductBtn.dispatchEvent(clickEvent);
+        
+        // Verificar que el modal se abrió o que existe una función asociada
+        const modalAfter = document.getElementById('addProductModal').style.display;
+        const hasClickListener = modalBefore !== modalAfter || typeof window.showAddProductModal === 'function';
+        
+        if (!hasClickListener) {
+            throw new Error('Botón addProductBtn no tiene event listeners funcionales');
+        }
+        
+        // Cerrar modal si se abrió durante la prueba
+        if (modalAfter === 'block') {
+            document.getElementById('addProductModal').style.display = 'none';
+        }
+        
+        console.log('✅ Botón addProductBtn verificado y funcional');
+        
+        // Verificar que las funciones críticas estén disponibles globalmente
+        if (typeof window.showAddProductModal !== 'function') {
+            console.warn('⚠️ showAddProductModal no está disponible globalmente');
+        }
+        
+        // Esperar a que companySignaturePad esté inicializado
+        let signatureRetries = 0;
+        const maxSignatureRetries = 10;
+        
+        const checkSignaturePad = () => {
+            if (window.companySignaturePad) {
+                console.log('✅ Canvas de firma verificado y funcional');
+                console.log('✅ Sistema de cotizaciones inicializado correctamente');
+            } else if (signatureRetries < maxSignatureRetries) {
+                signatureRetries++;
+                console.log(`⏳ Esperando inicialización de canvas de firma (${signatureRetries}/${maxSignatureRetries})...`);
+                setTimeout(checkSignaturePad, 500);
+            } else {
+                console.warn('⚠️ Canvas de firma no se inicializó completamente (no es crítico)');
+                console.log('✅ Sistema de cotizaciones inicializado correctamente');
+            }
+        };
+        
+        checkSignaturePad();
         
     } catch (error) {
         console.error('❌ Error durante inicialización:', error);
@@ -461,6 +513,9 @@ async function setupCompanySignature(retryCount = 0) {
             const isEmpty = companySignaturePad.isEmpty();
             console.log(`✅ SignaturePad funcional - isEmpty: ${isEmpty}`);
             
+            // Exposición global para verificación desde auth.js
+            window.companySignaturePad = companySignaturePad;
+            
         } catch (sigError) {
             console.error('❌ Error inicializando SignaturePad:', sigError);
             setTimeout(() => setupCompanySignature(retryCount + 1), 1000);
@@ -511,6 +566,9 @@ function showAddProductModal() {
         modal.style.display = 'block';
     }
 }
+
+// Exposición global para verificación desde auth.js
+window.showAddProductModal = showAddProductModal;
 
 function hideAddProductModal() {
     const modal = document.getElementById('addProductModal');

@@ -510,7 +510,15 @@ async function initializeAutoCompleteIntegration() {
 
 // Auto-inicializar cuando el DOM esté listo
 function autoInitializeIntegration() {
-    // Esperar un poco más para que otros sistemas se inicialicen
+    // NO AUTO-INICIALIZAR EN MODO COTIZACIONES - evitar race conditions
+    const quotationMode = document.querySelector('.quotation-mode');
+    if (quotationMode) {
+        console.log('⚠️ Modo cotizaciones detectado - autocomplete-integration.js NO se auto-inicializa');
+        console.log('📝 Para inicializar auto-complete en cotizaciones, usar initializeAutoCompleteIntegration() manualmente');
+        return;
+    }
+    
+    // Esperar un poco más para que otros sistemas se inicialicen (solo en otros modos)
     setTimeout(async () => {
         try {
             await initializeAutoCompleteIntegration();

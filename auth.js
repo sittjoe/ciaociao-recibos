@@ -477,6 +477,35 @@ class AuthManager {
                         console.log('🚀 Ejecutando initializeQuotationSystem...');
                         await initializeQuotationSystem();
                         
+                        // PASO 5: VERIFICAR QUE LOS EVENT LISTENERS ESTÉN CONFIGURADOS
+                        console.log('🔍 Verificando funcionalidad de botones...');
+                        
+                        // Verificar que el botón addProductBtn tenga event listeners configurados
+                        const addProductBtn = document.getElementById('addProductBtn');
+                        if (addProductBtn) {
+                            // Crear un evento sintético para verificar que el botón responde
+                            const hasEventListeners = addProductBtn.onclick || 
+                                addProductBtn.getAttribute('onclick') ||
+                                (addProductBtn._eventsCount && addProductBtn._eventsCount > 0) ||
+                                (getEventListeners && getEventListeners(addProductBtn).click?.length > 0);
+                            
+                            if (!hasEventListeners) {
+                                throw new Error('Botón addProductBtn sin event listeners configurados');
+                            }
+                        }
+                        
+                        // Verificar que la función showAddProductModal esté disponible globalmente
+                        if (typeof window.showAddProductModal !== 'function') {
+                            throw new Error('Función showAddProductModal no disponible globalmente');
+                        }
+                        
+                        // Verificar que el canvas de firma esté inicializado
+                        if (!window.companySignaturePad) {
+                            throw new Error('Canvas de firma no inicializado correctamente');
+                        }
+                        
+                        console.log('✅ Verificación de funcionalidad completa');
+                        
                         // Marcar como inicializado
                         window.quotationInitialized = true;
                         console.log('✅ Sistema de cotizaciones inicializado exitosamente');

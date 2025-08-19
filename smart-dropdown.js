@@ -719,15 +719,25 @@ function initializeSmartDropdowns(formSelector = 'form') {
     }
 }
 
-// Auto-inicializar cuando el DOM esté listo
+// Auto-inicializar cuando el DOM esté listo (excepto en modo cotizaciones)
+function autoInitializeSmartDropdowns() {
+    // NO AUTO-INICIALIZAR EN MODO COTIZACIONES - evitar race conditions
+    const quotationMode = document.querySelector('.quotation-mode');
+    if (quotationMode) {
+        console.log('⚠️ Modo cotizaciones detectado - smart-dropdown.js NO se auto-inicializa');
+        console.log('📝 Para inicializar dropdowns en cotizaciones, usar initializeSmartDropdowns() manualmente');
+        return;
+    }
+    
+    // Delay para que otros scripts se inicialicen primero (solo en otros modos)
+    setTimeout(initializeSmartDropdowns, 1000);
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        // Delay para que otros scripts se inicialicen primero
-        setTimeout(initializeSmartDropdowns, 1000);
-    });
+    document.addEventListener('DOMContentLoaded', autoInitializeSmartDropdowns);
 } else {
     // DOM ya está listo
-    setTimeout(initializeSmartDropdowns, 1000);
+    autoInitializeSmartDropdowns();
 }
 
 console.log('✅ SmartDropdown cargado - Listo para auto-inicialización');
