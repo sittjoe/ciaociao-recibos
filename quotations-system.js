@@ -1447,6 +1447,9 @@ async function generateQuotationPDF() {
         };
         
         // ======= ENCABEZADO ELEGANTE CON LOGO =======
+        let headerHeight = 62; // Default para texto solo
+        let logoUsed = false;
+        
         // Intentar cargar logo primero
         try {
             const logoBase64 = await loadImageAsBase64(CONFIG.companyInfo.logo);
@@ -1486,10 +1489,11 @@ async function generateQuotationPDF() {
                 doc.setFont('helvetica', 'bold');
                 doc.text('COTIZACIÓN', 105, logoY + logoHeight + 41, { align: 'center' });
                 
-                // Línea dorada debajo del título
-                doc.setDrawColor(...colors.gold);
+                // Calcular altura real del header con logo
+                headerHeight = logoY + logoHeight + 45; // 15 + logoHeight + 45 (texto + margen)
+                logoUsed = true;
                 
-                console.log('✅ Logo incluido en PDF exitosamente');
+                console.log('✅ Logo incluido en PDF exitosamente. Header height:', headerHeight);
                 
             } else {
                 throw new Error('Logo no disponible');
@@ -1521,33 +1525,17 @@ async function generateQuotationPDF() {
             doc.setFont('helvetica', 'bold');
             doc.text('COTIZACIÓN', 105, 58, { align: 'center' });
             
-            // Línea dorada debajo del título
-            doc.setDrawColor(...colors.gold);
-        }
-        
-        // Determinar posición inicial para el contenido según si hay logo
-        let headerHeight = 62; // Posición por defecto (texto solo)
-        let yPos = 75;
-        
-        // Si se cargó logo, ajustar posiciones
-        const cached = localStorage.getItem(LOGO_CACHE_KEY);
-        if (cached && logoBase64Cache) {
-            try {
-                const cacheData = JSON.parse(cached);
-                const logoDimensions = cacheData.dimensions;
-                const logoHeight = (40 * logoDimensions.height) / logoDimensions.width;
-                headerHeight = 15 + logoHeight + 45; // logoY + logoHeight + título + margen
-                yPos = headerHeight + 15;
-            } catch (error) {
-                console.warn('⚠️ Error calculando altura del header:', error);
-            }
+            // Header height para texto solo
+            headerHeight = 62;
         }
         
         // Línea final del encabezado
+        doc.setDrawColor(...colors.gold);
         doc.setLineWidth(0.5);
         doc.line(70, headerHeight, 140, headerHeight);
         
         // ======= INFORMACIÓN DE LA COTIZACIÓN =======
+        let yPos = headerHeight + 10; // Posición dinámica basada en header real
         
         // Información en dos columnas elegantes
         doc.setFont('helvetica', 'bold');
@@ -1591,7 +1579,7 @@ async function generateQuotationPDF() {
         }
         
         // ======= TABLA DE PRODUCTOS ELEGANTE =======
-        yPos = 105;
+        yPos += 25; // Espacio después de información del cliente
         
         // Encabezado de tabla con estilo dorado elegante
         doc.setFillColor(...colors.gold);
@@ -1600,11 +1588,12 @@ async function generateQuotationPDF() {
         doc.setFontSize(9);
         doc.rect(20, yPos, 170, 10, 'F');
         
-        // Encabezados con mejor espaciado
+        // Encabezados con mejor espaciado incluyendo descuento
         doc.text('#', 23, yPos + 7);
         doc.text('DESCRIPCIÓN', 30, yPos + 7);
-        doc.text('CANT.', 120, yPos + 7);
-        doc.text('PRECIO UNIT.', 135, yPos + 7);
+        doc.text('CANT.', 105, yPos + 7);
+        doc.text('PRECIO UNIT.', 120, yPos + 7);
+        doc.text('DESC.', 145, yPos + 7);
         doc.text('TOTAL', 170, yPos + 7);
         
         yPos += 12;
@@ -1647,10 +1636,23 @@ async function generateQuotationPDF() {
                 : details;
             doc.text(shortDetails, 30, yPos + 6);
             
-            // Cantidad, precio y total alineados
+            // Cantidad, precio, descuento y total alineados
             doc.setFontSize(9);
-            doc.text(formatNumber(product.quantity), 123, yPos + 4, { align: 'center' });
-            doc.text(formatCurrency(product.price), 150, yPos + 4, { align: 'center' });
+            doc.text(formatNumber(product.quantity), 108, yPos + 4, { align: 'center' });
+            doc.text(formatCurrency(product.price), 128, yPos + 4, { align: 'center' });
+            
+            // Mostrar descuento
+            let discountText = '';
+            if (product.discount > 0) {
+                if (product.discountType === 'percentage') {
+                    discountText = product.discount + '%';
+                } else {
+                    discountText = '$' + formatNumber(product.discount);
+                }
+            } else {
+                discountText = '-';
+            }
+            doc.text(discountText, 148, yPos + 4, { align: 'center' });
             
             // Total en negrita
             doc.setFont('helvetica', 'bold');
