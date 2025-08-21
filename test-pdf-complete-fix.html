@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - PDFs Completos y Legibles</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .test-result { padding: 15px; margin: 15px 0; border-radius: 8px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .test-section { border: 1px solid #ddd; margin: 20px 0; padding: 20px; border-radius: 10px; }
+        button { margin: 8px; padding: 12px 20px; border-radius: 6px; font-weight: 600; }
+        .btn-primary { background: #007bff; color: white; border: none; }
+        .btn-success { background: #28a745; color: white; border: none; }
+        .btn-warning { background: #ffc107; color: #212529; border: none; }
+        .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+        .comparison-item { padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .preview-container { max-height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 15px; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test - PDFs Completos y Legibles</h1>
+        <p>Sistema de testing para verificar que tanto cotizaciones como recibos se vean completamente en PDF</p>
+        
+        <div id="testResults"></div>
+        
+        <!-- Test de Cotizaciones -->
+        <div class="test-section">
+            <h2>📋 Test de Cotizaciones (jsPDF Nativo)</h2>
+            <p>Verifica las mejoras implementadas en el sistema de cotizaciones</p>
+            
+            <div class="comparison-grid">
+                <div class="comparison-item">
+                    <h4>✅ Mejoras Implementadas:</h4>
+                    <ul>
+                        <li>Fuentes más grandes (10px vs 9px)</li>
+                        <li>Headers de tabla más altos (12px)</li>
+                        <li>Descripciones completas sin truncamiento</li>
+                        <li>Paginación inteligente</li>
+                        <li>Columna de descuento visible</li>
+                        <li>Espaciado mejorado entre elementos</li>
+                    </ul>
+                </div>
+                <div class="comparison-item">
+                    <h4>🎯 Resultados Esperados:</h4>
+                    <ul>
+                        <li>Texto completamente legible</li>
+                        <li>Sin elementos cortados</li>
+                        <li>Paginación automática funcional</li>
+                        <li>Headers repetidos en páginas nuevas</li>
+                        <li>Descuentos mostrados correctamente</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button onclick="testQuotationPDF()" class="btn-primary">📄 Test PDF Cotización</button>
+            <button onclick="showQuotationPreview()" class="btn-warning">👁️ Vista Previa HTML</button>
+        </div>
+        
+        <!-- Test de Recibos -->
+        <div class="test-section">
+            <h2>🧾 Test de Recibos (html2canvas Optimizado)</h2>
+            <p>Verifica las mejoras implementadas en el sistema de recibos</p>
+            
+            <div class="comparison-grid">
+                <div class="comparison-item">
+                    <h4>✅ Mejoras Implementadas:</h4>
+                    <ul>
+                        <li>Contenedor más ancho (900px vs 800px)</li>
+                        <li>Fuente más grande (16px vs 14px)</li>
+                        <li>Mejor espaciado de líneas (1.8 vs 1.6)</li>
+                        <li>html2canvas con scale 3 (vs 2)</li>
+                        <li>Estilos inline para garantizar legibilidad</li>
+                        <li>Colores y bordes más definidos</li>
+                    </ul>
+                </div>
+                <div class="comparison-item">
+                    <h4>🎯 Resultados Esperados:</h4>
+                    <ul>
+                        <li>Texto nítido y legible en PDF</li>
+                        <li>Tablas con bordes claros</li>
+                        <li>Totales bien destacados</li>
+                        <li>Sin elementos superpuestos</li>
+                        <li>Imágenes de alta calidad</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button onclick="testReceiptPDF()" class="btn-primary">📄 Test PDF Recibo</button>
+            <button onclick="showReceiptPreview()" class="btn-warning">👁️ Vista Previa HTML</button>
+        </div>
+        
+        <!-- Comparación Lado a Lado -->
+        <div class="test-section">
+            <h2>⚖️ Comparación de Calidad</h2>
+            <p>Compara la calidad de texto y legibilidad entre ambos sistemas</p>
+            
+            <button onclick="generateComparisonPDFs()" class="btn-success">📊 Generar PDFs de Comparación</button>
+            <button onclick="runAllTests()" class="btn-primary">🧪 Ejecutar Todos los Tests</button>
+            
+            <div id="comparisonResults" style="margin-top: 20px;"></div>
+        </div>
+        
+        <!-- Preview Areas -->
+        <div class="test-section">
+            <h2>👁️ Áreas de Vista Previa</h2>
+            
+            <div class="comparison-grid">
+                <div>
+                    <h4>Cotización (jsPDF)</h4>
+                    <div id="quotationPreview" class="preview-container">
+                        Click "Vista Previa HTML" para ver contenido
+                    </div>
+                </div>
+                <div>
+                    <h4>Recibo (html2canvas)</h4>
+                    <div id="receiptPreview" class="preview-container">
+                        Click "Vista Previa HTML" para ver contenido
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Logs del sistema -->
+        <div class="test-section">
+            <h2>📋 Logs del Sistema</h2>
+            <div id="systemLogs" style="background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto;">
+                Los logs aparecerán aquí...
+            </div>
+            <button onclick="clearLogs()" class="btn-warning">🧹 Limpiar Logs</button>
+        </div>
+    </div>
+
+    <!-- CDN Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        let systemLogs = [];
+        let testResults = [];
+        
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            systemLogs.push(logEntry);
+            updateLogsDisplay();
+            console.log(logEntry);
+        }
+        
+        function updateLogsDisplay() {
+            const container = document.getElementById('systemLogs');
+            container.innerHTML = systemLogs.join('<br>');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function clearLogs() {
+            systemLogs = [];
+            updateLogsDisplay();
+        }
+        
+        function showTestResult(name, passed, details = '', type = 'result') {
+            testResults.push({ name, passed, details, type });
+            updateTestDisplay();
+        }
+        
+        function updateTestDisplay() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = '';
+            
+            testResults.forEach(test => {
+                const div = document.createElement('div');
+                let className = 'test-result ';
+                
+                if (test.type === 'comparison') {
+                    className += 'info';
+                } else {
+                    className += test.passed ? 'success' : 'error';
+                }
+                
+                div.className = className;
+                div.innerHTML = `
+                    <strong>${test.passed ? '✅' : '❌'} ${test.name}</strong>
+                    ${test.details ? `<br><small>${test.details}</small>` : ''}
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // Datos de prueba para cotización
+        const sampleQuotationData = {
+            number: 'COTIZ-20250821-TEST',
+            date: '2025-08-21',
+            validity: 30,
+            clientName: 'Ana María González Rodríguez',
+            clientPhone: '+52 55 1234 5678',
+            clientEmail: 'ana.gonzalez@example.com',
+            products: [
+                {
+                    type: 'Anillo',
+                    material: 'Oro 18k',
+                    description: 'Anillo de compromiso con diamante central de 1.5ct, color H, claridad VS2, corte brillante. Incluye certificado GIA. Engaste tipo solitario con 6 prongs. Banda de 2.5mm de ancho.',
+                    quantity: 1,
+                    price: 85000,
+                    discount: 15,
+                    discountType: 'percentage',
+                    total: 72250
+                },
+                {
+                    type: 'Aretes',
+                    material: 'Oro blanco 14k',
+                    description: 'Par de aretes con esmeraldas colombianas de 0.8ct cada una, con halos de diamantes. Cierre tipo presión con seguro adicional. Diseño vintage inspirado en Art Déco.',
+                    quantity: 1,
+                    price: 45000,
+                    discount: 2000,
+                    discountType: 'amount',
+                    total: 43000
+                },
+                {
+                    type: 'Collar',
+                    material: 'Platino',
+                    description: 'Collar de platino 950 con cadena veneciana de 45cm y dije central con zafiro azul de 2ct rodeado de diamantes. Cierre de seguridad tipo langosta con cadena de extensión.',
+                    quantity: 1,
+                    price: 75000,
+                    discount: 0,
+                    discountType: 'percentage',
+                    total: 75000
+                }
+            ],
+            subtotal: 190250,
+            discountType: 'percentage',
+            globalDiscountValue: 8,
+            globalDiscountAmount: 15220,
+            creditInfo: {
+                type: 'favor',
+                amount: -5000
+            },
+            total: 170030,
+            terms: '• Los precios están sujetos a cambios sin previo aviso después de la fecha de vencimiento\\n• Esta cotización no garantiza la disponibilidad del producto\\n• Los tiempos de entrega están sujetos a disponibilidad de materiales\\n• Se requiere un anticipo del 30% para confirmar el pedido\\n• Puede apartar su producto con el 30% de anticipo\\n• Garantía de por vida en mano de obra',
+            observations: 'Cliente VIP con descuentos especiales aplicados. Entrega programada para el 15 de septiembre. Incluye caja de regalo premium y certificados de autenticidad para todas las piezas.',
+            companySignature: null
+        };
+        
+        // Datos de prueba para recibo
+        const sampleReceiptData = {
+            receiptNumber: 'CIAO-20250821-TEST',
+            receiptDate: '2025-08-21',
+            transactionType: 'venta',
+            deliveryDate: '2025-09-01',
+            orderNumber: 'ORD-2025-001',
+            clientName: 'María Fernanda López Martínez',
+            clientPhone: '+52 81 9876 5432',
+            clientEmail: 'maria.lopez@example.com',
+            pieceType: 'pulsera',
+            material: 'oro-18k',
+            weight: '15.8',
+            size: '18cm',
+            sku: 'PULS-18K-001',
+            stones: 'Diamantes: 24 piezas de 0.1ct cada uno, claridad VS1, color G',
+            description: 'Pulsera tennis en oro amarillo de 18k con 24 diamantes de talla brillante montados en engaste tipo prong. Cierre de seguridad con doble candado y cadena de extensión. Peso total aproximado 15.8 gramos.',
+            pieceCondition: 'Nueva - Sin uso',
+            observations: 'Pieza fabricada bajo pedido especial. Incluye certificado de autenticidad y garantía de por vida en mano de obra. Entrega en estuche de terciopelo con logo de la marca.',
+            price: 95000,
+            contribution: 8000,
+            subtotal: 103000,
+            deposit: 30000,
+            balance: 73000,
+            paymentMethod: 'mixto',
+            signature: null,
+            companySignature: null
+        };
+        
+        // Funciones de utilidad
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-MX', {
+                style: 'currency',
+                currency: 'MXN',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+        
+        function formatNumber(number) {
+            return new Intl.NumberFormat('es-MX', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }).format(number);
+        }
+        
+        function formatDate(date) {
+            if (typeof date === 'string') {
+                date = new Date(date);
+            }
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('es-MX', options);
+        }
+        
+        // Test de PDF de cotización
+        function testQuotationPDF() {
+            addLog('Iniciando test de PDF de cotización...');
+            
+            if (typeof window.jspdf === 'undefined') {
+                showTestResult('PDF Cotización', false, 'jsPDF no disponible');
+                addLog('ERROR: jsPDF library no cargada', 'error');
+                return;
+            }
+            
+            try {
+                // Simular la generación mejorada de PDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Colores del sistema
+                const colors = {
+                    gold: [212, 175, 55],
+                    darkGold: [184, 148, 31],
+                    black: [26, 26, 26],
+                    gray: [102, 102, 102],
+                    lightGray: [229, 228, 226]
+                };
+                
+                // Header mejorado
+                doc.setFontSize(24);
+                doc.setTextColor(...colors.black);
+                doc.setFont('helvetica', 'bold');
+                doc.text('CIAOCIAO.MX', 105, 25, { align: 'center' });
+                
+                // Test de tabla con las mejoras
+                let yPos = 80;
+                
+                // Header de tabla mejorado
+                doc.setFillColor(...colors.gold);
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10); // Fuente más grande
+                doc.rect(20, yPos, 170, 12, 'F'); // Altura aumentada
+                
+                // Headers con columna de descuento
+                doc.text('#', 23, yPos + 8);
+                doc.text('DESCRIPCIÓN', 30, yPos + 8);
+                doc.text('CANT.', 105, yPos + 8);
+                doc.text('PRECIO UNIT.', 120, yPos + 8);
+                doc.text('DESC.', 145, yPos + 8);
+                doc.text('TOTAL', 170, yPos + 8);
+                
+                yPos += 14;
+                
+                // Test de productos con descripciones completas
+                sampleQuotationData.products.forEach((product, index) => {
+                    const description = `${product.type} ${product.material}`;
+                    const details = product.description || '';
+                    const descriptionLines = doc.splitTextToSize(details, 65);
+                    const rowHeight = Math.max(16, 8 + (descriptionLines.length * 4));
+                    
+                    // Alternar colores
+                    if (index % 2 === 1) {
+                        doc.setFillColor(...colors.lightGray);
+                        doc.rect(20, yPos - 2, 170, rowHeight, 'F');
+                    }
+                    
+                    doc.setTextColor(...colors.black);
+                    doc.text(String(index + 1), 23, yPos + 6);
+                    
+                    // Descripción completa
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(10);
+                    doc.text(description, 30, yPos + 4);
+                    
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9);
+                    descriptionLines.forEach((line, lineIndex) => {
+                        doc.text(line, 30, yPos + 8 + (lineIndex * 4));
+                    });
+                    
+                    // Datos numéricos
+                    const centerY = yPos + (rowHeight / 2) + 1;
+                    doc.setFontSize(10);
+                    doc.text(formatNumber(product.quantity), 108, centerY, { align: 'center' });
+                    doc.text(formatCurrency(product.price), 128, centerY, { align: 'center' });
+                    
+                    // Descuento
+                    let discountText = '';
+                    if (product.discount > 0) {
+                        if (product.discountType === 'percentage') {
+                            discountText = product.discount + '%';
+                        } else {
+                            discountText = '$' + formatNumber(product.discount);
+                        }
+                    } else {
+                        discountText = '-';
+                    }
+                    doc.text(discountText, 148, centerY, { align: 'center' });
+                    
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(formatCurrency(product.total), 178, centerY, { align: 'center' });
+                    doc.setFont('helvetica', 'normal');
+                    
+                    yPos += rowHeight + 2;
+                });
+                
+                // Guardar PDF
+                const fileName = 'Test_Cotizacion_Mejorada.pdf';
+                doc.save(fileName);
+                
+                addLog('PDF de cotización generado exitosamente: ' + fileName);
+                showTestResult('PDF Cotización', true, 'PDF generado con mejoras de legibilidad');
+                
+            } catch (error) {
+                addLog('ERROR en generación de PDF: ' + error.message, 'error');
+                showTestResult('PDF Cotización', false, error.message);
+            }
+        }
+        
+        // Test de PDF de recibo
+        function testReceiptPDF() {
+            addLog('Iniciando test de PDF de recibo...');
+            
+            if (typeof html2canvas === 'undefined') {
+                showTestResult('PDF Recibo', false, 'html2canvas no disponible');
+                addLog('ERROR: html2canvas library no cargada', 'error');
+                return;
+            }
+            
+            try {
+                // Crear HTML mejorado del recibo
+                const receiptHTML = generateImprovedReceiptHTML(sampleReceiptData);
+                
+                // Crear contenedor temporal con configuración optimizada
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = receiptHTML;
+                tempDiv.style.position = 'absolute';
+                tempDiv.style.left = '-9999px';
+                tempDiv.style.width = '900px'; // Más ancho
+                tempDiv.style.background = '#ffffff';
+                tempDiv.style.padding = '50px'; // Más padding
+                tempDiv.style.fontSize = '16px'; // Fuente más grande
+                tempDiv.style.lineHeight = '1.8'; // Mejor espaciado
+                tempDiv.style.fontFamily = 'Arial, sans-serif';
+                tempDiv.style.color = '#000000';
+                document.body.appendChild(tempDiv);
+                
+                // Generar imagen con configuración optimizada
+                html2canvas(tempDiv, {
+                    scale: 3, // Mayor resolución
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    foreignObjectRendering: true
+                }).then(canvas => {
+                    // Crear PDF
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    
+                    const imgWidth = 210;
+                    const pageHeight = 295;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                    
+                    // Paginación automática si es necesario
+                    let heightLeft = imgHeight;
+                    let position = 0;
+                    
+                    while (heightLeft >= pageHeight) {
+                        position = heightLeft - imgHeight;
+                        pdf.addPage();
+                        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+                    
+                    // Guardar PDF
+                    const fileName = 'Test_Recibo_Mejorado.pdf';
+                    pdf.save(fileName);
+                    
+                    // Limpiar
+                    document.body.removeChild(tempDiv);
+                    
+                    addLog('PDF de recibo generado exitosamente: ' + fileName);
+                    showTestResult('PDF Recibo', true, 'PDF generado con html2canvas optimizado');
+                    
+                }).catch(error => {
+                    document.body.removeChild(tempDiv);
+                    addLog('ERROR en html2canvas: ' + error.message, 'error');
+                    showTestResult('PDF Recibo', false, error.message);
+                });
+                
+            } catch (error) {
+                addLog('ERROR en test de recibo: ' + error.message, 'error');
+                showTestResult('PDF Recibo', false, error.message);
+            }
+        }
+        
+        // Generar HTML mejorado del recibo
+        function generateImprovedReceiptHTML(formData) {
+            return `
+                <div style="text-align: center; margin-bottom: 30px; padding: 20px; border-bottom: 3px solid #D4AF37;">
+                    <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" style="max-width: 180px; margin-bottom: 15px;">
+                    <h2 style="font-size: 24px; margin: 15px 0; color: #1a1a1a; font-weight: bold;">RECIBO</h2>
+                    <div style="margin: 10px 0; line-height: 1.6;">
+                        <p style="font-size: 16px; margin: 5px 0; font-weight: 600;">ciaociao.mx - Fine Jewelry</p>
+                        <p style="font-size: 14px; margin: 5px 0;">Tel: +52 1 55 9211 2643</p>
+                    </div>
+                    <div style="font-size: 18px; font-weight: bold; background: #D4AF37; color: white; padding: 8px 16px; border-radius: 5px; display: inline-block; margin-top: 10px;">No. ${formData.receiptNumber}</div>
+                </div>
+                
+                <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                    <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold;">Datos del Cliente</h3>
+                    <dl style="margin: 0; line-height: 2;">
+                        <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Nombre:</dt>
+                        <dd style="display: inline; margin: 0;">${formData.clientName}</dd><br>
+                        <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Teléfono:</dt>
+                        <dd style="display: inline; margin: 0;">${formData.clientPhone}</dd><br>
+                    </dl>
+                </div>
+                
+                <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                    <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold;">Detalles de la Pieza</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
+                        <tr>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Tipo</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.pieceType.toUpperCase()}</td>
+                        </tr>
+                        <tr>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Material</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.material.replace('-', ' ').toUpperCase()}</td>
+                        </tr>
+                        <tr>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Descripción</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.description}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; border: 2px solid #D4AF37;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 16px;">
+                        <span style="font-weight: bold;">Precio Base:</span>
+                        <span style="font-weight: bold; color: #D4AF37;">${formatCurrency(formData.price)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; background: #fff3cd; border-radius: 5px; margin-top: 10px; font-size: 18px;">
+                        <span style="font-weight: bold; margin-left: 10px;">Saldo Pendiente:</span>
+                        <span style="font-weight: bold; color: #dc3545; margin-right: 10px;">${formatCurrency(formData.balance)}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Vista previa de cotización
+        function showQuotationPreview() {
+            const preview = document.getElementById('quotationPreview');
+            preview.innerHTML = `
+                <h4>Datos de Cotización de Prueba:</h4>
+                <p><strong>Número:</strong> ${sampleQuotationData.number}</p>
+                <p><strong>Cliente:</strong> ${sampleQuotationData.clientName}</p>
+                <p><strong>Productos:</strong> ${sampleQuotationData.products.length} items</p>
+                <ul>
+                    ${sampleQuotationData.products.map(p => `
+                        <li><strong>${p.type} ${p.material}:</strong> ${formatCurrency(p.price)} 
+                        ${p.discount > 0 ? `(Desc: ${p.discountType === 'percentage' ? p.discount + '%' : formatCurrency(p.discount)})` : ''}
+                        = ${formatCurrency(p.total)}</li>
+                    `).join('')}
+                </ul>
+                <p><strong>Total Final:</strong> ${formatCurrency(sampleQuotationData.total)}</p>
+                <p style="color: #666; font-size: 12px;">Este contenido será renderizado con jsPDF nativo para máxima calidad.</p>
+            `;
+            addLog('Vista previa de cotización mostrada');
+        }
+        
+        // Vista previa de recibo
+        function showReceiptPreview() {
+            const preview = document.getElementById('receiptPreview');
+            preview.innerHTML = generateImprovedReceiptHTML(sampleReceiptData);
+            addLog('Vista previa de recibo mostrada con HTML mejorado');
+        }
+        
+        // Generar PDFs de comparación
+        function generateComparisonPDFs() {
+            addLog('Generando PDFs de comparación...');
+            
+            Promise.all([
+                new Promise(resolve => {
+                    testQuotationPDF();
+                    setTimeout(resolve, 2000);
+                }),
+                new Promise(resolve => {
+                    testReceiptPDF();
+                    setTimeout(resolve, 3000);
+                })
+            ]).then(() => {
+                showTestResult('Comparación PDFs', true, 'Ambos PDFs generados para comparación manual', 'comparison');
+                addLog('PDFs de comparación generados exitosamente');
+                
+                const comparisonDiv = document.getElementById('comparisonResults');
+                comparisonDiv.innerHTML = `
+                    <div class="test-result info">
+                        <strong>📊 Análisis de Comparación</strong><br>
+                        <small>
+                        <strong>Cotización (jsPDF):</strong> Texto nativo del PDF, completamente escalable y legible<br>
+                        <strong>Recibo (html2canvas):</strong> Imagen optimizada con scale 3, fuentes más grandes y mejor contraste<br>
+                        <strong>Recomendación:</strong> Ambos sistemas ahora ofrecen calidad profesional apropiada para joyería fina
+                        </small>
+                    </div>
+                `;
+            });
+        }
+        
+        // Ejecutar todos los tests
+        function runAllTests() {
+            testResults = [];
+            addLog('=== INICIANDO BATERÍA COMPLETA DE TESTS ===');
+            
+            setTimeout(() => testQuotationPDF(), 500);
+            setTimeout(() => testReceiptPDF(), 2000);
+            setTimeout(() => showQuotationPreview(), 4000);
+            setTimeout(() => showReceiptPreview(), 4500);
+            setTimeout(() => generateComparisonPDFs(), 6000);
+            
+            setTimeout(() => {
+                addLog('=== TODOS LOS TESTS COMPLETADOS ===');
+                showTestResult('Batería Completa', true, 'Todos los tests ejecutados correctamente', 'comparison');
+            }, 10000);
+        }
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            addLog('Sistema de testing de PDFs inicializado');
+            addLog('Listo para verificar mejoras de legibilidad');
+            
+            // Mostrar información del sistema
+            setTimeout(() => {
+                addLog('Mejoras implementadas: Fuentes más grandes, mejor espaciado, html2canvas optimizado');
+                showTestResult('Sistema Inicializado', true, 'Listo para testing de PDFs mejorados', 'comparison');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

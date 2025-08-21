@@ -674,93 +674,93 @@ function generateReceiptHTML() {
         }
         
         return `
-            <div class="receipt-header">
-                <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx">
-                <h2>RECIBO</h2>
-                <div class="receipt-info">
-                    <p>ciaociao.mx - Fine Jewelry</p>
-                    <p>Tel: +52 1 55 9211 2643</p>
+            <div style="text-align: center; margin-bottom: 30px; padding: 20px; border-bottom: 3px solid #D4AF37;">
+                <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" style="max-width: 180px; margin-bottom: 15px;">
+                <h2 style="font-size: 24px; margin: 15px 0; color: #1a1a1a; font-weight: bold;">RECIBO</h2>
+                <div style="margin: 10px 0; line-height: 1.6;">
+                    <p style="font-size: 16px; margin: 5px 0; font-weight: 600;">ciaociao.mx - Fine Jewelry</p>
+                    <p style="font-size: 14px; margin: 5px 0;">Tel: +52 1 55 9211 2643</p>
                 </div>
-                <div class="receipt-number">No. ${formData.receiptNumber}</div>
+                <div style="font-size: 18px; font-weight: bold; background: #D4AF37; color: white; padding: 8px 16px; border-radius: 5px; display: inline-block; margin-top: 10px;">No. ${formData.receiptNumber}</div>
             </div>
             
-            <div class="receipt-section">
-                <h3>Información General</h3>
-                <dl class="receipt-details">
-                    <dt>Fecha:</dt>
-                    <dd>${utils.formatDate(formData.receiptDate)}</dd>
-                    <dt>Tipo de Transacción:</dt>
-                    <dd>${utils.capitalize(formData.transactionType)}</dd>
+            <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold;">Información General</h3>
+                <dl style="margin: 0; line-height: 2;">
+                    <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Fecha:</dt>
+                    <dd style="display: inline; margin: 0;">${utils.formatDate(formData.receiptDate)}</dd><br>
+                    <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Tipo de Transacción:</dt>
+                    <dd style="display: inline; margin: 0;">${utils.capitalize(formData.transactionType)}</dd><br>
                     ${formData.deliveryDate ? `
-                        <dt>Fecha de Entrega:</dt>
-                        <dd>${utils.formatDate(formData.deliveryDate)}</dd>
+                        <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Fecha de Entrega:</dt>
+                        <dd style="display: inline; margin: 0;">${utils.formatDate(formData.deliveryDate)}</dd><br>
                     ` : ''}
                     ${formData.orderNumber ? `
-                        <dt>Número de Pedido:</dt>
-                        <dd>${formData.orderNumber}</dd>
+                        <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Número de Pedido:</dt>
+                        <dd style="display: inline; margin: 0;">${formData.orderNumber}</dd><br>
                     ` : ''}
                 </dl>
             </div>
             
-            <div class="receipt-section">
-                <h3>Datos del Cliente</h3>
-                <dl class="receipt-details">
-                    <dt>Nombre:</dt>
-                    <dd>${formData.clientName}</dd>
-                    <dt>Teléfono:</dt>
-                    <dd>${utils.formatPhone(formData.clientPhone)}</dd>
+            <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold;">Datos del Cliente</h3>
+                <dl style="margin: 0; line-height: 2;">
+                    <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Nombre:</dt>
+                    <dd style="display: inline; margin: 0;">${formData.clientName}</dd><br>
+                    <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Teléfono:</dt>
+                    <dd style="display: inline; margin: 0;">${utils.formatPhone(formData.clientPhone)}</dd><br>
                     ${formData.clientEmail ? `
-                        <dt>Email:</dt>
-                        <dd>${formData.clientEmail}</dd>
+                        <dt style="display: inline-block; width: 140px; font-weight: bold; color: #333;">Email:</dt>
+                        <dd style="display: inline; margin: 0;">${formData.clientEmail}</dd><br>
                     ` : ''}
                 </dl>
             </div>
             
-            <div class="receipt-section">
-                <h3>Detalles de la Pieza</h3>
-                <table class="receipt-table">
+            <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
+                <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold;">Detalles de la Pieza</h3>
+                <table style="width: 100%; border-collapse: collapse; font-size: 15px;">
                     <tr>
-                        <th>Tipo</th>
-                        <td>${utils.capitalize(formData.pieceType)}</td>
+                        <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Tipo</th>
+                        <td style="padding: 12px; border: 1px solid #ddd; background: white;">${utils.capitalize(formData.pieceType)}</td>
                     </tr>
                     <tr>
-                        <th>Material</th>
-                        <td>${formData.material.replace('-', ' ').toUpperCase()}</td>
+                        <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Material</th>
+                        <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.material.replace('-', ' ').toUpperCase()}</td>
                     </tr>
                     ${formData.weight ? `
                         <tr>
-                            <th>Peso</th>
-                            <td>${formData.weight} gramos</td>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Peso</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.weight} gramos</td>
                         </tr>
                     ` : ''}
                     ${formData.size ? `
                         <tr>
-                            <th>Talla/Medida</th>
-                            <td>${formData.size}</td>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Talla/Medida</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.size}</td>
                         </tr>
                     ` : ''}
                     ${formData.sku ? `
                         <tr>
-                            <th>SKU/Código</th>
-                            <td>${formData.sku}</td>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">SKU/Código</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.sku}</td>
                         </tr>
                     ` : ''}
                     ${formData.stones ? `
                         <tr>
-                            <th>Piedras</th>
-                            <td>${formData.stones}</td>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Piedras</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.stones}</td>
                         </tr>
                     ` : ''}
                     ${formData.description ? `
                         <tr>
-                            <th>Descripción</th>
-                            <td>${formData.description}</td>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Descripción</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.description}</td>
                         </tr>
                     ` : ''}
                     ${formData.pieceCondition ? `
                         <tr>
-                            <th>Estado/Reparación</th>
-                            <td>${formData.pieceCondition}</td>
+                            <th style="padding: 12px; border: 1px solid #ddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px;">Estado/Reparación</th>
+                            <td style="padding: 12px; border: 1px solid #ddd; background: white;">${formData.pieceCondition}</td>
                         </tr>
                     ` : ''}
                 </table>
@@ -775,35 +775,35 @@ function generateReceiptHTML() {
                 </div>
             ` : ''}
             
-            <div class="receipt-totals">
-                <div class="total-row">
-                    <span>Precio Base:</span>
-                    <span>${utils.formatCurrency(formData.price)}</span>
+            <div style="margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px; border: 2px solid #D4AF37;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 16px;">
+                    <span style="font-weight: bold;">Precio Base:</span>
+                    <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.price)}</span>
                 </div>
                 ${formData.contribution > 0 ? `
-                    <div class="total-row">
-                        <span>Aportación:</span>
-                        <span>${utils.formatCurrency(formData.contribution)}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 16px;">
+                        <span style="font-weight: bold;">Aportación:</span>
+                        <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.contribution)}</span>
                     </div>
-                    <div class="total-row">
-                        <span>Subtotal:</span>
-                        <span>${utils.formatCurrency(formData.subtotal)}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 16px;">
+                        <span style="font-weight: bold;">Subtotal:</span>
+                        <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.subtotal)}</span>
                     </div>
                 ` : ''}
                 ${formData.deposit > 0 ? `
-                    <div class="total-row">
-                        <span>Anticipo:</span>
-                        <span>${utils.formatCurrency(formData.deposit)}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 16px;">
+                        <span style="font-weight: bold;">Anticipo:</span>
+                        <span style="font-weight: bold; color: #28a745;">${utils.formatCurrency(formData.deposit)}</span>
                     </div>
-                    <div class="total-row final">
-                        <span>Saldo Pendiente:</span>
-                        <span>${utils.formatCurrency(formData.balance)}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; background: #fff3cd; border-radius: 5px; margin-top: 10px; font-size: 18px;">
+                        <span style="font-weight: bold; margin-left: 10px;">Saldo Pendiente:</span>
+                        <span style="font-weight: bold; color: #dc3545; margin-right: 10px;">${utils.formatCurrency(formData.balance)}</span>
                     </div>
                 ` : ''}
                 ${formData.paymentMethod ? `
-                    <div class="total-row">
-                        <span>Método de Pago:</span>
-                        <span>${utils.capitalize(formData.paymentMethod)}</span>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; margin-top: 10px; font-size: 16px;">
+                        <span style="font-weight: bold;">Método de Pago:</span>
+                        <span style="font-weight: bold;">${utils.capitalize(formData.paymentMethod)}</span>
                     </div>
                 ` : ''}
             </div>
@@ -874,14 +874,19 @@ async function generatePDF() {
             paymentManager.registerPayment(paymentData);
         }
         
-        // Crear contenedor temporal para el recibo
+        // Crear contenedor temporal para el recibo con configuración optimizada para PDF
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = generateReceiptHTML();
         tempDiv.style.position = 'absolute';
         tempDiv.style.left = '-9999px';
-        tempDiv.style.width = '800px';
-        tempDiv.style.background = 'white';
-        tempDiv.style.padding = '40px';
+        tempDiv.style.width = '900px'; // Más ancho para mejor proporción
+        tempDiv.style.background = '#ffffff';
+        tempDiv.style.padding = '50px'; // Más padding para mejor espaciado
+        tempDiv.style.fontSize = '16px'; // Fuente más grande para mejor legibilidad
+        tempDiv.style.lineHeight = '1.8'; // Mejor espaciado entre líneas
+        tempDiv.style.fontFamily = 'Arial, sans-serif'; // Fuente más clara
+        tempDiv.style.color = '#000000'; // Color negro sólido
+        tempDiv.className = 'pdf-content'; // Clase para estilos específicos
         document.body.appendChild(tempDiv);
         
         // Esperar a que todas las imágenes se carguen completamente
@@ -902,12 +907,16 @@ async function generatePDF() {
         // Esperar tiempo adicional para renderizado
         await new Promise(resolve => setTimeout(resolve, 1500));
         
-        // Generar imagen con html2canvas
+        // Generar imagen con html2canvas con configuración optimizada
         const canvas = await html2canvas(tempDiv, {
-            scale: 2,
+            scale: 3, // Mayor resolución para mejor legibilidad
             logging: false,
             useCORS: true,
-            allowTaint: true
+            allowTaint: true,
+            backgroundColor: '#ffffff', // Fondo blanco sólido
+            foreignObjectRendering: true, // Mejor renderizado de texto
+            removeContainer: true, // Limpiar mejor
+            imageTimeout: 15000 // Más tiempo para cargar imágenes
         });
         
         // Crear PDF

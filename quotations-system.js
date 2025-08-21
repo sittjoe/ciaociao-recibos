@@ -1585,18 +1585,18 @@ async function generateQuotationPDF() {
         doc.setFillColor(...colors.gold);
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(9);
-        doc.rect(20, yPos, 170, 10, 'F');
+        doc.setFontSize(10);
+        doc.rect(20, yPos, 170, 12, 'F');
         
         // Encabezados con mejor espaciado incluyendo descuento
-        doc.text('#', 23, yPos + 7);
-        doc.text('DESCRIPCIÓN', 30, yPos + 7);
-        doc.text('CANT.', 105, yPos + 7);
-        doc.text('PRECIO UNIT.', 120, yPos + 7);
-        doc.text('DESC.', 145, yPos + 7);
-        doc.text('TOTAL', 170, yPos + 7);
+        doc.text('#', 23, yPos + 8);
+        doc.text('DESCRIPCIÓN', 30, yPos + 8);
+        doc.text('CANT.', 105, yPos + 8);
+        doc.text('PRECIO UNIT.', 120, yPos + 8);
+        doc.text('DESC.', 145, yPos + 8);
+        doc.text('TOTAL', 170, yPos + 8);
         
-        yPos += 12;
+        yPos += 14;
         
         // Línea separadora dorada
         doc.setDrawColor(...colors.gold);
@@ -1604,42 +1604,74 @@ async function generateQuotationPDF() {
         doc.line(20, yPos, 190, yPos);
         yPos += 3;
         
-        // Productos con diseño alternado
+        // Productos con diseño alternado y descripciones completas
         doc.setTextColor(...colors.black);
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
+        doc.setFontSize(10);
         
         quotationData.products.forEach((product, index) => {
+            // Calcular altura necesaria para la descripción completa
+            const description = `${product.type} ${product.material}`;
+            const details = product.description || '';
+            
+            // Usar splitTextToSize para ajustar texto al ancho disponible
+            const descriptionLines = doc.splitTextToSize(details, 65); // Ancho disponible para descripción
+            const rowHeight = Math.max(16, 8 + (descriptionLines.length * 4)); // Altura mínima 16px
+            
+            // Verificar si necesitamos nueva página antes de agregar el producto
+            if (yPos + rowHeight > 240) {
+                doc.addPage();
+                yPos = 20;
+                
+                // Repetir headers en nueva página
+                doc.setFillColor(...colors.gold);
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(10);
+                doc.rect(20, yPos, 170, 12, 'F');
+                
+                doc.text('#', 23, yPos + 8);
+                doc.text('DESCRIPCIÓN', 30, yPos + 8);
+                doc.text('CANT.', 105, yPos + 8);
+                doc.text('PRECIO UNIT.', 120, yPos + 8);
+                doc.text('DESC.', 145, yPos + 8);
+                doc.text('TOTAL', 170, yPos + 8);
+                
+                yPos += 16;
+                doc.setTextColor(...colors.black);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+            }
+            
             // Background alternado para mejor legibilidad
             if (index % 2 === 1) {
                 doc.setFillColor(...colors.lightGray);
-                doc.rect(20, yPos - 2, 170, 8, 'F');
+                doc.rect(20, yPos - 2, 170, rowHeight, 'F');
             }
             
             // Número de ítem
             doc.setTextColor(...colors.black);
-            doc.text(String(index + 1), 23, yPos + 4);
+            doc.text(String(index + 1), 23, yPos + 6);
             
-            // Descripción completa y elegante
-            const description = `${product.type} ${product.material}`;
-            const details = product.description;
-            
+            // Descripción completa en múltiples líneas
             doc.setFont('helvetica', 'bold');
-            doc.text(description, 30, yPos + 2);
+            doc.setFontSize(10);
+            doc.text(description, 30, yPos + 4);
+            
+            // Detalles completos sin truncamiento
             doc.setFont('helvetica', 'normal');
-            doc.setFontSize(8);
-            
-            // Truncar detalles si es muy largo
-            const maxLength = 45;
-            const shortDetails = details.length > maxLength 
-                ? details.substring(0, maxLength) + '...' 
-                : details;
-            doc.text(shortDetails, 30, yPos + 6);
-            
-            // Cantidad, precio, descuento y total alineados
             doc.setFontSize(9);
-            doc.text(formatNumber(product.quantity), 108, yPos + 4, { align: 'center' });
-            doc.text(formatCurrency(product.price), 128, yPos + 4, { align: 'center' });
+            if (descriptionLines.length > 0) {
+                descriptionLines.forEach((line, lineIndex) => {
+                    doc.text(line, 30, yPos + 8 + (lineIndex * 4));
+                });
+            }
+            
+            // Datos numéricos centrados verticalmente en la fila
+            const centerY = yPos + (rowHeight / 2) + 1;
+            doc.setFontSize(10);
+            doc.text(formatNumber(product.quantity), 108, centerY, { align: 'center' });
+            doc.text(formatCurrency(product.price), 128, centerY, { align: 'center' });
             
             // Mostrar descuento
             let discountText = '';
@@ -1652,20 +1684,14 @@ async function generateQuotationPDF() {
             } else {
                 discountText = '-';
             }
-            doc.text(discountText, 148, yPos + 4, { align: 'center' });
+            doc.text(discountText, 148, centerY, { align: 'center' });
             
             // Total en negrita
             doc.setFont('helvetica', 'bold');
-            doc.text(formatCurrency(product.total), 178, yPos + 4, { align: 'center' });
+            doc.text(formatCurrency(product.total), 178, centerY, { align: 'center' });
             doc.setFont('helvetica', 'normal');
             
-            yPos += 10;
-            
-            // Verificar si necesitamos nueva página
-            if (yPos > 240) {
-                doc.addPage();
-                yPos = 20;
-            }
+            yPos += rowHeight + 2; // Espacio entre productos
         });
         
         // Línea final de la tabla
