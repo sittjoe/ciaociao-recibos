@@ -623,6 +623,7 @@ function collectFormData() {
             deposit: parseFloat(document.getElementById('deposit').value) || 0,
             balance: parseFloat(document.getElementById('balance').value) || 0,
             deliveryDate: document.getElementById('deliveryDate').value,
+            deliveryStatus: document.getElementById('deliveryStatus').value,
             paymentMethod: document.getElementById('paymentMethod').value,
             observations: document.getElementById('observations').value,
             images: cameraManager.getImages(),
@@ -651,6 +652,35 @@ function showPreview() {
     } catch (error) {
         console.error('❌ Error mostrando vista previa:', error);
         utils.showNotification('Error generando vista previa', 'error');
+    }
+}
+
+function getTermsAndConditions(formData) {
+    const isDelivered = formData.deliveryStatus === 'entregado';
+    const hasBalance = parseFloat(formData.balance) > 0;
+    
+    if (isDelivered && !hasBalance) {
+        // Términos para pieza entregada y pagada completamente
+        return `
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• El cliente ha recibido la pieza y declara estar conforme con:</p>
+            <p style="font-size: 12px; margin-bottom: 5px; margin-left: 15px; color: #000000; font-family: Arial, sans-serif;">- Calidad del trabajo realizado</p>
+            <p style="font-size: 12px; margin-bottom: 5px; margin-left: 15px; color: #000000; font-family: Arial, sans-serif;">- Materiales utilizados según especificaciones</p>
+            <p style="font-size: 12px; margin-bottom: 5px; margin-left: 15px; color: #000000; font-family: Arial, sans-serif;">- Acabado y presentación final</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• Cualquier observación debe reportarse dentro de 48 horas</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• Garantía de por vida en mano de obra</p>
+        `;
+    } else {
+        // Términos para pagos sin entrega o entrega pendiente
+        return `
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• El cliente acepta las especificaciones acordadas para la pieza</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• Los materiales y diseño están sujetos a las características descritas</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• La entrega se realizará según fecha acordada previa liquidación total</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• El cliente puede revisar el avance cuando lo solicite</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• Los artículos no reclamados después de 30 días están sujetos a cargo por almacenamiento</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• No nos hacemos responsables por artículos no reclamados después de 90 días</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• Este recibo debe presentarse para recoger el artículo</p>
+            <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• Garantía de por vida en mano de obra</p>
+        `;
     }
 }
 
@@ -869,12 +899,10 @@ function generateReceiptHTML() {
                     </div>
                 </div>
                 
-                <!-- Footer con términos -->
+                <!-- Footer con términos condicionales -->
                 <div style="margin-top: 30px; padding: 15px; border-top: 1px solid #dddddd; font-family: Arial, sans-serif;">
                     <p style="font-weight: bold; margin-bottom: 10px; color: #000000; font-family: Arial, sans-serif;">TÉRMINOS Y CONDICIONES</p>
-                    <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• Los artículos no reclamados después de 30 días están sujetos a cargo por almacenamiento.</p>
-                    <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• No nos hacemos responsables por artículos no reclamados después de 90 días.</p>
-                    <p style="font-size: 12px; margin-bottom: 5px; color: #000000; font-family: Arial, sans-serif;">• Este recibo debe presentarse para recoger el artículo.</p>
+                    ${getTermsAndConditions(formData)}
                     <p style="margin-top: 15px; text-align: center; color: #D4AF37; font-weight: bold; font-family: Arial, sans-serif;">Gracias por su preferencia - ciaociao.mx</p>
                 </div>
             </div>
@@ -1581,10 +1609,29 @@ function shareWhatsApp() {
             message += `\n*Fecha de Entrega:* ${utils.formatDate(formData.deliveryDate)}\n`;
         }
         
-        message += `\n*Métodos de pago disponibles:*\n`;
-        message += `💰 Efectivo en tienda\n`;
-        message += `💳 Tarjeta/PayPal\n`;
-        message += `📲 Transferencia\n`;
+        // Mensaje específico según estado de entrega
+        const isDelivered = formData.deliveryStatus === 'entregado';
+        const hasBalance = parseFloat(formData.balance) > 0;
+        
+        if (isDelivered && !hasBalance) {
+            message += `\n*ESTADO:* ✅ Pieza entregada y conforme\n`;
+            message += `El cliente ha recibido la pieza satisfactoriamente.\n`;
+        } else if (formData.deliveryStatus === 'proceso') {
+            message += `\n*ESTADO:* 🔧 En proceso de fabricación\n`;
+            message += `La pieza está siendo elaborada según especificaciones.\n`;
+        } else {
+            message += `\n*ESTADO:* 📦 Pago registrado - Pendiente de entrega\n`;
+            if (hasBalance > 0) {
+                message += `Saldo pendiente de ${utils.formatCurrency(balance)} para completar.\n`;
+            }
+        }
+        
+        if (!isDelivered || hasBalance > 0) {
+            message += `\n*Métodos de pago disponibles:*\n`;
+            message += `💰 Efectivo en tienda\n`;
+            message += `💳 Tarjeta/PayPal\n`;
+            message += `📲 Transferencia\n`;
+        }
         
         message += `\n_¡Gracias por su preferencia!_\n*ciaociao.mx* ✨\n`;
         message += `Tel: +52 1 55 9211 2643`;
