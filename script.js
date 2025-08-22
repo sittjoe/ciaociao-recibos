@@ -801,11 +801,91 @@ function getTermsAndConditions(formData) {
     }
 }
 
+// Función para calcular estilos de compactación automática
+function calculateCompactStyles(formData, images) {
+    // Calcular score de contenido
+    let contentScore = 0;
+    
+    // Factores que agregan contenido
+    if (formData.description?.length > 100) contentScore += 2;
+    if (formData.stones?.length > 50) contentScore += 2;
+    if (formData.observations?.length > 50) contentScore += 1;
+    if (images.length > 2) contentScore += 2;
+    if (formData.contribution > 0) contentScore += 1; // Aportación agrega línea extra
+    if (formData.deposit > 0) contentScore += 1; // Anticipo agrega líneas
+    if (formData.clientEmail) contentScore += 1;
+    if (formData.deliveryDate) contentScore += 1;
+    if (formData.orderNumber) contentScore += 1;
+    if (formData.sku) contentScore += 1;
+    if (formData.weight) contentScore += 1;
+    if (formData.size) contentScore += 1;
+    if (formData.pieceCondition) contentScore += 1;
+    
+    console.log(`📊 Score de contenido: ${contentScore} (0=mínimo, 15+=máximo)`);
+    
+    // Calcular estilos según score
+    let styles = {
+        containerPadding: '20px',
+        headerMargin: '25px',
+        headerPadding: '20px',
+        sectionMargin: '20px',
+        sectionPadding: '18px',
+        fontSize: {
+            title: '36px',
+            header: '22px',
+            text: '18px',
+            small: '16px'
+        }
+    };
+    
+    // Compactación progresiva según contenido
+    if (contentScore >= 8) {
+        // Contenido alto - máxima compactación
+        styles = {
+            containerPadding: '15px',
+            headerMargin: '20px', 
+            headerPadding: '15px',
+            sectionMargin: '15px',
+            sectionPadding: '12px',
+            fontSize: {
+                title: '30px',
+                header: '20px',
+                text: '16px',
+                small: '14px'
+            }
+        };
+        console.log('🗜️ Aplicando compactación ALTA');
+    } else if (contentScore >= 5) {
+        // Contenido medio - compactación moderada
+        styles = {
+            containerPadding: '18px',
+            headerMargin: '22px',
+            headerPadding: '18px', 
+            sectionMargin: '18px',
+            sectionPadding: '15px',
+            fontSize: {
+                title: '33px',
+                header: '21px',
+                text: '17px',
+                small: '15px'
+            }
+        };
+        console.log('📦 Aplicando compactación MEDIA');
+    } else {
+        console.log('📄 Usando espaciado ESTÁNDAR');
+    }
+    
+    return styles;
+}
+
 function generateReceiptHTML() {
     try {
         console.log('🏗️ Generando HTML del recibo...');
         const formData = collectFormData();
         const images = cameraManager.getImagesForPDF();
+        
+        // Calcular estilos de compactación automática
+        const compactStyles = calculateCompactStyles(formData, images);
         
         console.log('📋 Datos del formulario para HTML:', {
             receiptNumber: formData.receiptNumber,
@@ -820,62 +900,62 @@ function generateReceiptHTML() {
         if (images.length > 0) {
             console.log(`📸 Incluyendo ${images.length} imágenes en el PDF`);
             imagesHTML = `
-                <div style="margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                    <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Fotografías</h3>
-                    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+                <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #D4AF37;">
+                    <h3 style="font-size: 18px; margin-bottom: 10px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Fotografías</h3>
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
                         ${images.map((img, index) => `
                             <img src="${img.data}" 
                                  alt="Imagen ${index + 1}" 
-                                 style="max-width: 150px; max-height: 150px; margin: 5px; border-radius: 5px; border: 1px solid #ddd; object-fit: cover;">
+                                 style="max-width: 120px; max-height: 120px; margin: 3px; border-radius: 4px; border: 1px solid #ddd; object-fit: cover;">
                         `).join('')}
                     </div>
                 </div>
             `;
         }
         
-        // PDF-FIRST DESIGN: HTML LANDSCAPE con layout de dos columnas (300 DPI)
+        // SISTEMA DE COMPACTACIÓN AUTOMÁTICA APLICADO AL HTML
         const html = `
-            <div style="width: 100%; margin: 0; padding: 40px; font-family: Arial, Helvetica, sans-serif; color: #000000; background: #ffffff;">
+            <div style="width: 100%; margin: 0; padding: ${compactStyles.containerPadding}; font-family: Arial, Helvetica, sans-serif; color: #000000; background: #ffffff;">
                 <!-- Header del recibo (span completo) -->
-                <div style="text-align: center; margin-bottom: 40px; padding: 30px; border-bottom: 6px solid #D4AF37; background: #ffffff;">
+                <div style="text-align: center; margin-bottom: ${compactStyles.headerMargin}; padding: ${compactStyles.headerPadding}; border-bottom: 4px solid #D4AF37; background: #ffffff;">
                     <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" 
                          alt="ciaociao.mx" 
                          crossorigin="anonymous"
-                         style="max-width: 300px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
-                    <h2 style="font-size: 48px; margin: 20px 0; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">RECIBO</h2>
-                    <div style="margin: 15px 0; line-height: 1.4;">
-                        <p style="font-size: 32px; margin: 8px 0; font-weight: 600; color: #1a1a1a; font-family: Arial, sans-serif;">ciaociao.mx - Fine Jewelry</p>
-                        <p style="font-size: 28px; margin: 8px 0; color: #1a1a1a; font-family: Arial, sans-serif;">Tel: +52 1 55 9211 2643</p>
+                         style="max-width: 250px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+                    <h2 style="font-size: ${compactStyles.fontSize.title}; margin: 15px 0; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">RECIBO</h2>
+                    <div style="margin: 10px 0; line-height: 1.3;">
+                        <p style="font-size: 24px; margin: 5px 0; font-weight: 600; color: #1a1a1a; font-family: Arial, sans-serif;">ciaociao.mx - Fine Jewelry</p>
+                        <p style="font-size: 20px; margin: 5px 0; color: #1a1a1a; font-family: Arial, sans-serif;">Tel: +52 1 55 9211 2643</p>
                     </div>
-                    <div style="font-size: 36px; font-weight: bold; background: #D4AF37; color: #ffffff; padding: 15px 30px; border-radius: 8px; display: inline-block; margin-top: 15px; font-family: Arial, sans-serif;">No. ${formData.receiptNumber}</div>
+                    <div style="font-size: 28px; font-weight: bold; background: #D4AF37; color: #ffffff; padding: 10px 20px; border-radius: 6px; display: inline-block; margin-top: 10px; font-family: Arial, sans-serif;">No. ${formData.receiptNumber}</div>
                 </div>
                 
-                <!-- Layout de dos columnas -->
-                <div style="display: flex; gap: 30px; align-items: flex-start;">
+                <!-- Layout de dos columnas optimizado -->
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
                 
-                    <!-- COLUMNA IZQUIERDA (40%) -->
-                    <div style="flex: 0 0 40%; padding-right: 20px;">
+                    <!-- COLUMNA IZQUIERDA (45%) -->
+                    <div style="flex: 0 0 45%; padding-right: 10px;">
                         <!-- Información General -->
-                        <div style="margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 8px solid #D4AF37;">
-                            <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información General</h3>
-                            <div style="margin: 0; line-height: 1.6; font-size: 28px; font-family: Arial, sans-serif;">
-                                <div style="margin-bottom: 12px;">
-                                    <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Fecha:</span>
+                        <div style="margin-bottom: ${compactStyles.sectionMargin}; padding: ${compactStyles.sectionPadding}; background: #f8f9fa; border-radius: 8px; border-left: 6px solid #D4AF37;">
+                            <h3 style="font-size: ${compactStyles.fontSize.header}; margin-bottom: 12px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información General</h3>
+                            <div style="margin: 0; line-height: 1.4; font-size: ${compactStyles.fontSize.text}; font-family: Arial, sans-serif;">
+                                <div style="margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 120px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Fecha:</span>
                                     <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatDate(formData.receiptDate)}</span>
                                 </div>
-                                <div style="margin-bottom: 12px;">
-                                    <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Tipo:</span>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 120px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Tipo:</span>
                                     <span style="color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.transactionType)}</span>
                                 </div>
                                 ${formData.deliveryDate ? `
-                                    <div style="margin-bottom: 12px;">
-                                        <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Entrega:</span>
+                                    <div style="margin-bottom: 8px;">
+                                        <span style="display: inline-block; width: 120px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Entrega:</span>
                                         <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatDate(formData.deliveryDate)}</span>
                                     </div>
                                 ` : ''}
                                 ${formData.orderNumber ? `
-                                    <div style="margin-bottom: 12px;">
-                                        <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nº Pedido:</span>
+                                    <div style="margin-bottom: 8px;">
+                                        <span style="display: inline-block; width: 120px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nº Pedido:</span>
                                         <span style="color: #000000; font-family: Arial, sans-serif;">${formData.orderNumber}</span>
                                     </div>
                                 ` : ''}
@@ -883,20 +963,20 @@ function generateReceiptHTML() {
                         </div>
                 
                         <!-- Datos del Cliente -->
-                        <div style="margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 8px solid #D4AF37;">
-                            <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Datos del Cliente</h3>
-                            <div style="margin: 0; line-height: 1.6; font-size: 28px; font-family: Arial, sans-serif;">
-                                <div style="margin-bottom: 12px;">
-                                    <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nombre:</span>
+                        <div style="margin-bottom: ${compactStyles.sectionMargin}; padding: ${compactStyles.sectionPadding}; background: #f8f9fa; border-radius: 8px; border-left: 6px solid #D4AF37;">
+                            <h3 style="font-size: ${compactStyles.fontSize.header}; margin-bottom: 12px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Datos del Cliente</h3>
+                            <div style="margin: 0; line-height: 1.4; font-size: ${compactStyles.fontSize.text}; font-family: Arial, sans-serif;">
+                                <div style="margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 120px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nombre:</span>
                                     <span style="color: #000000; font-family: Arial, sans-serif;">${formData.clientName}</span>
                                 </div>
-                                <div style="margin-bottom: 12px;">
-                                    <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Teléfono:</span>
+                                <div style="margin-bottom: 8px;">
+                                    <span style="display: inline-block; width: 120px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Teléfono:</span>
                                     <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatPhone(formData.clientPhone)}</span>
                                 </div>
                                 ${formData.clientEmail ? `
-                                    <div style="margin-bottom: 12px;">
-                                        <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Email:</span>
+                                    <div style="margin-bottom: 8px;">
+                                        <span style="display: inline-block; width: 120px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Email:</span>
                                         <span style="color: #000000; font-family: Arial, sans-serif;">${formData.clientEmail}</span>
                                     </div>
                                 ` : ''}
@@ -904,87 +984,87 @@ function generateReceiptHTML() {
                         </div>
                 
                         <!-- Detalles de la Pieza -->
-                        <div style="padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 8px solid #D4AF37;">
-                            <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Detalles de la Pieza</h3>
-                            <table style="width: 100%; border-collapse: collapse; font-size: 24px; font-family: Arial, sans-serif;">
+                        <div style="padding: ${compactStyles.sectionPadding}; background: #f8f9fa; border-radius: 8px; border-left: 6px solid #D4AF37;">
+                            <h3 style="font-size: ${compactStyles.fontSize.header}; margin-bottom: 12px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Detalles de la Pieza</h3>
+                            <table style="width: 100%; border-collapse: collapse; font-size: ${compactStyles.fontSize.small}; font-family: Arial, sans-serif;">
                                 <tr>
-                                    <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Tipo</th>
-                                    <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.pieceType)}</td>
+                                    <th style="padding: 8px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 100px; color: #000000; font-family: Arial, sans-serif;">Tipo</th>
+                                    <td style="padding: 8px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.pieceType)}</td>
                                 </tr>
                                 <tr>
-                                    <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Material</th>
-                                    <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.material.replace('-', ' ').toUpperCase()}</td>
+                                    <th style="padding: 8px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 100px; color: #000000; font-family: Arial, sans-serif;">Material</th>
+                                    <td style="padding: 8px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.material.replace('-', ' ').toUpperCase()}</td>
                                 </tr>
                                 ${formData.weight ? `
                                     <tr>
-                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Peso</th>
-                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.weight} gramos</td>
+                                        <th style="padding: 8px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 100px; color: #000000; font-family: Arial, sans-serif;">Peso</th>
+                                        <td style="padding: 8px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.weight} gramos</td>
                                     </tr>
                                 ` : ''}
                                 ${formData.size ? `
                                     <tr>
-                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Talla</th>
-                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.size}</td>
+                                        <th style="padding: 8px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 100px; color: #000000; font-family: Arial, sans-serif;">Talla</th>
+                                        <td style="padding: 8px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.size}</td>
                                     </tr>
                                 ` : ''}
                                 ${formData.sku ? `
                                     <tr>
-                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">SKU</th>
-                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.sku}</td>
+                                        <th style="padding: 8px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 100px; color: #000000; font-family: Arial, sans-serif;">SKU</th>
+                                        <td style="padding: 8px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.sku}</td>
                                     </tr>
                                 ` : ''}
                                 ${formData.stones ? `
                                     <tr>
-                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Piedras</th>
-                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.stones}</td>
+                                        <th style="padding: 8px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 100px; color: #000000; font-family: Arial, sans-serif;">Piedras</th>
+                                        <td style="padding: 8px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.stones}</td>
                                     </tr>
                                 ` : ''}
                                 ${formData.description ? `
                                     <tr>
-                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Descripción</th>
-                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.description}</td>
+                                        <th style="padding: 8px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 100px; color: #000000; font-family: Arial, sans-serif;">Descripción</th>
+                                        <td style="padding: 8px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.description}</td>
                                     </tr>
                                 ` : ''}
                                 ${formData.pieceCondition ? `
                                     <tr>
-                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Estado</th>
-                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.pieceCondition}</td>
+                                        <th style="padding: 8px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 100px; color: #000000; font-family: Arial, sans-serif;">Estado</th>
+                                        <td style="padding: 8px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.pieceCondition}</td>
                                     </tr>
                                 ` : ''}
                             </table>
                         </div>
                     </div>
                     
-                    <!-- COLUMNA DERECHA (60%) -->
-                    <div style="flex: 0 0 60%; padding-left: 20px;">
+                    <!-- COLUMNA DERECHA (55%) -->
+                    <div style="flex: 0 0 55%; padding-left: 10px;">
                         <!-- Información Financiera -->
-                        <div style="margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border: 2px solid #D4AF37;">
-                            <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información Financiera</h3>
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #dddddd; font-size: 32px; font-family: Arial, sans-serif;">
+                        <div style="margin-bottom: ${compactStyles.sectionMargin}; padding: ${compactStyles.sectionPadding}; background: #f8f9fa; border-radius: 8px; border: 2px solid #D4AF37;">
+                            <h3 style="font-size: ${compactStyles.fontSize.header}; margin-bottom: 12px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información Financiera</h3>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dddddd; font-size: ${compactStyles.fontSize.text}; font-family: Arial, sans-serif;">
                                 <span style="font-weight: bold; color: #000000;">Precio Base:</span>
                                 <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.price)}</span>
                             </div>
                             ${formData.contribution > 0 ? `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #dddddd; font-size: 32px; font-family: Arial, sans-serif;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dddddd; font-size: ${compactStyles.fontSize.text}; font-family: Arial, sans-serif;">
                                     <span style="font-weight: bold; color: #000000;">Aportación:</span>
                                     <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.contribution)}</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #dddddd; font-size: 32px; font-family: Arial, sans-serif;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dddddd; font-size: ${compactStyles.fontSize.text}; font-family: Arial, sans-serif;">
                                     <span style="font-weight: bold; color: #000000;">Subtotal:</span>
                                     <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.subtotal)}</span>
                                 </div>
                             ` : ''}
                             ${formData.deposit > 0 ? `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #dddddd; font-size: 32px; font-family: Arial, sans-serif;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dddddd; font-size: ${compactStyles.fontSize.text}; font-family: Arial, sans-serif;">
                                     <span style="font-weight: bold; color: #000000;">Anticipo:</span>
                                     <span style="font-weight: bold; color: #28a745;">${utils.formatCurrency(formData.deposit)}</span>
                                 </div>
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff3cd; border-radius: 10px; margin-top: 15px; font-size: 36px; font-family: Arial, sans-serif;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff3cd; border-radius: 6px; margin-top: 10px; font-size: ${compactStyles.fontSize.header}; font-family: Arial, sans-serif;">
                                     <span style="font-weight: bold; color: #000000;">Saldo Pendiente:</span>
                                     <span style="font-weight: bold; color: #dc3545;">${utils.formatCurrency(formData.balance)}</span>
                                 </div>
                             ` : `
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #d1edff; border-radius: 10px; margin-top: 15px; font-size: 36px; font-family: Arial, sans-serif;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #d1edff; border-radius: 6px; margin-top: 10px; font-size: ${compactStyles.fontSize.header}; font-family: Arial, sans-serif;">
                                     <span style="font-weight: bold; color: #000000;">Total:</span>
                                     <span style="font-weight: bold; color: #007bff;">${utils.formatCurrency(formData.subtotal || formData.price)}</span>
                                 </div>
@@ -996,39 +1076,39 @@ function generateReceiptHTML() {
                         
                         <!-- Observaciones -->
                         ${formData.observations ? `
-                            <div style="margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 8px solid #D4AF37;">
-                                <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Observaciones</h3>
-                                <p style="font-size: 28px; margin: 0; color: #000000; line-height: 1.6; font-family: Arial, sans-serif;">${formData.observations}</p>
+                            <div style="margin-bottom: ${compactStyles.sectionMargin}; padding: ${compactStyles.sectionPadding}; background: #f8f9fa; border-radius: 8px; border-left: 6px solid #D4AF37;">
+                                <h3 style="font-size: ${compactStyles.fontSize.header}; margin-bottom: 12px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Observaciones</h3>
+                                <p style="font-size: ${compactStyles.fontSize.text}; margin: 0; color: #000000; line-height: 1.4; font-family: Arial, sans-serif;">${formData.observations}</p>
                             </div>
                         ` : ''}
                         
                         <!-- Sección de Firmas -->
-                        <div style="display: flex; gap: 30px; margin-top: 40px; font-family: Arial, sans-serif;">
+                        <div style="display: flex; gap: 15px; margin-top: 25px; font-family: Arial, sans-serif;">
                             <div style="flex: 1; text-align: center;">
                                 ${formData.signature ? 
-                                    `<img src="${formData.signature}" style="max-width: 300px; height: 120px; border: 2px solid #dddddd; background: #ffffff; border-radius: 8px;">` : 
-                                    '<div style="width: 300px; height: 120px; border: 2px solid #dddddd; background: #ffffff; border-radius: 8px; margin: 0 auto;"></div>'
+                                    `<img src="${formData.signature}" style="max-width: 200px; height: 80px; border: 1px solid #dddddd; background: #ffffff; border-radius: 6px;">` : 
+                                    '<div style="width: 200px; height: 80px; border: 1px solid #dddddd; background: #ffffff; border-radius: 6px; margin: 0 auto;"></div>'
                                 }
-                                <div style="border-top: 3px solid #000000; margin-top: 40px; padding-top: 15px;">
-                                    <div style="font-size: 28px; color: #666666; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; font-family: Arial, sans-serif;">Firma del Cliente</div>
+                                <div style="border-top: 2px solid #000000; margin-top: 20px; padding-top: 8px;">
+                                    <div style="font-size: ${compactStyles.fontSize.small}; color: #666666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; font-family: Arial, sans-serif;">Firma del Cliente</div>
                                 </div>
                             </div>
                             <div style="flex: 1; text-align: center;">
                                 ${formData.companySignature ? 
-                                    `<img src="${formData.companySignature}" style="max-width: 300px; height: 120px; border: 2px solid #dddddd; background: #ffffff; border-radius: 8px;">` : 
-                                    '<div style="width: 300px; height: 120px; border: 2px solid #dddddd; background: #ffffff; border-radius: 8px; margin: 0 auto;"></div>'
+                                    `<img src="${formData.companySignature}" style="max-width: 200px; height: 80px; border: 1px solid #dddddd; background: #ffffff; border-radius: 6px;">` : 
+                                    '<div style="width: 200px; height: 80px; border: 1px solid #dddddd; background: #ffffff; border-radius: 6px; margin: 0 auto;"></div>'
                                 }
-                                <div style="border-top: 3px solid #000000; margin-top: 40px; padding-top: 15px;">
-                                    <div style="font-size: 28px; color: #666666; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; font-family: Arial, sans-serif;">CIAOCIAO.MX</div>
+                                <div style="border-top: 2px solid #000000; margin-top: 20px; padding-top: 8px;">
+                                    <div style="font-size: ${compactStyles.fontSize.small}; color: #666666; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold; font-family: Arial, sans-serif;">CIAOCIAO.MX</div>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Términos y Condiciones -->
-                        <div style="margin-top: 40px; padding: 30px; border-top: 2px solid #dddddd; font-family: Arial, sans-serif;">
-                            <p style="font-weight: bold; margin-bottom: 20px; color: #000000; font-size: 32px; font-family: Arial, sans-serif;">TÉRMINOS Y CONDICIONES</p>
-                            <div style="font-size: 24px; color: #000000; line-height: 1.5; font-family: Arial, sans-serif;">${getTermsAndConditions(formData)}</div>
-                            <p style="margin-top: 30px; text-align: center; color: #D4AF37; font-weight: bold; font-size: 32px; font-family: Arial, sans-serif;">Gracias por su preferencia - ciaociao.mx</p>
+                        <div style="margin-top: 25px; padding: 18px; border-top: 2px solid #dddddd; font-family: Arial, sans-serif;">
+                            <p style="font-weight: bold; margin-bottom: 12px; color: #000000; font-size: ${compactStyles.fontSize.text}; font-family: Arial, sans-serif;">TÉRMINOS Y CONDICIONES</p>
+                            <div style="font-size: 14px; color: #000000; line-height: 1.3; font-family: Arial, sans-serif;">${getTermsAndConditions(formData)}</div>
+                            <p style="margin-top: 20px; text-align: center; color: #D4AF37; font-weight: bold; font-size: ${compactStyles.fontSize.small}; font-family: Arial, sans-serif;">Gracias por su preferencia - ciaociao.mx</p>
                         </div>
                     </div>
                 </div>
@@ -1299,40 +1379,88 @@ async function generatePDF() {
             throw new Error('Los datos de imagen están vacíos o corruptos');
         }
         
-        // PDF-FIRST DESIGN: Inserción directa 1:1 sin escalado complejo - LANDSCAPE
-        const pageWidth = 297;  // A4 LANDSCAPE width in mm (más ancho)
-        const pageHeight = 210; // A4 LANDSCAPE height in mm (más bajo)
+        // SISTEMA DE SCALING INTELIGENTE OPTIMIZADO - LANDSCAPE
+        const pageWidth = 297;  // A4 LANDSCAPE width in mm
+        const pageHeight = 210; // A4 LANDSCAPE height in mm
         
-        // Conversión directa: 300 DPI a mm (11.811 px/mm)
-        const PX_TO_MM_300DPI = 25.4 / PDF_PRINT_DPI; // 0.0847 mm/px at 300 DPI
+        // Obtener metadatos del contenido para scaling inteligente
+        const contentMetadata = {
+            textLength: tempDiv.textContent?.length || 0,
+            imageCount: tempDiv.querySelectorAll('img').length,
+            clientNameLength: (formData.clientName || '').length,
+            descriptionLength: (formData.description || '').length,
+            stonesLength: (formData.stones || '').length,
+            complexity: (formData.stones?.length > 100 || formData.description?.length > 200) ? 'high' : 'medium'
+        };
+        
+        console.log('🧠 Metadatos del contenido:', contentMetadata);
+        
+        // Calcular dimensiones iniciales en mm
+        const PX_TO_MM_300DPI = 25.4 / PDF_PRINT_DPI;
         const canvasWidthMM = canvas.width * PX_TO_MM_300DPI;
         const canvasHeightMM = canvas.height * PX_TO_MM_300DPI;
         
-        console.log(`📐 Canvas directo: ${canvas.width}x${canvas.height}px → ${canvasWidthMM.toFixed(1)}x${canvasHeightMM.toFixed(1)}mm`);
+        console.log(`📐 Canvas original: ${canvas.width}x${canvas.height}px → ${canvasWidthMM.toFixed(1)}x${canvasHeightMM.toFixed(1)}mm`);
         
-        // Inserción directa centrada
-        const x = (pageWidth - canvasWidthMM) / 2;
-        const y = (pageHeight - canvasHeightMM) / 2;
+        // Aplicar scaling inteligente si existe la función
+        let finalWidth = canvasWidthMM;
+        let finalHeight = canvasHeightMM;
+        let x, y;
         
-        // Dimensiones finales = dimensiones del canvas convertidas directamente
-        const finalWidth = canvasWidthMM;
-        const finalHeight = canvasHeightMM;
-
-        console.log(`📄 Inserción directa: ${finalWidth.toFixed(1)}x${finalHeight.toFixed(1)}mm`);
-        console.log(`📄 Posición centrada: x=${x.toFixed(1)}mm, y=${y.toFixed(1)}mm`);
-        console.log(`📏 Factor de escala: 1:1 (inserción directa)`);
-
-        // Verificar dimensiones en página única
-        const maxWidth = pageWidth - 20; // Margen de 10mm por lado
-        const maxHeight = pageHeight - 20;
-        if (finalWidth > maxWidth || finalHeight > maxHeight) {
-            console.warn('⚠️ Contenido excede los límites de página', {finalWidth, finalHeight, maxWidth, maxHeight});
+        if (typeof window.calculateAdvancedPDFScaling === 'function') {
+            try {
+                const scalingResult = window.calculateAdvancedPDFScaling(
+                    canvas.width, 
+                    canvas.height, 
+                    contentMetadata
+                );
+                
+                finalWidth = scalingResult.finalWidth;
+                finalHeight = scalingResult.finalHeight;
+                x = scalingResult.x;
+                y = scalingResult.y;
+                
+                console.log('🎯 Scaling inteligente aplicado:', {
+                    algorithm: scalingResult.algorithm,
+                    scaleFactor: scalingResult.scaleFactor?.toFixed(3),
+                    utilization: scalingResult.utilizationScore?.toFixed(1) + '%'
+                });
+            } catch (scalingError) {
+                console.warn('⚠️ Error en scaling inteligente, usando fallback:', scalingError);
+                // Fallback a centering manual
+                x = (pageWidth - finalWidth) / 2;
+                y = (pageHeight - finalHeight) / 2;
+            }
+        } else {
+            console.log('🔄 Usando scaling básico optimizado');
+            // Scaling básico optimizado - márgenes reducidos
+            const maxWidth = pageWidth - 15; // Margen reducido de 7.5mm por lado
+            const maxHeight = pageHeight - 15;
+            
+            if (finalWidth > maxWidth || finalHeight > maxHeight) {
+                const scaleW = maxWidth / finalWidth;
+                const scaleH = maxHeight / finalHeight;
+                const scale = Math.min(scaleW, scaleH);
+                
+                finalWidth *= scale;
+                finalHeight *= scale;
+                
+                console.log(`🔄 Contenido reescalado por factor ${scale.toFixed(3)} para optimizar espacio`);
+            }
+            
+            // Centrar en página
+            x = (pageWidth - finalWidth) / 2;
+            y = (pageHeight - finalHeight) / 2;
         }
+        
+        console.log(`📄 Dimensiones finales optimizadas: ${finalWidth.toFixed(1)}x${finalHeight.toFixed(1)}mm`);
+        console.log(`📄 Posición: x=${x.toFixed(1)}mm, y=${y.toFixed(1)}mm`);
 
-        // Add single image scaled to fit exactly on one page
+        // Insertar imagen optimizada en página única
         pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
         
-        console.log(`📄 PDF creado con 1 página - Optimizado para legibilidad`);
+        console.log(`📄 PDF optimizado creado - Reducción de espacio en blanco aplicada`);
+        console.log(`📦 Utilización de página: ${((finalWidth * finalHeight) / (pageWidth * pageHeight) * 100).toFixed(1)}%`);
         
         // Guardar PDF
         const fileName = `Recibo_${formData.receiptNumber}_${formData.clientName.replace(/\s+/g, '_')}.pdf`;
