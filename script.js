@@ -1163,32 +1163,42 @@ async function generatePDF() {
         const maxWidth = pageWidth - (margin * 2);
         const maxHeight = pageHeight - (margin * 2);
         
-        // Calculate original dimensions
-        const originalWidth = canvas.width;
-        const originalHeight = canvas.height;
-        const aspectRatio = originalWidth / originalHeight;
-        
-        // Calculate scaled dimensions to fit in one page
+        // Convert canvas dimensions from pixels to millimeters (CRITICAL FIX)
+        const canvasScale = 2; // html2canvas scale factor from canvasOptions
+        const pixelsPerMM = 3.7795275591; // 96 DPI standard conversion
+        const originalWidthMM = canvas.width / (canvasScale * pixelsPerMM);
+        const originalHeightMM = canvas.height / (canvasScale * pixelsPerMM);
+        const aspectRatio = originalWidthMM / originalHeightMM;
+
+        console.log(`📐 Canvas: ${canvas.width}x${canvas.height}px → ${originalWidthMM.toFixed(1)}x${originalHeightMM.toFixed(1)}mm`);
+        console.log(`📐 Aspect ratio: ${aspectRatio.toFixed(3)}`);
+
+        // Calculate scaled dimensions to fit in one page (all in MM)
         let finalWidth = maxWidth;
         let finalHeight = maxWidth / aspectRatio;
-        
+
         // If height is still too large, scale by height instead
         if (finalHeight > maxHeight) {
             finalHeight = maxHeight;
             finalWidth = maxHeight * aspectRatio;
         }
-        
+
         // Center the content on page
         const x = (pageWidth - finalWidth) / 2;
         const y = (pageHeight - finalHeight) / 2;
-        
-        console.log(`📏 Scaling: ${originalWidth}x${originalHeight} → ${Math.round(finalWidth)}x${Math.round(finalHeight)}mm`);
-        console.log(`📄 Position: x=${Math.round(x)}mm, y=${Math.round(y)}mm`);
-        
+
+        console.log(`📏 Final scaling: ${originalWidthMM.toFixed(1)}x${originalHeightMM.toFixed(1)}mm → ${finalWidth.toFixed(1)}x${finalHeight.toFixed(1)}mm`);
+        console.log(`📄 Position: x=${x.toFixed(1)}mm, y=${y.toFixed(1)}mm`);
+
+        // Verify dimensions fit on single page
+        if (finalWidth > maxWidth || finalHeight > maxHeight) {
+            console.error('❌ Calculated dimensions exceed page size!', {finalWidth, finalHeight, maxWidth, maxHeight});
+        }
+
         // Add single image scaled to fit exactly on one page
         pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
         
-        console.log(`📄 PDF creado con 1 página (contenido escalado para ajustar)`);
+        console.log(`📄 PDF creado con 1 página - Scaling factor: ${(finalHeight/originalHeightMM).toFixed(2)}x`);
         
         // Guardar PDF
         const fileName = `Recibo_${formData.receiptNumber}_${formData.clientName.replace(/\s+/g, '_')}.pdf`;
