@@ -3674,3 +3674,193 @@ input[type="file"]:hover {
         max-width: 100px;
     }
 }
+/* ============================================= */
+/* ESTILOS ESPECÍFICOS PARA GENERACIÓN DE PDF   */
+/* ============================================= */
+
+/* Contenedor principal para PDF con estilos optimizados para html2canvas */
+.pdf-content {
+    font-family: Arial, Helvetica, sans-serif !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+    line-height: 1.6 !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    width: 100% !important;
+    max-width: 800px !important;
+    margin: 0 auto !important;
+}
+
+.pdf-content * {
+    font-family: Arial, Helvetica, sans-serif !important;
+    color: inherit !important;
+    box-sizing: border-box !important;
+}
+
+/* Estilos específicos para elementos dentro del PDF */
+.pdf-content h1, 
+.pdf-content h2, 
+.pdf-content h3, 
+.pdf-content h4, 
+.pdf-content h5, 
+.pdf-content h6 {
+    font-family: Arial, Helvetica, sans-serif !important;
+    color: #1a1a1a !important;
+    font-weight: bold !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.pdf-content p {
+    font-family: Arial, Helvetica, sans-serif !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.6 !important;
+}
+
+.pdf-content table {
+    font-family: Arial, Helvetica, sans-serif !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    background: #ffffff !important;
+}
+
+.pdf-content th, 
+.pdf-content td {
+    font-family: Arial, Helvetica, sans-serif !important;
+    color: #000000 !important;
+    border: 1px solid #dddddd !important;
+    padding: 12px !important;
+    text-align: left !important;
+    background: #ffffff !important;
+}
+
+.pdf-content th {
+    background: #e9ecef !important;
+    font-weight: bold !important;
+    color: #000000 !important;
+}
+
+.pdf-content td {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* Estilos para imágenes en PDF */
+.pdf-content img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    border: none !important;
+    background: transparent !important;
+    object-fit: contain !important;
+}
+
+/* Elementos con colores específicos que deben mantenerse */
+.pdf-content .signature-label {
+    color: #666666 !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+}
+
+/* Asegurar que los fondos se rendericen correctamente */
+.pdf-content .receipt-header {
+    background: #ffffff !important;
+    border-bottom: 3px solid #D4AF37 !important;
+}
+
+.pdf-content .receipt-section {
+    background: #f8f9fa !important;
+    border-left: 4px solid #D4AF37 !important;
+}
+
+.pdf-content .financial-section {
+    background: #f8f9fa !important;
+    border: 2px solid #D4AF37 !important;
+}
+
+/* Estilos para firmas en PDF */
+.pdf-content .signature-container {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 20px !important;
+    margin-top: 40px !important;
+}
+
+.pdf-content .signature-box {
+    text-align: center !important;
+}
+
+.pdf-content .signature-line {
+    border-top: 2px solid #000000 !important;
+    margin-top: 60px !important;
+    padding-top: 10px !important;
+}
+
+/* Forzar renderizado de bordes en PDF */
+.pdf-content .with-border {
+    border: 1px solid #dddddd !important;
+}
+
+/* Asegurar que los colores dorados se mantengan */
+.pdf-content .gold-text {
+    color: #D4AF37 !important;
+}
+
+.pdf-content .gold-bg {
+    background: #D4AF37 !important;
+    color: #ffffff !important;
+}
+
+/* Optimizar flexbox para pdf */
+.pdf-content [style*="display: flex"] {
+    display: flex !important;
+}
+
+.pdf-content [style*="justify-content: space-between"] {
+    justify-content: space-between !important;
+}
+
+.pdf-content [style*="align-items: center"] {
+    align-items: center !important;
+}
+
+/* Optimizar grid para pdf */
+.pdf-content [style*="display: grid"] {
+    display: grid !important;
+}
+
+.pdf-content [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+}
+
+/* Optimizaciones para rendering en html2canvas */
+.pdf-content {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    -webkit-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+}
+
+/* Asegurar que elementos con border se rendericen bien */
+.pdf-content [style*="border:"],
+.pdf-content [style*="border-bottom:"],
+.pdf-content [style*="border-top:"],
+.pdf-content [style*="border-left:"],
+.pdf-content [style*="border-right:"] {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+}
+
+/* Estilos para debugging - temporal */
+.pdf-content.debug {
+    border: 2px solid red !important;
+}
+
+.pdf-content.debug * {
+    border: 1px solid blue !important;
+}
