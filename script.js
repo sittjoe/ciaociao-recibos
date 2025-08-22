@@ -716,194 +716,204 @@ function generateReceiptHTML() {
             `;
         }
         
-        // PDF-FIRST DESIGN: HTML con fuentes de tamaño de impresión (300 DPI)
+        // PDF-FIRST DESIGN: HTML LANDSCAPE con layout de dos columnas (300 DPI)
         const html = `
-            <div style="width: 100%; margin: 0; padding: 60px; font-family: Arial, Helvetica, sans-serif; color: #000000; background: #ffffff;">
-                <!-- Header del recibo (tamaño de impresión) -->
-                <div style="text-align: center; margin-bottom: 80px; padding: 40px; border-bottom: 8px solid #D4AF37; background: #ffffff;">
+            <div style="width: 100%; margin: 0; padding: 40px; font-family: Arial, Helvetica, sans-serif; color: #000000; background: #ffffff;">
+                <!-- Header del recibo (span completo) -->
+                <div style="text-align: center; margin-bottom: 40px; padding: 30px; border-bottom: 6px solid #D4AF37; background: #ffffff;">
                     <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" 
                          alt="ciaociao.mx" 
                          crossorigin="anonymous"
-                         style="max-width: 400px; margin-bottom: 30px; display: block; margin-left: auto; margin-right: auto;">
-                    <h2 style="font-size: 72px; margin: 30px 0; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">RECIBO</h2>
-                    <div style="margin: 20px 0; line-height: 1.4;">
-                        <p style="font-size: 44px; margin: 12px 0; font-weight: 600; color: #1a1a1a; font-family: Arial, sans-serif;">ciaociao.mx - Fine Jewelry</p>
-                        <p style="font-size: 40px; margin: 12px 0; color: #1a1a1a; font-family: Arial, sans-serif;">Tel: +52 1 55 9211 2643</p>
+                         style="max-width: 300px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+                    <h2 style="font-size: 48px; margin: 20px 0; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">RECIBO</h2>
+                    <div style="margin: 15px 0; line-height: 1.4;">
+                        <p style="font-size: 32px; margin: 8px 0; font-weight: 600; color: #1a1a1a; font-family: Arial, sans-serif;">ciaociao.mx - Fine Jewelry</p>
+                        <p style="font-size: 28px; margin: 8px 0; color: #1a1a1a; font-family: Arial, sans-serif;">Tel: +52 1 55 9211 2643</p>
                     </div>
-                    <div style="font-size: 48px; font-weight: bold; background: #D4AF37; color: #ffffff; padding: 20px 40px; border-radius: 12px; display: inline-block; margin-top: 20px; font-family: Arial, sans-serif;">No. ${formData.receiptNumber}</div>
+                    <div style="font-size: 36px; font-weight: bold; background: #D4AF37; color: #ffffff; padding: 15px 30px; border-radius: 8px; display: inline-block; margin-top: 15px; font-family: Arial, sans-serif;">No. ${formData.receiptNumber}</div>
                 </div>
                 
-                <!-- Información General (tamaño de impresión) -->
-                <div style="margin-bottom: 60px; padding: 40px; background: #f8f9fa; border-radius: 20px; border-left: 12px solid #D4AF37;">
-                    <h3 style="font-size: 56px; margin-bottom: 30px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información General</h3>
-                    <div style="margin: 0; line-height: 2; font-family: Arial, sans-serif;">
-                        <div style="margin-bottom: 8px;">
-                            <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Fecha:</span>
-                            <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatDate(formData.receiptDate)}</span>
+                <!-- Layout de dos columnas -->
+                <div style="display: flex; gap: 30px; align-items: flex-start;">
+                
+                    <!-- COLUMNA IZQUIERDA (40%) -->
+                    <div style="flex: 0 0 40%; padding-right: 20px;">
+                        <!-- Información General -->
+                        <div style="margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 8px solid #D4AF37;">
+                            <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información General</h3>
+                            <div style="margin: 0; line-height: 1.6; font-size: 28px; font-family: Arial, sans-serif;">
+                                <div style="margin-bottom: 12px;">
+                                    <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Fecha:</span>
+                                    <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatDate(formData.receiptDate)}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Tipo:</span>
+                                    <span style="color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.transactionType)}</span>
+                                </div>
+                                ${formData.deliveryDate ? `
+                                    <div style="margin-bottom: 12px;">
+                                        <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Entrega:</span>
+                                        <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatDate(formData.deliveryDate)}</span>
+                                    </div>
+                                ` : ''}
+                                ${formData.orderNumber ? `
+                                    <div style="margin-bottom: 12px;">
+                                        <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nº Pedido:</span>
+                                        <span style="color: #000000; font-family: Arial, sans-serif;">${formData.orderNumber}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
-                        <div style="margin-bottom: 8px;">
-                            <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Tipo de Transacción:</span>
-                            <span style="color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.transactionType)}</span>
+                
+                        <!-- Datos del Cliente -->
+                        <div style="margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 8px solid #D4AF37;">
+                            <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Datos del Cliente</h3>
+                            <div style="margin: 0; line-height: 1.6; font-size: 28px; font-family: Arial, sans-serif;">
+                                <div style="margin-bottom: 12px;">
+                                    <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nombre:</span>
+                                    <span style="color: #000000; font-family: Arial, sans-serif;">${formData.clientName}</span>
+                                </div>
+                                <div style="margin-bottom: 12px;">
+                                    <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Teléfono:</span>
+                                    <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatPhone(formData.clientPhone)}</span>
+                                </div>
+                                ${formData.clientEmail ? `
+                                    <div style="margin-bottom: 12px;">
+                                        <span style="display: inline-block; width: 180px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Email:</span>
+                                        <span style="color: #000000; font-family: Arial, sans-serif;">${formData.clientEmail}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
                         </div>
-                        ${formData.deliveryDate ? `
-                            <div style="margin-bottom: 8px;">
-                                <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Fecha de Entrega:</span>
-                                <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatDate(formData.deliveryDate)}</span>
+                
+                        <!-- Detalles de la Pieza -->
+                        <div style="padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 8px solid #D4AF37;">
+                            <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Detalles de la Pieza</h3>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 24px; font-family: Arial, sans-serif;">
+                                <tr>
+                                    <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Tipo</th>
+                                    <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.pieceType)}</td>
+                                </tr>
+                                <tr>
+                                    <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Material</th>
+                                    <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.material.replace('-', ' ').toUpperCase()}</td>
+                                </tr>
+                                ${formData.weight ? `
+                                    <tr>
+                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Peso</th>
+                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.weight} gramos</td>
+                                    </tr>
+                                ` : ''}
+                                ${formData.size ? `
+                                    <tr>
+                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Talla</th>
+                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.size}</td>
+                                    </tr>
+                                ` : ''}
+                                ${formData.sku ? `
+                                    <tr>
+                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">SKU</th>
+                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.sku}</td>
+                                    </tr>
+                                ` : ''}
+                                ${formData.stones ? `
+                                    <tr>
+                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Piedras</th>
+                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.stones}</td>
+                                    </tr>
+                                ` : ''}
+                                ${formData.description ? `
+                                    <tr>
+                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Descripción</th>
+                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.description}</td>
+                                    </tr>
+                                ` : ''}
+                                ${formData.pieceCondition ? `
+                                    <tr>
+                                        <th style="padding: 15px; border: 2px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 150px; color: #000000; font-family: Arial, sans-serif;">Estado</th>
+                                        <td style="padding: 15px; border: 2px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.pieceCondition}</td>
+                                    </tr>
+                                ` : ''}
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- COLUMNA DERECHA (60%) -->
+                    <div style="flex: 0 0 60%; padding-left: 20px;">
+                        <!-- Información Financiera -->
+                        <div style="margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border: 2px solid #D4AF37;">
+                            <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información Financiera</h3>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #dddddd; font-size: 32px; font-family: Arial, sans-serif;">
+                                <span style="font-weight: bold; color: #000000;">Precio Base:</span>
+                                <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.price)}</span>
+                            </div>
+                            ${formData.contribution > 0 ? `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #dddddd; font-size: 32px; font-family: Arial, sans-serif;">
+                                    <span style="font-weight: bold; color: #000000;">Aportación:</span>
+                                    <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.contribution)}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #dddddd; font-size: 32px; font-family: Arial, sans-serif;">
+                                    <span style="font-weight: bold; color: #000000;">Subtotal:</span>
+                                    <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.subtotal)}</span>
+                                </div>
+                            ` : ''}
+                            ${formData.deposit > 0 ? `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 2px solid #dddddd; font-size: 32px; font-family: Arial, sans-serif;">
+                                    <span style="font-weight: bold; color: #000000;">Anticipo:</span>
+                                    <span style="font-weight: bold; color: #28a745;">${utils.formatCurrency(formData.deposit)}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff3cd; border-radius: 10px; margin-top: 15px; font-size: 36px; font-family: Arial, sans-serif;">
+                                    <span style="font-weight: bold; color: #000000;">Saldo Pendiente:</span>
+                                    <span style="font-weight: bold; color: #dc3545;">${utils.formatCurrency(formData.balance)}</span>
+                                </div>
+                            ` : `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #d1edff; border-radius: 10px; margin-top: 15px; font-size: 36px; font-family: Arial, sans-serif;">
+                                    <span style="font-weight: bold; color: #000000;">Total:</span>
+                                    <span style="font-weight: bold; color: #007bff;">${utils.formatCurrency(formData.subtotal || formData.price)}</span>
+                                </div>
+                            `}
+                        </div>
+                        
+                        <!-- Imágenes -->
+                        ${imagesHTML}
+                        
+                        <!-- Observaciones -->
+                        ${formData.observations ? `
+                            <div style="margin-bottom: 40px; padding: 30px; background: #f8f9fa; border-radius: 15px; border-left: 8px solid #D4AF37;">
+                                <h3 style="font-size: 36px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Observaciones</h3>
+                                <p style="font-size: 28px; margin: 0; color: #000000; line-height: 1.6; font-family: Arial, sans-serif;">${formData.observations}</p>
                             </div>
                         ` : ''}
-                        ${formData.orderNumber ? `
-                            <div style="margin-bottom: 8px;">
-                                <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Número de Pedido:</span>
-                                <span style="color: #000000; font-family: Arial, sans-serif;">${formData.orderNumber}</span>
+                        
+                        <!-- Sección de Firmas -->
+                        <div style="display: flex; gap: 30px; margin-top: 40px; font-family: Arial, sans-serif;">
+                            <div style="flex: 1; text-align: center;">
+                                ${formData.signature ? 
+                                    `<img src="${formData.signature}" style="max-width: 300px; height: 120px; border: 2px solid #dddddd; background: #ffffff; border-radius: 8px;">` : 
+                                    '<div style="width: 300px; height: 120px; border: 2px solid #dddddd; background: #ffffff; border-radius: 8px; margin: 0 auto;"></div>'
+                                }
+                                <div style="border-top: 3px solid #000000; margin-top: 40px; padding-top: 15px;">
+                                    <div style="font-size: 28px; color: #666666; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; font-family: Arial, sans-serif;">Firma del Cliente</div>
+                                </div>
                             </div>
-                        ` : ''}
-                    </div>
-                </div>
-                
-                <!-- Datos del Cliente (tamaño de impresión) -->
-                <div style="margin-bottom: 60px; padding: 40px; background: #f8f9fa; border-radius: 20px; border-left: 12px solid #D4AF37;">
-                    <h3 style="font-size: 56px; margin-bottom: 30px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Datos del Cliente</h3>
-                    <div style="margin: 0; line-height: 2; font-family: Arial, sans-serif;">
-                        <div style="margin-bottom: 8px;">
-                            <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nombre:</span>
-                            <span style="color: #000000; font-family: Arial, sans-serif;">${formData.clientName}</span>
-                        </div>
-                        <div style="margin-bottom: 8px;">
-                            <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Teléfono:</span>
-                            <span style="color: #000000; font-family: Arial, sans-serif;">${utils.formatPhone(formData.clientPhone)}</span>
-                        </div>
-                        ${formData.clientEmail ? `
-                            <div style="margin-bottom: 8px;">
-                                <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Email:</span>
-                                <span style="color: #000000; font-family: Arial, sans-serif;">${formData.clientEmail}</span>
+                            <div style="flex: 1; text-align: center;">
+                                ${formData.companySignature ? 
+                                    `<img src="${formData.companySignature}" style="max-width: 300px; height: 120px; border: 2px solid #dddddd; background: #ffffff; border-radius: 8px;">` : 
+                                    '<div style="width: 300px; height: 120px; border: 2px solid #dddddd; background: #ffffff; border-radius: 8px; margin: 0 auto;"></div>'
+                                }
+                                <div style="border-top: 3px solid #000000; margin-top: 40px; padding-top: 15px;">
+                                    <div style="font-size: 28px; color: #666666; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; font-family: Arial, sans-serif;">CIAOCIAO.MX</div>
+                                </div>
                             </div>
-                        ` : ''}
-                    </div>
-                </div>
-                
-                <!-- Detalles de la Pieza (compacto) -->
-                <div style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #D4AF37;">
-                    <h3 style="font-size: 12px; margin-bottom: 5px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Detalles de la Pieza</h3>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-family: Arial, sans-serif;">
-                        <tr>
-                            <th style="padding: 6px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 120px; color: #000000; font-family: Arial, sans-serif;">Tipo</th>
-                            <td style="padding: 6px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.pieceType)}</td>
-                        </tr>
-                        <tr>
-                            <th style="padding: 6px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 120px; color: #000000; font-family: Arial, sans-serif;">Material</th>
-                            <td style="padding: 6px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.material.replace('-', ' ').toUpperCase()}</td>
-                        </tr>
-                        ${formData.weight ? `
-                            <tr>
-                                <th style="padding: 12px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px; color: #000000; font-family: Arial, sans-serif;">Peso</th>
-                                <td style="padding: 12px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.weight} gramos</td>
-                            </tr>
-                        ` : ''}
-                        ${formData.size ? `
-                            <tr>
-                                <th style="padding: 12px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px; color: #000000; font-family: Arial, sans-serif;">Talla/Medida</th>
-                                <td style="padding: 12px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.size}</td>
-                            </tr>
-                        ` : ''}
-                        ${formData.sku ? `
-                            <tr>
-                                <th style="padding: 12px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px; color: #000000; font-family: Arial, sans-serif;">SKU/Código</th>
-                                <td style="padding: 12px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.sku}</td>
-                            </tr>
-                        ` : ''}
-                        ${formData.stones ? `
-                            <tr>
-                                <th style="padding: 12px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px; color: #000000; font-family: Arial, sans-serif;">Piedras</th>
-                                <td style="padding: 12px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.stones}</td>
-                            </tr>
-                        ` : ''}
-                        ${formData.description ? `
-                            <tr>
-                                <th style="padding: 12px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px; color: #000000; font-family: Arial, sans-serif;">Descripción</th>
-                                <td style="padding: 12px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.description}</td>
-                            </tr>
-                        ` : ''}
-                        ${formData.pieceCondition ? `
-                            <tr>
-                                <th style="padding: 12px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px; color: #000000; font-family: Arial, sans-serif;">Estado/Reparación</th>
-                                <td style="padding: 12px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.pieceCondition}</td>
-                            </tr>
-                        ` : ''}
-                    </table>
-                </div>
-                
-                <!-- Imágenes -->
-                ${imagesHTML}
-                
-                <!-- Observaciones -->
-                ${formData.observations ? `
-                    <div style="margin: 30px 0; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                        <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Observaciones</h3>
-                        <p style="color: #000000; font-family: Arial, sans-serif; line-height: 1.6; margin: 0;">${formData.observations}</p>
-                    </div>
-                ` : ''}
-                
-                <!-- Información Financiera -->
-                <div style="margin: 30px 0; padding: 25px; background: #f8f9fa; border-radius: 10px; border: 2px solid #D4AF37;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dddddd; font-size: 16px; font-family: Arial, sans-serif;">
-                        <span style="font-weight: bold; color: #000000;">Precio Base:</span>
-                        <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.price)}</span>
-                    </div>
-                    ${formData.contribution > 0 ? `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dddddd; font-size: 16px; font-family: Arial, sans-serif;">
-                            <span style="font-weight: bold; color: #000000;">Aportación:</span>
-                            <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.contribution)}</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dddddd; font-size: 16px; font-family: Arial, sans-serif;">
-                            <span style="font-weight: bold; color: #000000;">Subtotal:</span>
-                            <span style="font-weight: bold; color: #D4AF37;">${utils.formatCurrency(formData.subtotal)}</span>
-                        </div>
-                    ` : ''}
-                    ${formData.deposit > 0 ? `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #dddddd; font-size: 16px; font-family: Arial, sans-serif;">
-                            <span style="font-weight: bold; color: #000000;">Anticipo:</span>
-                            <span style="font-weight: bold; color: #28a745;">${utils.formatCurrency(formData.deposit)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; background: #fff3cd; border-radius: 5px; margin-top: 10px; font-size: 18px; font-family: Arial, sans-serif;">
-                            <span style="font-weight: bold; margin-left: 10px; color: #000000;">Saldo Pendiente:</span>
-                            <span style="font-weight: bold; color: #dc3545; margin-right: 10px;">${utils.formatCurrency(formData.balance)}</span>
-                        </div>
-                    ` : ''}
-                    ${formData.paymentMethod ? `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; margin-top: 10px; font-size: 16px; font-family: Arial, sans-serif;">
-                            <span style="font-weight: bold; color: #000000;">Método de Pago:</span>
-                            <span style="font-weight: bold; color: #000000;">${utils.capitalize(formData.paymentMethod)}</span>
-                        </div>
-                    ` : ''}
-                </div>
-                
-                <!-- Sección de Firmas -->
-                <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-family: Arial, sans-serif;">
-                    <div style="text-align: center;">
-                        ${formData.signature ? 
-                            `<img src="${formData.signature}" style="max-width: 200px; height: 80px; border: 1px solid #dddddd; background: #ffffff;">` : 
-                            '<div style="height: 80px; border: 1px solid #dddddd; background: #ffffff;"></div>'
-                        }
-                        <div style="border-top: 2px solid #000000; margin-top: 60px; padding-top: 10px;">
-                            <div style="font-size: 14px; color: #666666; text-transform: uppercase; letter-spacing: 1px; font-family: Arial, sans-serif;">Firma del Cliente</div>
+                        
+                        <!-- Términos y Condiciones -->
+                        <div style="margin-top: 40px; padding: 30px; border-top: 2px solid #dddddd; font-family: Arial, sans-serif;">
+                            <p style="font-weight: bold; margin-bottom: 20px; color: #000000; font-size: 32px; font-family: Arial, sans-serif;">TÉRMINOS Y CONDICIONES</p>
+                            <div style="font-size: 24px; color: #000000; line-height: 1.5; font-family: Arial, sans-serif;">${getTermsAndConditions(formData)}</div>
+                            <p style="margin-top: 30px; text-align: center; color: #D4AF37; font-weight: bold; font-size: 32px; font-family: Arial, sans-serif;">Gracias por su preferencia - ciaociao.mx</p>
                         </div>
                     </div>
-                    <div style="text-align: center;">
-                        ${formData.companySignature ? 
-                            `<img src="${formData.companySignature}" style="max-width: 200px; height: 80px; border: 1px solid #dddddd; background: #ffffff;">` : 
-                            '<div style="height: 80px; border: 1px solid #dddddd; background: #ffffff;"></div>'
-                        }
-                        <div style="border-top: 2px solid #000000; margin-top: 60px; padding-top: 10px;">
-                            <div style="font-size: 14px; color: #666666; text-transform: uppercase; letter-spacing: 1px; font-family: Arial, sans-serif;">CIAOCIAO.MX</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Footer con términos condicionales -->
-                <div style="margin-top: 30px; padding: 15px; border-top: 1px solid #dddddd; font-family: Arial, sans-serif;">
-                    <p style="font-weight: bold; margin-bottom: 10px; color: #000000; font-family: Arial, sans-serif;">TÉRMINOS Y CONDICIONES</p>
-                    ${getTermsAndConditions(formData)}
-                    <p style="margin-top: 15px; text-align: center; color: #D4AF37; font-weight: bold; font-family: Arial, sans-serif;">Gracias por su preferencia - ciaociao.mx</p>
                 </div>
             </div>
         `;
@@ -920,10 +930,10 @@ async function generatePDF() {
     try {
         console.log('🔄 Iniciando generación de PDF...');
         
-        // PDF-FIRST DESIGN: Dimensiones A4 en resolución de impresión (300 DPI)
+        // PDF-FIRST DESIGN: Dimensiones A4 LANDSCAPE en resolución de impresión (300 DPI)
         const PDF_PRINT_DPI = 300;
-        const A4_WIDTH_MM = 210;
-        const A4_HEIGHT_MM = 297;
+        const A4_WIDTH_MM = 297;  // Landscape: más ancho
+        const A4_HEIGHT_MM = 210; // Landscape: más bajo
         const MARGIN_MM = 10;
         
         // Convertir a pixels para resolución de impresión
@@ -1160,9 +1170,9 @@ async function generatePDF() {
         
         console.log('📄 Creando PDF con jsPDF...');
         
-        // Crear PDF
+        // Crear PDF en orientación horizontal (landscape)
         const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jsPDF('l', 'mm', 'a4');
         
         // Convertir canvas a imagen con máxima calidad
         const imgData = canvas.toDataURL('image/png', 1.0);
@@ -1172,9 +1182,9 @@ async function generatePDF() {
             throw new Error('Los datos de imagen están vacíos o corruptos');
         }
         
-        // PDF-FIRST DESIGN: Inserción directa 1:1 sin escalado complejo
-        const pageWidth = 210;  // A4 width in mm
-        const pageHeight = 297; // A4 height in mm
+        // PDF-FIRST DESIGN: Inserción directa 1:1 sin escalado complejo - LANDSCAPE
+        const pageWidth = 297;  // A4 LANDSCAPE width in mm (más ancho)
+        const pageHeight = 210; // A4 LANDSCAPE height in mm (más bajo)
         
         // Conversión directa: 300 DPI a mm (11.811 px/mm)
         const PX_TO_MM_300DPI = 25.4 / PDF_PRINT_DPI; // 0.0847 mm/px at 300 DPI
