@@ -716,26 +716,26 @@ function generateReceiptHTML() {
             `;
         }
         
-        // Generar HTML optimizado para html2canvas con estilos inline completos
+        // Generar HTML optimizado para single-page PDF con espaciado reducido
         const html = `
-            <div style="width: 100%; max-width: 800px; margin: 0 auto; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #000000; background: #ffffff;">
-                <!-- Header del recibo -->
-                <div style="text-align: center; margin-bottom: 30px; padding: 20px; border-bottom: 3px solid #D4AF37; background: #ffffff;">
+            <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #000000; background: #ffffff;">
+                <!-- Header del recibo (compacto) -->
+                <div style="text-align: center; margin-bottom: 10px; padding: 8px; border-bottom: 2px solid #D4AF37; background: #ffffff;">
                     <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" 
                          alt="ciaociao.mx" 
                          crossorigin="anonymous"
-                         style="max-width: 180px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
-                    <h2 style="font-size: 24px; margin: 15px 0; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">RECIBO</h2>
-                    <div style="margin: 10px 0; line-height: 1.6;">
-                        <p style="font-size: 16px; margin: 5px 0; font-weight: 600; color: #1a1a1a; font-family: Arial, sans-serif;">ciaociao.mx - Fine Jewelry</p>
-                        <p style="font-size: 14px; margin: 5px 0; color: #1a1a1a; font-family: Arial, sans-serif;">Tel: +52 1 55 9211 2643</p>
+                         style="max-width: 120px; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
+                    <h2 style="font-size: 16px; margin: 5px 0; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">RECIBO</h2>
+                    <div style="margin: 5px 0; line-height: 1.2;">
+                        <p style="font-size: 11px; margin: 2px 0; font-weight: 600; color: #1a1a1a; font-family: Arial, sans-serif;">ciaociao.mx - Fine Jewelry</p>
+                        <p style="font-size: 10px; margin: 2px 0; color: #1a1a1a; font-family: Arial, sans-serif;">Tel: +52 1 55 9211 2643</p>
                     </div>
-                    <div style="font-size: 18px; font-weight: bold; background: #D4AF37; color: #ffffff; padding: 8px 16px; border-radius: 5px; display: inline-block; margin-top: 10px; font-family: Arial, sans-serif;">No. ${formData.receiptNumber}</div>
+                    <div style="font-size: 12px; font-weight: bold; background: #D4AF37; color: #ffffff; padding: 4px 8px; border-radius: 3px; display: inline-block; margin-top: 5px; font-family: Arial, sans-serif;">No. ${formData.receiptNumber}</div>
                 </div>
                 
-                <!-- Información General -->
-                <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                    <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información General</h3>
+                <!-- Información General (compacto) -->
+                <div style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #D4AF37;">
+                    <h3 style="font-size: 12px; margin-bottom: 5px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información General</h3>
                     <div style="margin: 0; line-height: 2; font-family: Arial, sans-serif;">
                         <div style="margin-bottom: 8px;">
                             <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Fecha:</span>
@@ -760,9 +760,9 @@ function generateReceiptHTML() {
                     </div>
                 </div>
                 
-                <!-- Datos del Cliente -->
-                <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                    <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Datos del Cliente</h3>
+                <!-- Datos del Cliente (compacto) -->
+                <div style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #D4AF37;">
+                    <h3 style="font-size: 12px; margin-bottom: 5px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Datos del Cliente</h3>
                     <div style="margin: 0; line-height: 2; font-family: Arial, sans-serif;">
                         <div style="margin-bottom: 8px;">
                             <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nombre:</span>
@@ -781,17 +781,17 @@ function generateReceiptHTML() {
                     </div>
                 </div>
                 
-                <!-- Detalles de la Pieza -->
-                <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #D4AF37;">
-                    <h3 style="font-size: 18px; margin-bottom: 15px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Detalles de la Pieza</h3>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 15px; font-family: Arial, sans-serif;">
+                <!-- Detalles de la Pieza (compacto) -->
+                <div style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #D4AF37;">
+                    <h3 style="font-size: 12px; margin-bottom: 5px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Detalles de la Pieza</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-family: Arial, sans-serif;">
                         <tr>
-                            <th style="padding: 12px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px; color: #000000; font-family: Arial, sans-serif;">Tipo</th>
-                            <td style="padding: 12px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.pieceType)}</td>
+                            <th style="padding: 6px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 120px; color: #000000; font-family: Arial, sans-serif;">Tipo</th>
+                            <td style="padding: 6px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${utils.capitalize(formData.pieceType)}</td>
                         </tr>
                         <tr>
-                            <th style="padding: 12px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 140px; color: #000000; font-family: Arial, sans-serif;">Material</th>
-                            <td style="padding: 12px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.material.replace('-', ' ').toUpperCase()}</td>
+                            <th style="padding: 6px; border: 1px solid #dddddd; background: #e9ecef; font-weight: bold; text-align: left; width: 120px; color: #000000; font-family: Arial, sans-serif;">Material</th>
+                            <td style="padding: 6px; border: 1px solid #dddddd; background: #ffffff; color: #000000; font-family: Arial, sans-serif;">${formData.material.replace('-', ' ').toUpperCase()}</td>
                         </tr>
                         ${formData.weight ? `
                             <tr>
@@ -958,17 +958,17 @@ async function generatePDF() {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = generateReceiptHTML();
         
-        // Configuración mejorada del contenedor temporal
+        // Configuración optimizada para mejor calidad en PDF single-page
         tempDiv.style.cssText = `
             position: absolute !important;
             left: -9999px !important;
             top: 0 !important;
-            width: 900px !important;
-            min-height: 800px !important;
+            width: 600px !important;
+            min-height: 600px !important;
             background: #ffffff !important;
-            padding: 60px !important;
-            font-size: 16px !important;
-            line-height: 1.8 !important;
+            padding: 25px !important;
+            font-size: 11px !important;
+            line-height: 1.3 !important;
             font-family: 'Arial', 'Helvetica', sans-serif !important;
             color: #000000 !important;
             box-sizing: border-box !important;
@@ -1183,22 +1183,39 @@ async function generatePDF() {
             finalWidth = maxHeight * aspectRatio;
         }
 
+        // OPTIMIZATION: Ensure content is not over-scaled (maintain readability)
+        const scaleFactor = finalHeight / originalHeightMM;
+        const MIN_SCALE = 0.5; // Don't scale below 50% to maintain readability
+        const MAX_SCALE = 1.2; // Don't scale up more than 120% to avoid pixelation
+        
+        if (scaleFactor < MIN_SCALE) {
+            console.warn(`⚠️ Content requires excessive scaling (${scaleFactor.toFixed(2)}x). Applying minimum scale.`);
+            // Apply minimum scale and let content overflow if needed
+            finalWidth = originalWidthMM * MIN_SCALE;
+            finalHeight = originalHeightMM * MIN_SCALE;
+        } else if (scaleFactor > MAX_SCALE) {
+            console.log(`📊 Limiting upscaling to ${MAX_SCALE}x to avoid pixelation`);
+            finalWidth = Math.min(originalWidthMM * MAX_SCALE, maxWidth);
+            finalHeight = Math.min(originalHeightMM * MAX_SCALE, maxHeight);
+        }
+
         // Center the content on page
         const x = (pageWidth - finalWidth) / 2;
         const y = (pageHeight - finalHeight) / 2;
 
         console.log(`📏 Final scaling: ${originalWidthMM.toFixed(1)}x${originalHeightMM.toFixed(1)}mm → ${finalWidth.toFixed(1)}x${finalHeight.toFixed(1)}mm`);
         console.log(`📄 Position: x=${x.toFixed(1)}mm, y=${y.toFixed(1)}mm`);
+        console.log(`🔍 Scale factor: ${(finalHeight/originalHeightMM).toFixed(2)}x`);
 
         // Verify dimensions fit on single page
         if (finalWidth > maxWidth || finalHeight > maxHeight) {
-            console.error('❌ Calculated dimensions exceed page size!', {finalWidth, finalHeight, maxWidth, maxHeight});
+            console.warn('⚠️ Content may exceed page boundaries for readability', {finalWidth, finalHeight, maxWidth, maxHeight});
         }
 
         // Add single image scaled to fit exactly on one page
         pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
         
-        console.log(`📄 PDF creado con 1 página - Scaling factor: ${(finalHeight/originalHeightMM).toFixed(2)}x`);
+        console.log(`📄 PDF creado con 1 página - Optimizado para legibilidad`);
         
         // Guardar PDF
         const fileName = `Recibo_${formData.receiptNumber}_${formData.clientName.replace(/\s+/g, '_')}.pdf`;

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Scaling Test - Context7 Framework</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .control-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .control-group input, .control-group select, .control-group textarea {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .control-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #5a6fd8;
+        }
+        .button.secondary {
+            background: #6c757d;
+        }
+        .button.success {
+            background: #28a745;
+        }
+        .button.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .algorithm-result {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            background: white;
+            border-radius: 0 5px 5px 0;
+        }
+        .algorithm-result.best {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .algorithm-result h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+        }
+        .metric {
+            display: flex;
+            justify-content: space-between;
+        }
+        .metric strong {
+            color: #667eea;
+        }
+        .preview-area {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+            min-height: 200px;
+            background: white;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 PDF Scaling Test Suite</h1>
+            <p>Context7 Framework - Advanced Scaling Algorithm Testing</p>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Test Content Configuration</h2>
+            <div class="test-controls">
+                <div class="control-group">
+                    <label for="clientName">Client Name:</label>
+                    <input type="text" id="clientName" value="Veronica Mancilla gonzalez" placeholder="Enter client name">
+                </div>
+                <div class="control-group">
+                    <label for="clientPhone">Phone:</label>
+                    <input type="text" id="clientPhone" value="55 2690 5104" placeholder="Phone number">
+                </div>
+                <div class="control-group">
+                    <label for="clientEmail">Email:</label>
+                    <input type="email" id="clientEmail" value="vermango13@yahoo.com.mx" placeholder="Email address">
+                </div>
+                <div class="control-group">
+                    <label for="pieceType">Piece Type:</label>
+                    <select id="pieceType">
+                        <option value="anillo">Anillo</option>
+                        <option value="pulsera" selected>Pulsera</option>
+                        <option value="collar">Collar</option>
+                        <option value="aretes">Aretes</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="material">Material:</label>
+                    <select id="material">
+                        <option value="oro-10k">Oro 10K</option>
+                        <option value="oro-14k" selected>Oro 14K</option>
+                        <option value="oro-18k">Oro 18K</option>
+                        <option value="plata-925">Plata 925</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="weight">Weight (grams):</label>
+                    <input type="number" id="weight" value="9" step="0.1" placeholder="Weight">
+                </div>
+                <div class="control-group">
+                    <label for="price">Price:</label>
+                    <input type="number" id="price" value="39150" placeholder="Price">
+                </div>
+                <div class="control-group">
+                    <label for="contribution">Contribution:</label>
+                    <input type="number" id="contribution" value="39150" placeholder="Contribution">
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="stones">Stones Description:</label>
+                <textarea id="stones" placeholder="Enter stones description">ZAFIRO 5.15 cts</textarea>
+            </div>
+            <div class="control-group">
+                <label for="description">Description:</label>
+                <textarea id="description" placeholder="Enter detailed description">Oro Blanco</textarea>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📐 Content Dimensions Override</h2>
+            <div class="test-controls">
+                <div class="control-group">
+                    <label for="contentWidth">Content Width (px):</label>
+                    <input type="number" id="contentWidth" value="900" placeholder="Width in pixels">
+                </div>
+                <div class="control-group">
+                    <label for="contentHeight">Content Height (px):</label>
+                    <input type="number" id="contentHeight" value="1200" placeholder="Height in pixels">
+                </div>
+                <div class="control-group">
+                    <label for="testScenario">Test Scenario:</label>
+                    <select id="testScenario" onchange="loadTestScenario()">
+                        <option value="custom">Custom</option>
+                        <option value="veronica">Veronica Case</option>
+                        <option value="short">Short Content</option>
+                        <option value="normal">Normal Content</option>
+                        <option value="long">Long Content</option>
+                        <option value="very_long">Very Long Content</option>
+                        <option value="wide">Wide Content</option>
+                        <option value="tall">Tall Content</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Scaling Algorithm Testing</h2>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button class="button" onclick="testCurrentScaling()">Test Current Algorithm</button>
+                <button class="button success" onclick="testAllAlgorithms()">Test All Algorithms</button>
+                <button class="button secondary" onclick="generatePreview()">Generate Preview</button>
+                <button class="button warning" onclick="clearResults()">Clear Results</button>
+            </div>
+            
+            <div id="results" class="results" style="display: none;">
+                <h3>🎯 Scaling Results</h3>
+                <div id="algorithmsResults"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>👁️ Content Preview</h2>
+            <div id="previewArea" class="preview-area">
+                <p style="text-align: center; color: #666;">Click "Generate Preview" to see content preview</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Debug Log</h2>
+            <div id="debugLog" class="log">Welcome to PDF Scaling Test Suite - Context7 Framework
+Ready for testing...</div>
+        </div>
+    </div>
+
+    <!-- Include our improved scaling algorithm -->
+    <script src="improved-pdf-scaling.js"></script>
+    
+    <script>
+        // Test scenarios configuration
+        const testScenarios = {
+            veronica: { width: 900, height: 1200, description: "Veronica Mancilla case" },
+            short: { width: 600, height: 400, description: "Short content" },
+            normal: { width: 800, height: 1000, description: "Normal receipt size" },
+            long: { width: 900, height: 1800, description: "Long content with details" },
+            very_long: { width: 900, height: 2400, description: "Very long content" },
+            wide: { width: 1400, height: 800, description: "Very wide content" },
+            tall: { width: 600, height: 2000, description: "Very tall content" }
+        };
+
+        function log(message, data = null) {
+            const timestamp = new Date().toISOString().substring(11, 19);
+            const logElement = document.getElementById('debugLog');
+            const logEntry = `[${timestamp}] ${message}${data ? '\n' + JSON.stringify(data, null, 2) : ''}`;
+            logElement.textContent += '\n' + logEntry;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message, data);
+        }
+
+        function loadTestScenario() {
+            const scenario = document.getElementById('testScenario').value;
+            if (scenario !== 'custom' && testScenarios[scenario]) {
+                const config = testScenarios[scenario];
+                document.getElementById('contentWidth').value = config.width;
+                document.getElementById('contentHeight').value = config.height;
+                log(`Loaded test scenario: ${scenario}`, config);
+            }
+        }
+
+        function getContentMetadata() {
+            const clientName = document.getElementById('clientName').value;
+            const stones = document.getElementById('stones').value;
+            const description = document.getElementById('description').value;
+            
+            return {
+                textLength: (clientName + stones + description).length,
+                imageCount: 1, // Assume logo
+                clientNameLength: clientName.length,
+                descriptionLength: description.length,
+                stonesLength: stones.length,
+                complexity: stones.length > 100 ? 'high' : description.length > 200 ? 'medium' : 'low'
+            };
+        }
+
+        function testCurrentScaling() {
+            log("Testing current scaling algorithm...");
+            
+            const width = parseInt(document.getElementById('contentWidth').value);
+            const height = parseInt(document.getElementById('contentHeight').value);
+            
+            // Simulate current algorithm
+            const pageWidth = 210;
+            const pageHeight = 297;
+            const margin = 10;
+            const maxWidth = pageWidth - (margin * 2);
+            const maxHeight = pageHeight - (margin * 2);
+            
+            let finalWidth = maxWidth;
+            let finalHeight = maxWidth / (width / height);
+            
+            if (finalHeight > maxHeight) {
+                finalHeight = maxHeight;
+                finalWidth = maxHeight * (width / height);
+            }
+            
+            const x = (pageWidth - finalWidth) / 2;
+            const y = (pageHeight - finalHeight) / 2;
+            const scaleFactor = Math.min(finalWidth / width, finalHeight / height);
+            const utilizationScore = ((finalWidth * finalHeight) / (maxWidth * maxHeight)) * 100;
+            
+            const result = {
+                algorithm: 'current',
+                finalWidth,
+                finalHeight,
+                x,
+                y,
+                scaleFactor,
+                marginUsed: margin,
+                utilizationScore,
+                fitsInPage: finalWidth <= maxWidth && finalHeight <= maxHeight
+            };
+            
+            displaySingleResult(result);
+            log("Current algorithm test completed", result);
+        }
+
+        function testAllAlgorithms() {
+            log("Testing all scaling algorithms...");
+            
+            const width = parseInt(document.getElementById('contentWidth').value);
+            const height = parseInt(document.getElementById('contentHeight').value);
+            const metadata = getContentMetadata();
+            
+            log("Content metadata extracted", metadata);
+            
+            // Test advanced scaling
+            const scaler = new AdvancedPDFScaling();
+            const comparison = scaler.evaluateAllStrategies(width, height, metadata);
+            const bestStrategy = scaler.selectBestStrategy(comparison, metadata);
+            
+            log("Advanced scaling analysis completed");
+            
+            displayAllResults(comparison, bestStrategy);
+        }
+
+        function displaySingleResult(result) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('algorithmsResults');
+            
+            resultsContent.innerHTML = '';
+            resultsDiv.style.display = 'block';
+            
+            const resultElement = createResultElement(result, false);
+            resultsContent.appendChild(resultElement);
+        }
+
+        function displayAllResults(strategies, bestStrategy) {
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('algorithmsResults');
+            
+            resultsContent.innerHTML = '';
+            resultsDiv.style.display = 'block';
+            
+            // Sort strategies by score for display
+            const sortedStrategies = Object.entries(strategies)
+                .map(([name, strategy]) => ({ ...strategy, name }))
+                .sort((a, b) => (b.finalScore || 0) - (a.finalScore || 0));
+            
+            sortedStrategies.forEach(strategy => {
+                const isBest = strategy.algorithm === bestStrategy.algorithm;
+                const resultElement = createResultElement(strategy, isBest);
+                resultsContent.appendChild(resultElement);
+            });
+            
+            log("All algorithms displayed", {
+                totalAlgorithms: sortedStrategies.length,
+                bestAlgorithm: bestStrategy.algorithm,
+                bestScore: bestStrategy.finalScore
+            });
+        }
+
+        function createResultElement(result, isBest) {
+            const div = document.createElement('div');
+            div.className = `algorithm-result ${isBest ? 'best' : ''}`;
+            
+            const title = isBest ? `🏆 ${result.algorithm} (RECOMMENDED)` : `📊 ${result.algorithm}`;
+            
+            div.innerHTML = `
+                <h4>${title}</h4>
+                <div class="metrics">
+                    <div class="metric">
+                        <span>Final Dimensions:</span>
+                        <strong>${result.finalWidth.toFixed(1)}×${result.finalHeight.toFixed(1)}mm</strong>
+                    </div>
+                    <div class="metric">
+                        <span>Scale Factor:</span>
+                        <strong>${result.scaleFactor.toFixed(3)}</strong>
+                    </div>
+                    <div class="metric">
+                        <span>Utilization:</span>
+                        <strong>${result.utilizationScore.toFixed(1)}%</strong>
+                    </div>
+                    <div class="metric">
+                        <span>Margin:</span>
+                        <strong>${result.marginUsed}mm</strong>
+                    </div>
+                    <div class="metric">
+                        <span>Fits in Page:</span>
+                        <strong>${result.fitsInPage ? '✅ Yes' : '❌ No'}</strong>
+                    </div>
+                    <div class="metric">
+                        <span>Position:</span>
+                        <strong>(${result.x.toFixed(1)}, ${result.y.toFixed(1)})</strong>
+                    </div>
+                    ${result.finalScore ? `
+                    <div class="metric">
+                        <span>Score:</span>
+                        <strong>${result.finalScore.toFixed(1)}/100</strong>
+                    </div>
+                    ` : ''}
+                    ${result.readabilityScore ? `
+                    <div class="metric">
+                        <span>Readability:</span>
+                        <strong>${result.readabilityScore}/20</strong>
+                    </div>
+                    ` : ''}
+                </div>
+                ${result.warning ? `<p style="color: #e74c3c; margin-top: 10px;">⚠️ ${result.warning}</p>` : ''}
+            `;
+            
+            return div;
+        }
+
+        function generatePreview() {
+            log("Generating content preview...");
+            
+            const previewArea = document.getElementById('previewArea');
+            const formData = {
+                clientName: document.getElementById('clientName').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                clientEmail: document.getElementById('clientEmail').value,
+                pieceType: document.getElementById('pieceType').value,
+                material: document.getElementById('material').value,
+                weight: document.getElementById('weight').value,
+                stones: document.getElementById('stones').value,
+                description: document.getElementById('description').value,
+                price: document.getElementById('price').value,
+                contribution: document.getElementById('contribution').value
+            };
+            
+            const previewHTML = generateReceiptPreviewHTML(formData);
+            previewArea.innerHTML = previewHTML;
+            
+            // Measure actual content
+            setTimeout(() => {
+                const actualWidth = previewArea.scrollWidth;
+                const actualHeight = previewArea.scrollHeight;
+                
+                document.getElementById('contentWidth').value = actualWidth;
+                document.getElementById('contentHeight').value = actualHeight;
+                
+                log("Preview generated and dimensions measured", {
+                    width: actualWidth,
+                    height: actualHeight
+                });
+            }, 100);
+        }
+
+        function generateReceiptPreviewHTML(data) {
+            return `
+                <div style="font-family: Arial, sans-serif; padding: 20px; background: white; border: 1px solid #ddd;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h1 style="color: #D4AF37; margin: 0;">CIAOCIAO.MX</h1>
+                        <p style="margin: 5px 0;">Fine Jewelry - RECIBO</p>
+                        <p style="margin: 5px 0;">Tel: +52 1 55 9211 2643</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h3>Información General</h3>
+                        <p>Fecha: ${new Date().toLocaleDateString()}</p>
+                        <p>Tipo: Venta</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h3>Datos del Cliente</h3>
+                        <p><strong>Nombre:</strong> ${data.clientName}</p>
+                        <p><strong>Teléfono:</strong> ${data.clientPhone}</p>
+                        <p><strong>Email:</strong> ${data.clientEmail}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h3>Detalles de la Pieza</h3>
+                        <p><strong>Tipo:</strong> ${data.pieceType}</p>
+                        <p><strong>Material:</strong> ${data.material.toUpperCase()}</p>
+                        <p><strong>Peso:</strong> ${data.weight} gramos</p>
+                        <p><strong>Piedras:</strong> ${data.stones}</p>
+                        <p><strong>Descripción:</strong> ${data.description}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <h3>Información Financiera</h3>
+                        <p><strong>Precio Base:</strong> $${parseFloat(data.price).toLocaleString()}.00</p>
+                        <p><strong>Aportación:</strong> $${parseFloat(data.contribution).toLocaleString()}.00</p>
+                        <p><strong>Subtotal:</strong> $${(parseFloat(data.price) + parseFloat(data.contribution)).toLocaleString()}.00</p>
+                    </div>
+                    
+                    <div style="margin-top: 20px; font-size: 12px;">
+                        <h3>TÉRMINOS Y CONDICIONES</h3>
+                        <p>El cliente ha recibido la pieza y declara estar conforme con las especificaciones acordadas.</p>
+                        <p>Cualquier observación debe reportarse dentro de 48 horas hábiles posteriores a la entrega.</p>
+                        <p>Garantía de por vida en mano de obra. No incluye daños por mal uso o desgaste natural.</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
+                        <p>Gracias por su preferencia - ciaociao.mx</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function clearResults() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('previewArea').innerHTML = '<p style="text-align: center; color: #666;">Click "Generate Preview" to see content preview</p>';
+            document.getElementById('debugLog').textContent = 'Welcome to PDF Scaling Test Suite - Context7 Framework\nReady for testing...';
+            log("Results cleared");
+        }
+
+        // Initialize with Veronica case
+        window.onload = function() {
+            log("PDF Scaling Test Suite initialized");
+            log("Advanced scaling algorithms loaded and ready for testing");
+        };
+    </script>
+</body>
+</html>

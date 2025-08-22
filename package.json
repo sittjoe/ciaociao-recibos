@@ -5,11 +5,15 @@
   "scripts": {
     "test": "npx playwright test",
     "test:pdf": "npx playwright test tests/pdf-validation.spec.js",
+    "test:context7": "npx playwright test tests/context7/",
+    "test:debug-pdf": "npx playwright test tests/pdf-debugging/ --headed",
+    "test:advanced": "npx playwright test tests/advanced-tests/",
     "test:headed": "npx playwright test --headed",
     "test:debug": "npx playwright test --debug",
     "test:report": "npx playwright show-report",
     "start:server": "python3 -m http.server 8080",
-    "test:watch": "npx playwright test --watch"
+    "test:watch": "npx playwright test --watch",
+    "test:full-suite": "npm run test:context7 && npm run test:advanced && npm run test:pdf"
   },
   "repository": {
     "type": "git",
@@ -27,5 +31,11 @@
     "@playwright/test": "^1.55.0",
     "@types/node": "^24.3.0",
     "playwright": "^1.55.0"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "pdf-parse": "^1.1.1",
+    "jimp": "^0.22.12",
+    "puppeteer": "^22.0.0"
   }
 }

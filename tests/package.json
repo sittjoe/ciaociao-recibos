@@ -1,0 +1,15 @@
+{
+  "name": "ciaociao-pdf-tests",
+  "version": "1.0.0",
+  "description": "PDF generation tests for ciaociao-recibos system",
+  "main": "pdf-page-count-test.js",
+  "scripts": {
+    "test": "node pdf-page-count-test.js",
+    "install-deps": "npm install playwright"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "author": "Claude Code AI",
+  "license": "MIT"
+}
