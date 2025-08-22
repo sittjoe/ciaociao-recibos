@@ -716,26 +716,26 @@ function generateReceiptHTML() {
             `;
         }
         
-        // Generar HTML optimizado para single-page PDF con espaciado reducido
+        // PDF-FIRST DESIGN: HTML con fuentes de tamaño de impresión (300 DPI)
         const html = `
-            <div style="width: 100%; max-width: 600px; margin: 0 auto; padding: 0; font-family: Arial, Helvetica, sans-serif; color: #000000; background: #ffffff;">
-                <!-- Header del recibo (compacto) -->
-                <div style="text-align: center; margin-bottom: 10px; padding: 8px; border-bottom: 2px solid #D4AF37; background: #ffffff;">
+            <div style="width: 100%; margin: 0; padding: 60px; font-family: Arial, Helvetica, sans-serif; color: #000000; background: #ffffff;">
+                <!-- Header del recibo (tamaño de impresión) -->
+                <div style="text-align: center; margin-bottom: 80px; padding: 40px; border-bottom: 8px solid #D4AF37; background: #ffffff;">
                     <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" 
                          alt="ciaociao.mx" 
                          crossorigin="anonymous"
-                         style="max-width: 120px; margin-bottom: 5px; display: block; margin-left: auto; margin-right: auto;">
-                    <h2 style="font-size: 16px; margin: 5px 0; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">RECIBO</h2>
-                    <div style="margin: 5px 0; line-height: 1.2;">
-                        <p style="font-size: 11px; margin: 2px 0; font-weight: 600; color: #1a1a1a; font-family: Arial, sans-serif;">ciaociao.mx - Fine Jewelry</p>
-                        <p style="font-size: 10px; margin: 2px 0; color: #1a1a1a; font-family: Arial, sans-serif;">Tel: +52 1 55 9211 2643</p>
+                         style="max-width: 400px; margin-bottom: 30px; display: block; margin-left: auto; margin-right: auto;">
+                    <h2 style="font-size: 72px; margin: 30px 0; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">RECIBO</h2>
+                    <div style="margin: 20px 0; line-height: 1.4;">
+                        <p style="font-size: 44px; margin: 12px 0; font-weight: 600; color: #1a1a1a; font-family: Arial, sans-serif;">ciaociao.mx - Fine Jewelry</p>
+                        <p style="font-size: 40px; margin: 12px 0; color: #1a1a1a; font-family: Arial, sans-serif;">Tel: +52 1 55 9211 2643</p>
                     </div>
-                    <div style="font-size: 12px; font-weight: bold; background: #D4AF37; color: #ffffff; padding: 4px 8px; border-radius: 3px; display: inline-block; margin-top: 5px; font-family: Arial, sans-serif;">No. ${formData.receiptNumber}</div>
+                    <div style="font-size: 48px; font-weight: bold; background: #D4AF37; color: #ffffff; padding: 20px 40px; border-radius: 12px; display: inline-block; margin-top: 20px; font-family: Arial, sans-serif;">No. ${formData.receiptNumber}</div>
                 </div>
                 
-                <!-- Información General (compacto) -->
-                <div style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #D4AF37;">
-                    <h3 style="font-size: 12px; margin-bottom: 5px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información General</h3>
+                <!-- Información General (tamaño de impresión) -->
+                <div style="margin-bottom: 60px; padding: 40px; background: #f8f9fa; border-radius: 20px; border-left: 12px solid #D4AF37;">
+                    <h3 style="font-size: 56px; margin-bottom: 30px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Información General</h3>
                     <div style="margin: 0; line-height: 2; font-family: Arial, sans-serif;">
                         <div style="margin-bottom: 8px;">
                             <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Fecha:</span>
@@ -760,9 +760,9 @@ function generateReceiptHTML() {
                     </div>
                 </div>
                 
-                <!-- Datos del Cliente (compacto) -->
-                <div style="margin-bottom: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #D4AF37;">
-                    <h3 style="font-size: 12px; margin-bottom: 5px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Datos del Cliente</h3>
+                <!-- Datos del Cliente (tamaño de impresión) -->
+                <div style="margin-bottom: 60px; padding: 40px; background: #f8f9fa; border-radius: 20px; border-left: 12px solid #D4AF37;">
+                    <h3 style="font-size: 56px; margin-bottom: 30px; color: #1a1a1a; font-weight: bold; font-family: Arial, sans-serif;">Datos del Cliente</h3>
                     <div style="margin: 0; line-height: 2; font-family: Arial, sans-serif;">
                         <div style="margin-bottom: 8px;">
                             <span style="display: inline-block; width: 140px; font-weight: bold; color: #333333; font-family: Arial, sans-serif;">Nombre:</span>
@@ -920,6 +920,22 @@ async function generatePDF() {
     try {
         console.log('🔄 Iniciando generación de PDF...');
         
+        // PDF-FIRST DESIGN: Dimensiones A4 en resolución de impresión (300 DPI)
+        const PDF_PRINT_DPI = 300;
+        const A4_WIDTH_MM = 210;
+        const A4_HEIGHT_MM = 297;
+        const MARGIN_MM = 10;
+        
+        // Convertir a pixels para resolución de impresión
+        const MM_TO_PX = PDF_PRINT_DPI / 25.4; // 11.811 px/mm at 300 DPI
+        const A4_WIDTH_PX = Math.round(A4_WIDTH_MM * MM_TO_PX);   // 2480px
+        const A4_HEIGHT_PX = Math.round(A4_HEIGHT_MM * MM_TO_PX); // 3508px
+        const MARGIN_PX = Math.round(MARGIN_MM * MM_TO_PX);       // 118px
+        const CONTENT_WIDTH = A4_WIDTH_PX - (MARGIN_PX * 2);     // 2244px
+        const CONTENT_HEIGHT = A4_HEIGHT_PX - (MARGIN_PX * 2);   // 3272px
+        
+        console.log(`📐 PDF Dimensions: A4 ${A4_WIDTH_PX}x${A4_HEIGHT_PX}px, Content: ${CONTENT_WIDTH}x${CONTENT_HEIGHT}px`);
+        
         if (!validateForm()) {
             console.log('❌ Validación de formulario falló');
             return;
@@ -958,17 +974,17 @@ async function generatePDF() {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = generateReceiptHTML();
         
-        // Configuración optimizada para mejor calidad en PDF single-page
+        // PDF-FIRST DESIGN: Configuración en tamaño real de impresión A4
         tempDiv.style.cssText = `
             position: absolute !important;
             left: -9999px !important;
             top: 0 !important;
-            width: 600px !important;
-            min-height: 600px !important;
+            width: ${CONTENT_WIDTH}px !important;
+            min-height: ${CONTENT_HEIGHT}px !important;
             background: #ffffff !important;
-            padding: 25px !important;
-            font-size: 11px !important;
-            line-height: 1.3 !important;
+            padding: 0 !important;
+            font-size: 48px !important;
+            line-height: 1.4 !important;
             font-family: 'Arial', 'Helvetica', sans-serif !important;
             color: #000000 !important;
             box-sizing: border-box !important;
@@ -1083,9 +1099,9 @@ async function generatePDF() {
             });
         });
         
-        // Configuración optimizada para captura completa
+        // PDF-FIRST DESIGN: Configuración simplificada para captura 1:1
         const canvasOptions = {
-            scale: 2, // Mantener alta calidad para estructura perfecta
+            scale: 1, // Captura 1:1 - contenido ya está en resolución de impresión
             logging: true,
             useCORS: true,
             allowTaint: false,
@@ -1156,60 +1172,34 @@ async function generatePDF() {
             throw new Error('Los datos de imagen están vacíos o corruptos');
         }
         
-        // SINGLE PAGE SCALING: Force all content to fit on one page
+        // PDF-FIRST DESIGN: Inserción directa 1:1 sin escalado complejo
         const pageWidth = 210;  // A4 width in mm
         const pageHeight = 297; // A4 height in mm
-        const margin = 10;      // Safe margins
-        const maxWidth = pageWidth - (margin * 2);
-        const maxHeight = pageHeight - (margin * 2);
         
-        // Convert canvas dimensions from pixels to millimeters (CRITICAL FIX)
-        const canvasScale = 2; // html2canvas scale factor from canvasOptions
-        const pixelsPerMM = 3.7795275591; // 96 DPI standard conversion
-        const originalWidthMM = canvas.width / (canvasScale * pixelsPerMM);
-        const originalHeightMM = canvas.height / (canvasScale * pixelsPerMM);
-        const aspectRatio = originalWidthMM / originalHeightMM;
-
-        console.log(`📐 Canvas: ${canvas.width}x${canvas.height}px → ${originalWidthMM.toFixed(1)}x${originalHeightMM.toFixed(1)}mm`);
-        console.log(`📐 Aspect ratio: ${aspectRatio.toFixed(3)}`);
-
-        // Calculate scaled dimensions to fit in one page (all in MM)
-        let finalWidth = maxWidth;
-        let finalHeight = maxWidth / aspectRatio;
-
-        // If height is still too large, scale by height instead
-        if (finalHeight > maxHeight) {
-            finalHeight = maxHeight;
-            finalWidth = maxHeight * aspectRatio;
-        }
-
-        // OPTIMIZATION: Ensure content is not over-scaled (maintain readability)
-        const scaleFactor = finalHeight / originalHeightMM;
-        const MIN_SCALE = 0.5; // Don't scale below 50% to maintain readability
-        const MAX_SCALE = 1.2; // Don't scale up more than 120% to avoid pixelation
+        // Conversión directa: 300 DPI a mm (11.811 px/mm)
+        const PX_TO_MM_300DPI = 25.4 / PDF_PRINT_DPI; // 0.0847 mm/px at 300 DPI
+        const canvasWidthMM = canvas.width * PX_TO_MM_300DPI;
+        const canvasHeightMM = canvas.height * PX_TO_MM_300DPI;
         
-        if (scaleFactor < MIN_SCALE) {
-            console.warn(`⚠️ Content requires excessive scaling (${scaleFactor.toFixed(2)}x). Applying minimum scale.`);
-            // Apply minimum scale and let content overflow if needed
-            finalWidth = originalWidthMM * MIN_SCALE;
-            finalHeight = originalHeightMM * MIN_SCALE;
-        } else if (scaleFactor > MAX_SCALE) {
-            console.log(`📊 Limiting upscaling to ${MAX_SCALE}x to avoid pixelation`);
-            finalWidth = Math.min(originalWidthMM * MAX_SCALE, maxWidth);
-            finalHeight = Math.min(originalHeightMM * MAX_SCALE, maxHeight);
-        }
+        console.log(`📐 Canvas directo: ${canvas.width}x${canvas.height}px → ${canvasWidthMM.toFixed(1)}x${canvasHeightMM.toFixed(1)}mm`);
+        
+        // Inserción directa centrada
+        const x = (pageWidth - canvasWidthMM) / 2;
+        const y = (pageHeight - canvasHeightMM) / 2;
+        
+        // Dimensiones finales = dimensiones del canvas convertidas directamente
+        const finalWidth = canvasWidthMM;
+        const finalHeight = canvasHeightMM;
 
-        // Center the content on page
-        const x = (pageWidth - finalWidth) / 2;
-        const y = (pageHeight - finalHeight) / 2;
+        console.log(`📄 Inserción directa: ${finalWidth.toFixed(1)}x${finalHeight.toFixed(1)}mm`);
+        console.log(`📄 Posición centrada: x=${x.toFixed(1)}mm, y=${y.toFixed(1)}mm`);
+        console.log(`📏 Factor de escala: 1:1 (inserción directa)`);
 
-        console.log(`📏 Final scaling: ${originalWidthMM.toFixed(1)}x${originalHeightMM.toFixed(1)}mm → ${finalWidth.toFixed(1)}x${finalHeight.toFixed(1)}mm`);
-        console.log(`📄 Position: x=${x.toFixed(1)}mm, y=${y.toFixed(1)}mm`);
-        console.log(`🔍 Scale factor: ${(finalHeight/originalHeightMM).toFixed(2)}x`);
-
-        // Verify dimensions fit on single page
+        // Verificar dimensiones en página única
+        const maxWidth = pageWidth - 20; // Margen de 10mm por lado
+        const maxHeight = pageHeight - 20;
         if (finalWidth > maxWidth || finalHeight > maxHeight) {
-            console.warn('⚠️ Content may exceed page boundaries for readability', {finalWidth, finalHeight, maxWidth, maxHeight});
+            console.warn('⚠️ Contenido excede los límites de página', {finalWidth, finalHeight, maxWidth, maxHeight});
         }
 
         // Add single image scaled to fit exactly on one page
