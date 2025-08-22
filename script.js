@@ -1043,23 +1043,67 @@ async function generatePDF() {
         
         console.log('🎨 Iniciando captura con html2canvas...');
         
-        // Configuración mejorada de html2canvas
+        // Calcular dimensiones reales del contenido para captura completa
+        const contentWidth = Math.max(
+            tempDiv.scrollWidth,
+            tempDiv.offsetWidth,
+            tempDiv.clientWidth
+        );
+        
+        const contentHeight = Math.max(
+            tempDiv.scrollHeight,
+            tempDiv.offsetHeight,
+            tempDiv.clientHeight
+        );
+        
+        console.log('📐 Análisis de estructura del contenido:', {
+            scrollWidth: tempDiv.scrollWidth,
+            scrollHeight: tempDiv.scrollHeight,
+            offsetWidth: tempDiv.offsetWidth,
+            offsetHeight: tempDiv.offsetHeight,
+            clientWidth: tempDiv.clientWidth,
+            clientHeight: tempDiv.clientHeight,
+            calculatedWidth: contentWidth,
+            calculatedHeight: contentHeight,
+            hasHorizontalOverflow: tempDiv.scrollWidth > tempDiv.clientWidth,
+            hasVerticalOverflow: tempDiv.scrollHeight > tempDiv.clientHeight
+        });
+        
+        // Verificar cada sección para debug de estructura
+        const sections = tempDiv.querySelectorAll('.pdf-section, [class*="section"]');
+        console.log('📋 Análisis de secciones:');
+        sections.forEach((section, i) => {
+            const rect = section.getBoundingClientRect();
+            const tempRect = tempDiv.getBoundingClientRect();
+            console.log(`  Sección ${i} (${section.className}):`, {
+                top: section.offsetTop,
+                height: section.offsetHeight,
+                bottom: section.offsetTop + section.offsetHeight,
+                isVisible: rect.bottom > tempRect.top && rect.top < tempRect.bottom
+            });
+        });
+        
+        // Configuración optimizada para captura completa
         const canvasOptions = {
-            scale: 2, // Reducir scale para evitar problemas de memoria
-            logging: true, // Habilitar logging para debug
+            scale: 2, // Mantener alta calidad para estructura perfecta
+            logging: true,
             useCORS: true,
-            allowTaint: false, // Cambiar a false para mayor compatibilidad
+            allowTaint: false,
             backgroundColor: '#ffffff',
-            foreignObjectRendering: false, // Cambiar a false para mejor compatibilidad
+            foreignObjectRendering: false,
             removeContainer: false,
-            imageTimeout: 30000, // Aumentar timeout
-            letterRendering: true, // Mejorar renderizado de texto
-            width: 900,
-            height: null, // Permitir altura automática
+            imageTimeout: 30000,
+            letterRendering: true,
+            // Usar dimensiones calculadas para capturar todo el contenido
+            width: contentWidth,
+            height: contentHeight,
             scrollX: 0,
             scrollY: 0,
-            windowWidth: 900,
-            windowHeight: window.innerHeight
+            windowWidth: contentWidth,
+            windowHeight: contentHeight,
+            // Asegurar que se capture desde el origen
+            x: 0,
+            y: 0
         };
         
         console.log('📸 Configuración html2canvas:', canvasOptions);
