@@ -1148,36 +1148,47 @@ async function generatePDF() {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         
-        const imgWidth = 210;
-        const pageHeight = 295;
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        let heightLeft = imgHeight;
-        let position = 0;
-        
         // Convertir canvas a imagen con máxima calidad
         const imgData = canvas.toDataURL('image/png', 1.0);
-        
-        console.log(`📏 Dimensiones PDF: ${imgWidth}mm x ${imgHeight}mm`);
         
         // Verificar que imgData no está vacío
         if (!imgData || imgData === 'data:,' || imgData.length < 100) {
             throw new Error('Los datos de imagen están vacíos o corruptos');
         }
         
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        // SINGLE PAGE SCALING: Force all content to fit on one page
+        const pageWidth = 210;  // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const margin = 10;      // Safe margins
+        const maxWidth = pageWidth - (margin * 2);
+        const maxHeight = pageHeight - (margin * 2);
         
-        // Agregar páginas adicionales si es necesario
-        let pageCount = 1;
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            pdf.addPage();
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-            pageCount++;
+        // Calculate original dimensions
+        const originalWidth = canvas.width;
+        const originalHeight = canvas.height;
+        const aspectRatio = originalWidth / originalHeight;
+        
+        // Calculate scaled dimensions to fit in one page
+        let finalWidth = maxWidth;
+        let finalHeight = maxWidth / aspectRatio;
+        
+        // If height is still too large, scale by height instead
+        if (finalHeight > maxHeight) {
+            finalHeight = maxHeight;
+            finalWidth = maxHeight * aspectRatio;
         }
         
-        console.log(`📄 PDF creado con ${pageCount} página(s)`);
+        // Center the content on page
+        const x = (pageWidth - finalWidth) / 2;
+        const y = (pageHeight - finalHeight) / 2;
+        
+        console.log(`📏 Scaling: ${originalWidth}x${originalHeight} → ${Math.round(finalWidth)}x${Math.round(finalHeight)}mm`);
+        console.log(`📄 Position: x=${Math.round(x)}mm, y=${Math.round(y)}mm`);
+        
+        // Add single image scaled to fit exactly on one page
+        pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight);
+        
+        console.log(`📄 PDF creado con 1 página (contenido escalado para ajustar)`);
         
         // Guardar PDF
         const fileName = `Recibo_${formData.receiptNumber}_${formData.clientName.replace(/\s+/g, '_')}.pdf`;
