@@ -543,11 +543,13 @@ class AuthManager {
                     window.calculatorInitialized = true;
                 }, 200);
                 
-            } else if (mainContainer && typeof initializeApp === 'function' && !window.appInitialized) {
-                // Página de recibos
-                console.log('📄 Inicializando sistema de recibos...');
-                initializeApp();
+            } else if (mainContainer && !window.appInitialized) {
+                // Página de recibos - La inicialización ahora es manejada por initialization-coordinator.js
+                console.log('📄 Sistema de recibos detectado - inicialización delegada al coordinador');
                 window.appInitialized = true;
+                
+                // COMENTADO: Evitar doble inicialización
+                // initializeApp(); // Ahora es llamado por InitializationCoordinator
             }
             
         } catch (error) {

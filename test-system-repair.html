@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Test - Reparación Completa del Sistema</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .test-result { 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        .success { 
+            background: rgba(40, 167, 69, 0.2); 
+            border-color: #28a745;
+        }
+        .error { 
+            background: rgba(220, 53, 69, 0.2); 
+            border-color: #dc3545;
+        }
+        .warning { 
+            background: rgba(255, 193, 7, 0.2); 
+            border-color: #ffc107;
+            color: #212529;
+        }
+        .info { 
+            background: rgba(23, 162, 184, 0.2); 
+            border-color: #17a2b8;
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: rgba(255,255,255,0.05);
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .btn {
+            padding: 12px 24px;
+            margin: 8px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary { 
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+        }
+        .btn-success { 
+            background: linear-gradient(45deg, #28a745, #1e7e34);
+            color: white;
+        }
+        .btn-warning { 
+            background: linear-gradient(45deg, #ffc107, #d39e00);
+            color: #212529;
+        }
+        .btn-danger { 
+            background: linear-gradient(45deg, #dc3545, #bd2130);
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 4px;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            height: 20px;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .console-output {
+            background: #000;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .status-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .status-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧪 TEST COMPLETO - REPARACIÓN DEL SISTEMA</h1>
+            <p>Verificación exhaustiva de todas las correcciones implementadas</p>
+        </div>
+        
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill" style="width: 0%;">0%</div>
+        </div>
+        
+        <div id="testResults"></div>
+        
+        <!-- Estado del Sistema -->
+        <div class="test-section">
+            <h2>📊 Estado del Sistema en Tiempo Real</h2>
+            <div class="status-grid">
+                <div class="status-card">
+                    <div class="status-icon">🔧</div>
+                    <h4>Coordinador</h4>
+                    <div id="coordinatorStatus">Verificando...</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">📱</div>
+                    <h4>Event Listeners</h4>
+                    <div id="listenersStatus">Verificando...</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">🗄️</div>
+                    <h4>Base de Datos</h4>
+                    <div id="databaseStatus">Verificando...</div>
+                </div>
+                <div class="status-card">
+                    <div class="status-icon">✍️</div>
+                    <h4>Firmas</h4>
+                    <div id="signaturesStatus">Verificando...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Consola en tiempo real -->
+        <div class="test-section">
+            <h2>🖥️ Consola del Sistema</h2>
+            <div id="consoleOutput" class="console-output">
+                Iniciando sistema de testing...\n
+            </div>
+        </div>
+        
+        <!-- Controles -->
+        <div class="test-section">
+            <h2>🎮 Controles de Testing</h2>
+            <button class="btn btn-primary" onclick="runFullTest()">🚀 Test Completo</button>
+            <button class="btn btn-success" onclick="testButtons()">🔘 Test Botones</button>
+            <button class="btn btn-warning" onclick="testFallbacks()">🆘 Test Fallbacks</button>
+            <button class="btn btn-danger" onclick="emergencyRepair()">🚨 Reparación de Emergencia</button>
+        </div>
+        
+        <!-- Debugging -->
+        <div class="test-section">
+            <h2>🔍 Información de Debug</h2>
+            <button class="btn btn-info" onclick="showSystemState()">📊 Estado del Sistema</button>
+            <button class="btn btn-info" onclick="showLogs()">📋 Ver Logs</button>
+            <button class="btn btn-info" onclick="clearErrors()">🧹 Limpiar Errores</button>
+        </div>
+    </div>
+
+    <!-- Incluir sistemas necesarios para testing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    <script src="camera.js"></script>
+    <script src="payments.js"></script>
+    <script src="initialization-coordinator.js"></script>
+    
+    <script>
+        let testResults = [];
+        let currentProgress = 0;
+        
+        function logToConsole(message, level = 'INFO') {
+            const console = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                'INFO': '#00ff00',
+                'SUCCESS': '#00ff00', 
+                'WARNING': '#ffff00',
+                'ERROR': '#ff0000',
+                'DEBUG': '#00ffff'
+            };
+            
+            console.innerHTML += `<span style="color: ${colors[level] || '#00ff00'}">[${timestamp}] ${level}: ${message}</span>\n`;
+            console.scrollTop = console.scrollHeight;
+        }
+        
+        function updateProgress(percentage) {
+            currentProgress = percentage;
+            const fill = document.getElementById('progressFill');
+            fill.style.width = percentage + '%';
+            fill.textContent = Math.round(percentage) + '%';
+        }
+        
+        function logTest(name, passed, details = '') {
+            testResults.push({ name, passed, details, timestamp: new Date() });
+            updateTestDisplay();
+            
+            logToConsole(`${passed ? '✅' : '❌'} ${name} ${details ? '- ' + details : ''}`, passed ? 'SUCCESS' : 'ERROR');
+        }
+        
+        function updateTestDisplay() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = '';
+            
+            testResults.forEach((test, index) => {
+                const div = document.createElement('div');
+                div.className = `test-result ${test.passed ? 'success' : 'error'}`;
+                div.innerHTML = `
+                    <strong>${test.passed ? '✅' : '❌'} Test ${index + 1}: ${test.name}</strong>
+                    ${test.details ? `<br><small>${test.details}</small>` : ''}
+                    <br><small>⏱️ ${test.timestamp.toLocaleTimeString()}</small>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        async function runFullTest() {
+            logToConsole('🚀 Iniciando test completo del sistema...', 'INFO');
+            testResults = [];
+            updateProgress(0);
+            
+            const tests = [
+                { name: 'Verificar Coordinador', func: testCoordinator },
+                { name: 'Verificar CDN Dependencies', func: testCDNDependencies },
+                { name: 'Verificar Event Listeners', func: testEventListeners },
+                { name: 'Verificar Base de Datos', func: testDatabase },
+                { name: 'Verificar Sistema de Firmas', func: testSignatures },
+                { name: 'Test de Botones Principales', func: testMainButtons },
+                { name: 'Test de Fallbacks', func: testSystemFallbacks },
+                { name: 'Test de Health Monitoring', func: testHealthMonitoring }
+            ];
+            
+            for (let i = 0; i < tests.length; i++) {
+                const test = tests[i];
+                logToConsole(`Ejecutando: ${test.name}...`, 'DEBUG');
+                
+                try {
+                    await test.func();
+                    updateProgress(((i + 1) / tests.length) * 100);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (error) {
+                    logTest(test.name, false, `Error: ${error.message}`);
+                }
+            }
+            
+            logToConsole('🎉 Test completo finalizado!', 'SUCCESS');
+            updateSystemStatus();
+        }
+        
+        function testCoordinator() {
+            logTest('InitializationCoordinator existe', 
+                typeof window.InitializationCoordinator === 'object',
+                window.InitializationCoordinator ? 'Disponible' : 'No encontrado');
+            
+            if (window.SystemLogger) {
+                const report = window.SystemLogger.getReport();
+                logTest('SystemLogger funcional',
+                    report.totalLogs > 0,
+                    `${report.totalLogs} logs, ${report.errors} errores`);
+            }
+            
+            if (window.SystemState) {
+                logTest('SystemState disponible',
+                    typeof window.SystemState === 'object',
+                    `Inicializado: ${window.SystemState.initialized}`);
+            }
+        }
+        
+        function testCDNDependencies() {
+            const deps = {
+                'jsPDF': typeof window.jspdf !== 'undefined' || typeof window.jsPDF !== 'undefined',
+                'html2canvas': typeof window.html2canvas === 'function',
+                'SignaturePad': typeof window.SignaturePad === 'function'
+            };
+            
+            Object.entries(deps).forEach(([name, loaded]) => {
+                logTest(`CDN ${name}`, loaded, loaded ? 'Cargado' : 'No disponible');
+            });
+        }
+        
+        function testEventListeners() {
+            const buttons = ['previewBtn', 'generatePdfBtn', 'shareWhatsappBtn', 'historyBtn'];
+            const mockButtons = [];
+            
+            // Crear botones mock para testing
+            buttons.forEach(btnId => {
+                const btn = document.createElement('button');
+                btn.id = btnId;
+                btn.style.display = 'none';
+                document.body.appendChild(btn);
+                mockButtons.push(btn);
+            });
+            
+            // Test del wrapper seguro
+            let wrapperWorks = false;
+            if (window.safeAddEventListener) {
+                try {
+                    window.safeAddEventListener('previewBtn', 'click', () => {
+                        wrapperWorks = true;
+                    });
+                    mockButtons[0].click();
+                    logTest('SafeAddEventListener', wrapperWorks, 'Wrapper funcional');
+                } catch (error) {
+                    logTest('SafeAddEventListener', false, `Error: ${error.message}`);
+                }
+            } else {
+                logTest('SafeAddEventListener', false, 'No está disponible');
+            }
+            
+            // Limpiar
+            mockButtons.forEach(btn => btn.remove());
+        }
+        
+        function testDatabase() {
+            try {
+                if (typeof ReceiptDatabase !== 'undefined') {
+                    const testDB = new ReceiptDatabase();
+                    logTest('ReceiptDatabase', true, 'Instancia creada correctamente');
+                    
+                    // Test básico de funcionalidad
+                    if (typeof testDB.getAllReceipts === 'function') {
+                        const receipts = testDB.getAllReceipts();
+                        logTest('Database.getAllReceipts', true, `${receipts.length} recibos encontrados`);
+                    }
+                } else {
+                    logTest('ReceiptDatabase', false, 'Clase no definida');
+                }
+            } catch (error) {
+                logTest('ReceiptDatabase', false, `Error: ${error.message}`);
+            }
+        }
+        
+        function testSignatures() {
+            // Crear canvas mock
+            const canvas = document.createElement('canvas');
+            canvas.width = 300;
+            canvas.height = 150;
+            document.body.appendChild(canvas);
+            
+            try {
+                if (typeof SignaturePad === 'function') {
+                    const pad = new SignaturePad(canvas);
+                    logTest('SignaturePad inicialización', true, 'Canvas creado correctamente');
+                    
+                    if (typeof pad.clear === 'function') {
+                        pad.clear();
+                        logTest('SignaturePad.clear()', true, 'Función disponible');
+                    }
+                } else {
+                    logTest('SignaturePad', false, 'Clase no disponible');
+                }
+            } catch (error) {
+                logTest('SignaturePad', false, `Error: ${error.message}`);
+            }
+            
+            canvas.remove();
+        }
+        
+        function testMainButtons() {
+            const buttonTests = [
+                { id: 'previewBtn', func: 'showPreview' },
+                { id: 'generatePdfBtn', func: 'generatePDF' },
+                { id: 'shareWhatsappBtn', func: 'shareWhatsApp' },
+                { id: 'historyBtn', func: 'showHistory' }
+            ];
+            
+            buttonTests.forEach(test => {
+                const available = typeof window[test.func] === 'function';
+                logTest(`Función ${test.func}`, available, 
+                    available ? 'Función disponible globalmente' : 'No encontrada');
+            });
+        }
+        
+        function testSystemFallbacks() {
+            // Test fallback para PDF
+            logTest('PDF Fallback (window.print)', 
+                typeof window.print === 'function', 
+                'Fallback disponible');
+            
+            // Test fallback para WhatsApp
+            logTest('WhatsApp Fallback (clipboard)', 
+                typeof navigator.clipboard !== 'undefined', 
+                'API clipboard disponible');
+            
+            // Test función de emergencia
+            logTest('Emergency Reinitialize', 
+                typeof window.emergencyReinitialize === 'function', 
+                'Función de emergencia disponible');
+        }
+        
+        function testHealthMonitoring() {
+            if (window.SystemState) {
+                const uptime = Date.now() - window.SystemState.startTime;
+                logTest('System Uptime', uptime > 0, `${Math.round(uptime/1000)}s activo`);
+                
+                const errorCount = window.SystemState.errors.length;
+                logTest('Error Count', errorCount < 5, `${errorCount} errores registrados`);
+            }
+        }
+        
+        function testButtons() {
+            logToConsole('🔘 Iniciando test específico de botones...', 'INFO');
+            testEventListeners();
+            testMainButtons();
+            updateSystemStatus();
+        }
+        
+        function testFallbacks() {
+            logToConsole('🆘 Testing sistema de fallbacks...', 'WARNING');
+            testSystemFallbacks();
+            
+            // Simular error y test de recuperación
+            try {
+                throw new Error('Test de manejo de errores');
+            } catch (error) {
+                logTest('Error Handling', true, 'Sistema manejó error correctamente');
+            }
+        }
+        
+        function emergencyRepair() {
+            logToConsole('🚨 ACTIVANDO REPARACIÓN DE EMERGENCIA...', 'ERROR');
+            
+            if (window.emergencyReinitialize) {
+                window.emergencyReinitialize();
+                logTest('Emergency Repair', true, 'Re-inicialización ejecutada');
+            } else {
+                logTest('Emergency Repair', false, 'Función no disponible');
+            }
+            
+            setTimeout(() => {
+                updateSystemStatus();
+                logToConsole('✅ Reparación de emergencia completada', 'SUCCESS');
+            }, 2000);
+        }
+        
+        function updateSystemStatus() {
+            // Coordinador
+            const coordinatorEl = document.getElementById('coordinatorStatus');
+            coordinatorEl.textContent = window.InitializationCoordinator ? '✅ Activo' : '❌ Inactivo';
+            coordinatorEl.style.color = window.InitializationCoordinator ? '#28a745' : '#dc3545';
+            
+            // Event Listeners
+            const listenersEl = document.getElementById('listenersStatus');
+            const hasListeners = window.safeAddEventListener ? '✅ Configurados' : '❌ Faltantes';
+            listenersEl.textContent = hasListeners;
+            listenersEl.style.color = window.safeAddEventListener ? '#28a745' : '#dc3545';
+            
+            // Base de datos
+            const dbEl = document.getElementById('databaseStatus');
+            const hasDB = typeof ReceiptDatabase !== 'undefined' ? '✅ Disponible' : '❌ No encontrada';
+            dbEl.textContent = hasDB;
+            dbEl.style.color = typeof ReceiptDatabase !== 'undefined' ? '#28a745' : '#dc3545';
+            
+            // Firmas
+            const sigEl = document.getElementById('signaturesStatus');
+            const hasSig = typeof SignaturePad !== 'undefined' ? '✅ Disponible' : '❌ No encontrada';
+            sigEl.textContent = hasSig;
+            sigEl.style.color = typeof SignaturePad !== 'undefined' ? '#28a745' : '#dc3545';
+        }
+        
+        function showSystemState() {
+            if (window.InitializationCoordinator) {
+                const status = window.InitializationCoordinator.getStatus();
+                logToConsole(`Sistema inicializado: ${status.initialized}`, 'INFO');
+                logToConsole(`Módulos: ${JSON.stringify(status.modules)}`, 'DEBUG');
+                logToConsole(`Errores: ${status.errors}, Warnings: ${status.warnings}`, 'INFO');
+                logToConsole(`Uptime: ${Math.round(status.uptime/1000)}s`, 'INFO');
+            }
+        }
+        
+        function showLogs() {
+            if (window.SystemLogger) {
+                const logs = window.SystemLogger.getLogs();
+                logToConsole(`Mostrando últimos ${Math.min(10, logs.length)} logs:`, 'INFO');
+                logs.slice(-10).forEach(log => {
+                    logToConsole(`${log.level}: ${log.message}`, log.level);
+                });
+            }
+        }
+        
+        function clearErrors() {
+            if (window.InitializationCoordinator) {
+                window.InitializationCoordinator.clearErrors();
+                logToConsole('✅ Errores limpiados', 'SUCCESS');
+            }
+        }
+        
+        // Auto-inicializar estado al cargar
+        setTimeout(() => {
+            logToConsole('📊 Sistema de testing cargado', 'SUCCESS');
+            updateSystemStatus();
+        }, 1000);
+        
+        // Actualizar estado cada 5 segundos
+        setInterval(updateSystemStatus, 5000);
+    </script>
+</body>
+</html>

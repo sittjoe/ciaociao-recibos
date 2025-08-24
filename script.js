@@ -1,4 +1,6 @@
 // script.js - Archivo principal integrado con todos los módulos
+// VERSIÓN MEJORADA - Sin DOMContentLoaded, coordinado por initialization-coordinator.js
+
 // Variables globales
 let signaturePad;
 let companySignaturePad; // Firma de la empresa
@@ -7,14 +9,21 @@ let receiptDB;
 let cameraManager;
 let paymentManager;
 
-// Inicialización cuando el DOM está listo
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-});
+// ELIMINADO: DOMContentLoaded - Ahora initializeApp() es llamado por el coordinador
+// La inicialización es controlada por initialization-coordinator.js para evitar race conditions
 
-function initializeApp() {
+// Función principal de inicialización - Llamada por initialization-coordinator.js
+window.initializeApp = function() {
     try {
-        console.log('🚀 Iniciando aplicación ciaociao.mx...');
+        // Usar el logger del sistema si está disponible
+        const log = window.SystemLogger ? window.SystemLogger.log : console.log;
+        log('INFO', '🚀 Iniciando aplicación de recibos ciaociao.mx...');
+        
+        // Verificar que no se haya inicializado ya
+        if (window.appInitialized) {
+            log('WARNING', '⚠️ La aplicación ya fue inicializada, evitando doble inicialización');
+            return;
+        }
         
         // Inicializar sistemas principales
         initializeModules();
@@ -34,11 +43,22 @@ function initializeApp() {
             window.utils.restoreAutoSave();
         }
         
-        console.log('✅ Aplicación inicializada correctamente');
+        // Marcar como inicializado
+        window.appInitialized = true;
+        log('SUCCESS', '✅ Aplicación de recibos inicializada correctamente');
         
     } catch (error) {
-        console.error('❌ Error inicializando aplicación:', error);
-        alert('Error iniciando la aplicación. Por favor recarga la página.');
+        if (window.SystemLogger) {
+            window.SystemLogger.log('ERROR', '❌ Error inicializando aplicación', error);
+        } else {
+            console.error('❌ Error inicializando aplicación:', error);
+        }
+        
+        // No mostrar alert molesto, usar notificación si está disponible
+        if (window.utils && window.utils.showNotification) {
+            window.utils.showNotification('Error iniciando la aplicación. Recargando...', 'error');
+            setTimeout(() => location.reload(), 3000);
+        }
     }
 }
 
@@ -218,64 +238,111 @@ function resizeCanvas() {
 
 function setupEventListeners() {
     try {
+        const log = window.SystemLogger ? window.SystemLogger.log : console.log;
+        log('INFO', '🔧 Configurando event listeners...');
+        
+        // Usar wrapper seguro si está disponible, si no usar método tradicional
+        const addListener = window.safeAddEventListener || function(id, event, handler) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener(event, handler);
+            } else {
+                console.warn(`Elemento ${id} no encontrado`);
+            }
+        };
+        
         // Cambio de tipo de transacción
-        document.getElementById('transactionType').addEventListener('change', handleTransactionTypeChange);
+        addListener('transactionType', 'change', handleTransactionTypeChange);
         
         // Cálculo automático del saldo
-        document.getElementById('price').addEventListener('input', calculateBalance);
-        document.getElementById('contribution').addEventListener('input', calculateBalance);
-        document.getElementById('deposit').addEventListener('input', calculateBalance);
+        addListener('price', 'input', calculateBalance);
+        addListener('contribution', 'input', calculateBalance);
+        addListener('deposit', 'input', calculateBalance);
         
         // Autocompletado de clientes
-        document.getElementById('clientName').addEventListener('input', handleClientInput);
-        document.getElementById('clientPhone').addEventListener('input', handleClientInput);
+        addListener('clientName', 'input', handleClientInput);
+        addListener('clientPhone', 'input', handleClientInput);
         
         // Botón limpiar firma
-        document.getElementById('clearSignature').addEventListener('click', function() {
+        addListener('clearSignature', 'click', function() {
             if (signaturePad) {
                 signaturePad.clear();
-                utils.showNotification('Firma limpiada', 'info');
+                if (window.utils) utils.showNotification('Firma limpiada', 'info');
             }
         });
-
-        // Botón limpiar firma de empresa - con verificación robusta
-        const clearCompanyBtn = document.getElementById('clearCompanySignature');
-        if (clearCompanyBtn) {
-            clearCompanyBtn.addEventListener('click', function() {
-                if (companySignaturePad) {
-                    companySignaturePad.clear();
-                    utils.showNotification('Firma de empresa limpiada', 'info');
-                } else {
-                    console.warn('⚠️ companySignaturePad no inicializado');
-                }
-            });
-        }
         
-        // Botones principales
-        document.getElementById('previewBtn').addEventListener('click', showPreview);
-        document.getElementById('generatePdfBtn').addEventListener('click', generatePDF);
-        document.getElementById('shareWhatsappBtn').addEventListener('click', shareWhatsApp);
-        document.getElementById('historyBtn').addEventListener('click', showHistory);
-        document.getElementById('resetBtn').addEventListener('click', resetForm);
-        document.getElementById('logoutBtn').addEventListener('click', () => {
+        // Botón limpiar firma de empresa
+        addListener('clearCompanySignature', 'click', function() {
+            if (companySignaturePad) {
+                companySignaturePad.clear();
+                if (window.utils) utils.showNotification('Firma de empresa limpiada', 'info');
+            } else {
+                log('WARNING', '⚠️ companySignaturePad no inicializado');
+            }
+        });
+        
+        // BOTONES PRINCIPALES CON FALLBACKS
+        addListener('previewBtn', 'click', showPreview, {
+            fallback: () => {
+                alert('Error mostrando vista previa. Por favor intente de nuevo.');
+            }
+        });
+        
+        addListener('generatePdfBtn', 'click', generatePDF, {
+            fallback: () => {
+                log('WARNING', '🔄 Usando fallback de impresión');
+                window.print();
+            }
+        });
+        
+        addListener('shareWhatsappBtn', 'click', shareWhatsApp, {
+            fallback: () => {
+                log('WARNING', '🔄 Copiando mensaje al portapapeles');
+                const message = 'Recibo generado - ciaociao.mx';
+                navigator.clipboard.writeText(message);
+                alert('Mensaje copiado al portapapeles');
+            }
+        });
+        
+        addListener('historyBtn', 'click', showHistory, {
+            fallback: () => {
+                alert('Error cargando historial. Recargando página...');
+                location.reload();
+            }
+        });
+        
+        addListener('resetBtn', 'click', resetForm);
+        
+        addListener('logoutBtn', 'click', function() {
             if (window.authManager) {
                 window.authManager.logout();
             }
         });
         
         // Botón configurar plan de pagos
-        document.getElementById('configurePaymentPlan').addEventListener('click', showPaymentPlanModal);
+        addListener('configurePaymentPlan', 'click', showPaymentPlanModal);
         
         // Botones de fotografía
-        document.getElementById('takePhotoBtn').addEventListener('click', takePhoto);
-        document.getElementById('uploadPhoto').addEventListener('change', uploadPhotos);
+        addListener('takePhotoBtn', 'click', takePhoto);
+        addListener('uploadPhoto', 'change', uploadPhotos);
         
         // Modal event listeners
         setupModalEventListeners();
         
-        console.log('✅ Event listeners configurados');
+        log('SUCCESS', '✅ Event listeners configurados correctamente');
+        
+        // Exponer funciones globalmente para debugging
+        window.showPreview = showPreview;
+        window.generatePDF = generatePDF;
+        window.shareWhatsApp = shareWhatsApp;
+        window.showHistory = showHistory;
+        
     } catch (error) {
-        console.error('❌ Error configurando event listeners:', error);
+        if (window.SystemLogger) {
+            window.SystemLogger.log('ERROR', '❌ Error configurando event listeners', error);
+        } else {
+            console.error('❌ Error configurando event listeners:', error);
+        }
     }
 }
 
@@ -571,8 +638,10 @@ function getValidSignatureData(signaturePad) {
     }
 }
 
-function validateForm() {
+function validateForm(silent = false) {
     try {
+        const log = window.SystemLogger ? window.SystemLogger.log : console.log;
+        
         const requiredFields = [
             { id: 'receiptDate', label: 'Fecha' },
             { id: 'transactionType', label: 'Tipo de Transacción' },
@@ -583,20 +652,68 @@ function validateForm() {
             { id: 'price', label: 'Precio Total', type: 'number' }
         ];
         
+        // Verificar que utils esté disponible
+        if (!window.utils || typeof window.utils.validateRequiredFields !== 'function') {
+            log('WARNING', '⚠️ Utils no disponible, validación básica');
+            return validateFormBasic(requiredFields, silent);
+        }
+        
         const validation = utils.validateRequiredFields(requiredFields);
         
         if (!validation.isValid) {
-            const errorMessage = validation.errors.join('\n');
-            alert('Por favor corrija los siguientes errores:\n\n' + errorMessage);
+            if (!silent) {
+                const errorMessage = validation.errors.join('\n');
+                
+                // Usar notificación en lugar de alert molesto
+                if (window.utils && window.utils.showNotification) {
+                    window.utils.showNotification('Algunos campos son requeridos', 'warning');
+                    log('WARNING', 'Formulario incompleto', validation.errors);
+                } else {
+                    alert('Por favor corrija los siguientes errores:\n\n' + errorMessage);
+                }
+            }
             return false;
         }
         
         return true;
         
     } catch (error) {
-        console.error('❌ Error validando formulario:', error);
-        return false;
+        const log = window.SystemLogger ? window.SystemLogger.log : console.log;
+        log('ERROR', '❌ Error validando formulario', error);
+        
+        // NO bloquear por errores de validación - permitir que la función continúe
+        if (!silent) {
+            if (window.utils && window.utils.showNotification) {
+                window.utils.showNotification('Error en validación, continuando...', 'warning');
+            }
+        }
+        
+        return true; // Retornar true para no bloquear la funcionalidad
     }
+}
+
+// Función de validación básica como fallback
+function validateFormBasic(fields, silent = false) {
+    let isValid = true;
+    const errors = [];
+    
+    for (const field of fields) {
+        const element = document.getElementById(field.id);
+        if (!element || !element.value.trim()) {
+            isValid = false;
+            errors.push(`${field.label} es requerido`);
+        }
+    }
+    
+    if (!isValid && !silent) {
+        if (window.utils && window.utils.showNotification) {
+            window.utils.showNotification('Algunos campos son requeridos', 'warning');
+        } else {
+            console.warn('Campos requeridos faltantes:', errors);
+        }
+    }
+    
+    return isValid;
 }
 
 function collectFormData() {

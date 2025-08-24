@@ -529,10 +529,9 @@ function autoInitializeIntegration() {
     }, 2000); // 2 segundos de delay para asegurar que todo esté listo
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', autoInitializeIntegration);
-} else {
-    autoInitializeIntegration();
-}
+// ELIMINADO: Auto-inicialización con DOMContentLoaded
+// La inicialización ahora es coordinada por initialization-coordinator.js
+// Para evitar race conditions con script.js
+console.log('💡 AutoComplete Integration cargado - inicialización coordinada');
 
 console.log('✅ Sistema de Integración de Auto-Complete cargado');

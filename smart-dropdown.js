@@ -733,11 +733,8 @@ function autoInitializeSmartDropdowns() {
     setTimeout(initializeSmartDropdowns, 1000);
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', autoInitializeSmartDropdowns);
-} else {
-    // DOM ya está listo
-    autoInitializeSmartDropdowns();
-}
+// ELIMINADO: Auto-inicialización con DOMContentLoaded
+// La inicialización ahora es coordinada por initialization-coordinator.js
+console.log('💡 Smart Dropdown cargado - inicialización coordinada');
 
 console.log('✅ SmartDropdown cargado - Listo para auto-inicialización');
