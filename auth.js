@@ -10,13 +10,28 @@ class AuthManager {
 
     async initializeAuth() {
         try {
-            // PRIORIZAR FUNCIONALIDAD BÁSICA - No esperar SecurityManager
-            console.log('🚀 Inicializando autenticación con fallback inmediato...');
+            console.log('🚀 Inicializando autenticación...');
             
-            // Verificar sesión existente inmediatamente
-            if (await this.isValidSession()) {
+            // VERIFICAR FORZADO DE LOGOUT VÍA URL O TECLADO
+            if (this.shouldForceLogout()) {
+                console.log('🔒 Logout forzado detectado - limpiando sesiones...');
+                await this.clearAllSessions();
+                this.showLoginScreen();
+                return;
+            }
+            
+            // DEBUGGING: Mostrar estado actual de sesiones
+            this.debugSessionState();
+            
+            // Verificar sesión existente
+            const hasValidSession = await this.isValidSession();
+            console.log('🔍 ¿Sesión válida encontrada?', hasValidSession);
+            
+            if (hasValidSession) {
+                console.log('✅ Mostrando aplicación principal (sesión válida)');
                 this.showMainApplication();
             } else {
+                console.log('🔒 Mostrando pantalla de login (sin sesión válida)');
                 this.showLoginScreen();
             }
             
@@ -25,7 +40,119 @@ class AuthManager {
             
         } catch (error) {
             console.error('❌ Error inicializando autenticación:', error);
+            console.log('🔒 Error fallback - forzando pantalla de login');
+            await this.clearAllSessions();
             this.showLoginScreen();
+        }
+    }
+
+    /**
+     * Verifica si se debe forzar logout (URL param o combinación teclado)
+     */
+    shouldForceLogout() {
+        // Verificar parámetro URL
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('logout') === 'true' || urlParams.get('forcelogout') === 'true') {
+            return true;
+        }
+        
+        // Verificar si hay combinación especial en localStorage (Ctrl+Shift+L trigger)
+        if (localStorage.getItem('force_logout_trigger') === 'true') {
+            localStorage.removeItem('force_logout_trigger');
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Limpia todas las sesiones (legacy y enterprise)
+     */
+    async clearAllSessions() {
+        try {
+            console.log('🧹 Limpiando todas las sesiones...');
+            
+            // Limpiar sesión legacy
+            localStorage.removeItem(this.sessionKey);
+            localStorage.removeItem('ciaociao_auth_session');
+            
+            // Limpiar posibles sesiones enterprise
+            const enterpriseKeys = [
+                'security_session_data',
+                'encrypted_session',
+                'auth_fingerprint',
+                'session_metadata'
+            ];
+            
+            enterpriseKeys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    console.log(`🗑️ Removiendo clave: ${key}`);
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            // Limpiar SecurityManager si está disponible
+            if (this.securityManager && typeof this.securityManager.logout === 'function') {
+                try {
+                    await this.securityManager.logout();
+                    console.log('🔒 SecurityManager logout ejecutado');
+                } catch (secError) {
+                    console.warn('⚠️ Error en SecurityManager logout:', secError);
+                }
+            }
+            
+            // Limpiar flags de inicialización
+            window.selectorInitialized = false;
+            window.appInitialized = false;
+            window.quotationInitialized = false;
+            window.calculatorInitialized = false;
+            
+            console.log('✅ Todas las sesiones limpiadas');
+            
+        } catch (error) {
+            console.error('❌ Error limpiando sesiones:', error);
+        }
+    }
+
+    /**
+     * Debug del estado actual de sesiones
+     */
+    debugSessionState() {
+        try {
+            console.log('🔍 === ESTADO ACTUAL DE SESIONES ===');
+            
+            // Verificar sesión legacy
+            const legacySession = localStorage.getItem(this.sessionKey);
+            console.log('Legacy session key:', this.sessionKey);
+            console.log('Legacy session data:', legacySession ? 'EXISTS' : 'NOT_FOUND');
+            
+            if (legacySession) {
+                try {
+                    const parsed = JSON.parse(legacySession);
+                    const now = new Date().getTime();
+                    const age = now - (parsed.timestamp || 0);
+                    const ageHours = Math.floor(age / (1000 * 60 * 60));
+                    console.log('Session age:', ageHours, 'hours');
+                    console.log('Session expires in:', Math.floor((this.sessionDuration - age) / (1000 * 60)), 'minutes');
+                } catch (parseErr) {
+                    console.log('Session parse error:', parseErr);
+                }
+            }
+            
+            // Verificar otras claves relacionadas
+            const allKeys = Object.keys(localStorage);
+            const authKeys = allKeys.filter(key => 
+                key.includes('auth') || 
+                key.includes('session') || 
+                key.includes('security') ||
+                key.includes('ciaociao')
+            );
+            
+            console.log('Auth-related localStorage keys:', authKeys);
+            console.log('🔍 ================================');
+            
+        } catch (error) {
+            console.error('❌ Error en debug session state:', error);
         }
     }
 
@@ -727,28 +854,17 @@ class AuthManager {
         }
     }
 
-    logout() {
+    async logout() {
         try {
-            // Usar SecurityManager si está disponible
-            if (this.securityManager) {
-                this.securityManager.logout();
-                console.log('✅ Logout seguro completado');
-            } else {
-                // Fallback a logout legacy
-                localStorage.removeItem(this.sessionKey);
-                console.log('⚠️ Logout legacy completado');
-            }
+            console.log('🔒 Iniciando logout...');
             
-            // Limpiar flags de inicialización
-            window.selectorInitialized = false;
-            window.appInitialized = false;
-            window.quotationInitialized = false;
-            window.calculatorInitialized = false;
+            // Limpiar todas las sesiones
+            await this.clearAllSessions();
             
             // Mostrar pantalla de login
             this.showLoginScreen();
             
-            console.log('🔒 Usuario deslogueado exitosamente');
+            console.log('✅ Usuario deslogueado exitosamente');
         } catch (error) {
             console.error('❌ Error en logout:', error);
             // En caso de error, forzar recarga
@@ -767,4 +883,37 @@ window.authManager = new AuthManager();
 // Funciones globales para compatibilidad
 window.logout = () => window.authManager.logout();
 
+// KEYBOARD SHORTCUTS DE EMERGENCIA
+document.addEventListener('keydown', function(e) {
+    // Ctrl+Shift+L = Logout forzado
+    if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+        console.log('🔥 LOGOUT FORZADO VÍA TECLADO - Ctrl+Shift+L detectado');
+        e.preventDefault();
+        
+        // Limpiar inmediatamente
+        localStorage.setItem('force_logout_trigger', 'true');
+        window.location.reload();
+    }
+    
+    // Ctrl+Shift+D = Debug de sesión
+    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+        console.log('🔍 DEBUG DE SESIÓN - Ctrl+Shift+D detectado');
+        e.preventDefault();
+        window.authManager.debugSessionState();
+    }
+    
+    // Ctrl+Shift+R = Reset completo (limpiar localStorage + reload)
+    if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+        console.log('💥 RESET COMPLETO - Ctrl+Shift+R detectado');
+        e.preventDefault();
+        
+        if (confirm('🚨 ¿RESET COMPLETO del sistema? Esto borrará TODOS los datos locales.')) {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.reload();
+        }
+    }
+});
+
 console.log('✅ Sistema de autenticación inicializado correctamente');
+console.log('🔑 Shortcuts disponibles: Ctrl+Shift+L (logout), Ctrl+Shift+D (debug), Ctrl+Shift+R (reset)');
