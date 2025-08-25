@@ -10,15 +10,19 @@ class AuthManager {
 
     async initializeAuth() {
         try {
-            // Esperar a que SecurityManager esté disponible
-            await this.waitForSecurityManager();
+            // PRIORIZAR FUNCIONALIDAD BÁSICA - No esperar SecurityManager
+            console.log('🚀 Inicializando autenticación con fallback inmediato...');
             
-            // Verificar si ya hay una sesión válida (ahora con SecurityManager)
+            // Verificar sesión existente inmediatamente
             if (await this.isValidSession()) {
                 this.showMainApplication();
             } else {
                 this.showLoginScreen();
             }
+            
+            // SecurityManager inicialización en background (opcional)
+            this.initializeSecurityManagerBackground();
+            
         } catch (error) {
             console.error('❌ Error inicializando autenticación:', error);
             this.showLoginScreen();
@@ -26,16 +30,32 @@ class AuthManager {
     }
 
     /**
-     * Espera a que SecurityManager esté disponible
+     * Inicializa SecurityManager en background sin bloquear funcionalidad básica
      */
-    async waitForSecurityManager(maxAttempts = 20) {
+    async initializeSecurityManagerBackground() {
+        setTimeout(async () => {
+            try {
+                await this.waitForSecurityManager();
+                if (this.securityManager) {
+                    console.log('✅ SecurityManager cargado en background');
+                }
+            } catch (error) {
+                console.log('⚠️ SecurityManager no disponible - funcionando en modo básico');
+            }
+        }, 100);
+    }
+
+    /**
+     * Espera a que SecurityManager esté disponible (sin bloquear UI)
+     */
+    async waitForSecurityManager(maxAttempts = 10) {
         for (let i = 0; i < maxAttempts; i++) {
             if (window.SecurityManager) {
                 this.securityManager = new window.SecurityManager();
                 console.log('✅ SecurityManager integrado correctamente');
                 return;
             }
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         console.warn('⚠️ SecurityManager no disponible, usando fallback básico');
@@ -44,30 +64,39 @@ class AuthManager {
 
     async isValidSession() {
         try {
-            // Priorizar SecurityManager si está disponible
-            if (this.securityManager) {
-                const secureSession = await this.securityManager.validateSession();
-                if (secureSession) {
-                    console.log('✅ Sesión válida encontrada en SecurityManager');
-                    return true;
+            // PRIORIZAR SISTEMA LEGACY - Funciona inmediatamente
+            const session = localStorage.getItem(this.sessionKey);
+            if (session) {
+                try {
+                    const sessionData = JSON.parse(session);
+                    const now = new Date().getTime();
+                    
+                    // Verificar si la sesión legacy no ha expirado
+                    const isValid = sessionData.timestamp && (now - sessionData.timestamp) < this.sessionDuration;
+                    
+                    if (isValid) {
+                        console.log('✅ Sesión legacy válida encontrada');
+                        return true;
+                    }
+                } catch (parseError) {
+                    console.warn('⚠️ Error parseando sesión legacy, continuando...');
                 }
             }
             
-            // Fallback a sistema legacy para compatibilidad
-            const session = localStorage.getItem(this.sessionKey);
-            if (!session) return false;
-
-            const sessionData = JSON.parse(session);
-            const now = new Date().getTime();
-            
-            // Verificar si la sesión legacy no ha expirado
-            const isValid = sessionData.timestamp && (now - sessionData.timestamp) < this.sessionDuration;
-            
-            if (isValid) {
-                console.log('✅ Sesión legacy válida encontrada');
+            // Opcionalmente verificar SecurityManager si está disponible (no bloqueante)
+            if (this.securityManager) {
+                try {
+                    const secureSession = await this.securityManager.validateSession();
+                    if (secureSession) {
+                        console.log('✅ Sesión válida encontrada en SecurityManager');
+                        return true;
+                    }
+                } catch (secError) {
+                    console.warn('⚠️ Error verificando SecurityManager, ignorando...');
+                }
             }
             
-            return isValid;
+            return false;
         } catch (error) {
             console.error('❌ Error verificando sesión:', error);
             return false;
@@ -76,35 +105,44 @@ class AuthManager {
 
     showLoginScreen() {
         try {
+            console.log('🔒 Iniciando pantalla de login...');
+
             // Ocultar aplicación principal (puede ser container o mode-selector-container)
             const mainContainer = document.querySelector('.container');
             const selectorContainer = document.querySelector('.mode-selector-container');
             
             if (mainContainer) {
                 mainContainer.style.display = 'none';
+                console.log('📦 Container principal ocultado');
             }
             
             if (selectorContainer) {
                 selectorContainer.style.display = 'none';
+                console.log('🎯 Selector container ocultado');
             }
 
             // Crear o mostrar pantalla de login si no existe
             this.createLoginScreen();
 
-            // Configurar event listeners
-            this.setupLoginEventListeners();
+            // Configurar event listeners con delay para asegurar DOM
+            setTimeout(() => {
+                this.setupLoginEventListeners();
+            }, 300);
 
-            console.log('🔒 Pantalla de login mostrada');
+            console.log('✅ Pantalla de login mostrada correctamente');
 
         } catch (error) {
-            console.error('❌ Error mostrando pantalla de login:', error);
-            // Mostrar error al usuario
+            console.error('❌ Error crítico mostrando pantalla de login:', error);
+            // Mostrar error simplificado
             document.body.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif;">
-                    <div style="text-align: center; color: #721c24; background: #f8d7da; padding: 20px; border-radius: 8px;">
-                        <h2>❌ Error de Inicialización</h2>
-                        <p>Error iniciando la aplicación. Por favor recarga la página.</p>
-                        <button onclick="window.location.reload()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: linear-gradient(135deg, #D4AF37 0%, #B8941F 100%); display: flex; justify-content: center; align-items: center; z-index: 10000;">
+                    <div style="background: white; padding: 40px; border-radius: 15px; text-align: center; max-width: 400px; width: 90%;">
+                        <h2 style="color: #721c24;">⚠️ Error del Sistema</h2>
+                        <p>El sistema no pudo cargar correctamente.</p>
+                        <p style="margin: 20px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 14px;">
+                            <strong>Error:</strong> ${error.message}
+                        </p>
+                        <button onclick="window.location.reload()" style="padding: 15px 25px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600;">
                             🔄 Recargar Página
                         </button>
                     </div>
@@ -235,12 +273,25 @@ class AuthManager {
                 font-size: 16px;
                 box-sizing: border-box;
                 transition: border-color 0.3s ease;
+                background-color: white !important;
+                color: #333 !important;
+                pointer-events: auto !important;
+                user-select: auto !important;
+                -webkit-user-select: auto !important;
+                -moz-user-select: auto !important;
+                -ms-user-select: auto !important;
             }
             
             #passwordInput:focus {
                 outline: none;
                 border-color: #D4AF37;
                 box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+            }
+
+            #passwordInput:disabled,
+            #passwordInput:readonly {
+                opacity: 0.6;
+                cursor: not-allowed;
             }
             
             .login-btn {
@@ -281,19 +332,50 @@ class AuthManager {
             const loginBtn = document.getElementById('loginBtn');
 
             if (passwordInput) {
-                // Focus automático
-                setTimeout(() => passwordInput.focus(), 100);
+                console.log('✅ Password input encontrado, configurando eventos...');
+                
+                // Asegurar que el input esté habilitado y accesible
+                passwordInput.removeAttribute('disabled');
+                passwordInput.removeAttribute('readonly');
+                passwordInput.style.pointerEvents = 'auto';
+                passwordInput.style.userSelect = 'auto';
+                
+                // Focus automático con retry
+                setTimeout(() => {
+                    try {
+                        passwordInput.focus();
+                        console.log('🎯 Focus aplicado al input de password');
+                    } catch (focusError) {
+                        console.warn('⚠️ Error aplicando focus, reintentando...', focusError);
+                        setTimeout(() => passwordInput.focus(), 500);
+                    }
+                }, 200);
                 
                 // Enter para login
                 passwordInput.addEventListener('keypress', (e) => {
+                    console.log('⌨️ Tecla presionada:', e.key);
                     if (e.key === 'Enter') {
                         this.attemptLogin();
                     }
                 });
+
+                // Debug: Log cuando el usuario escriba
+                passwordInput.addEventListener('input', (e) => {
+                    console.log('✍️ Usuario escribiendo, longitud:', e.target.value.length);
+                });
+
+            } else {
+                console.error('❌ Password input NO encontrado');
             }
 
             if (loginBtn) {
-                loginBtn.addEventListener('click', () => this.attemptLogin());
+                console.log('✅ Login button encontrado, configurando evento...');
+                loginBtn.addEventListener('click', () => {
+                    console.log('🖱️ Login button clickeado');
+                    this.attemptLogin();
+                });
+            } else {
+                console.error('❌ Login button NO encontrado');
             }
 
         } catch (error) {
@@ -304,24 +386,33 @@ class AuthManager {
     async attemptLogin() {
         try {
             const passwordInput = document.getElementById('passwordInput');
-            const enteredPassword = passwordInput ? passwordInput.value : '';
+            const enteredPassword = passwordInput ? passwordInput.value.trim() : '';
 
-            // Usar SecurityManager si está disponible
-            if (this.securityManager) {
+            console.log('🔐 Intentando login con password...');
+
+            // PRIORIZAR VALIDACIÓN BÁSICA - Inmediato y confiable
+            if (enteredPassword === '27181730') {
+                console.log('✅ Password básico correcto');
+                await this.handleSuccessfulLogin();
+                return;
+            }
+
+            // Opcionalmente usar SecurityManager si está disponible (no bloqueante)
+            if (this.securityManager && enteredPassword.length > 0) {
                 try {
+                    console.log('🔒 Verificando con SecurityManager...');
                     const sessionData = await this.securityManager.validatePassword(enteredPassword);
                     await this.handleSuccessfulSecureLogin(sessionData);
-                } catch (error) {
-                    this.handleFailedLogin(error.message);
-                }
-            } else {
-                // Fallback a validación básica (temporal durante migración)
-                if (enteredPassword === '27181730') {
-                    await this.handleSuccessfulLogin();
-                } else {
-                    this.handleFailedLogin('Password incorrecto');
+                    return;
+                } catch (secError) {
+                    console.warn('⚠️ SecurityManager falló, usando validación básica');
+                    // Continuar con validación básica fallback
                 }
             }
+
+            // Si llegamos aquí, el password es incorrecto
+            this.handleFailedLogin('Contraseña incorrecta');
+
         } catch (error) {
             console.error('❌ Error en intento de login:', error);
             this.handleFailedLogin('Error interno del sistema');
