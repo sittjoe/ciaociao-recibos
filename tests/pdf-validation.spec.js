@@ -66,12 +66,16 @@ test.describe('PDF Validation Tests - ciaociao.mx Receipt System', () => {
       // Verificar subtotal
       const subtotal = await page.inputValue('#subtotal');
       console.log('📊 Subtotal calculado:', subtotal);
-      expect(parseFloat(subtotal)).toBe(78300); // 39150 + 39150
+      // Remover comas del formato antes de parsear
+      const subtotalValue = parseFloat(subtotal.replace(/,/g, ''));
+      expect(subtotalValue).toBe(78300); // 39150 + 39150
       
       // Verificar balance
       const balance = await page.inputValue('#balance');
       console.log('💰 Balance calculado:', balance);
-      expect(parseFloat(balance)).toBe(78300); // Sin anticipo
+      // Remover comas del formato antes de parsear
+      const balanceValue = parseFloat(balance.replace(/,/g, ''));
+      expect(balanceValue).toBe(78300); // Sin anticipo
     });
 
     // Configurar listener para descarga
@@ -111,8 +115,15 @@ test.describe('PDF Validation Tests - ciaociao.mx Receipt System', () => {
       const subtotal1 = await page.inputValue('#subtotal');
       const balance1 = await page.inputValue('#balance');
       
-      expect(parseFloat(subtotal1)).toBe(50000);
-      expect(parseFloat(balance1)).toBe(35000); // 50000 - 15000
+      console.log('Subtotal1 raw value:', subtotal1);
+      console.log('Balance1 raw value:', balance1);
+      
+      // Handle empty or undefined values
+      const subtotal1Value = subtotal1 ? parseFloat(subtotal1.replace(/,/g, '')) : 0;
+      const balance1Value = balance1 ? parseFloat(balance1.replace(/,/g, '')) : 0;
+      
+      expect(subtotal1Value).toBe(50000);
+      expect(balance1Value).toBe(35000); // 50000 - 15000
       
       // Caso 2: Con aportación  
       await page.fill('#price', '30000');
@@ -125,8 +136,8 @@ test.describe('PDF Validation Tests - ciaociao.mx Receipt System', () => {
       const subtotal2 = await page.inputValue('#subtotal');
       const balance2 = await page.inputValue('#balance');
       
-      expect(parseFloat(subtotal2)).toBe(40000); // 30000 + 10000
-      expect(parseFloat(balance2)).toBe(35000); // 40000 - 5000
+      expect(parseFloat(subtotal2.replace(/,/g, ''))).toBe(40000); // 30000 + 10000
+      expect(parseFloat(balance2.replace(/,/g, ''))).toBe(35000); // 40000 - 5000
     });
   });
 
@@ -252,8 +263,8 @@ test.describe('PDF Validation Tests - ciaociao.mx Receipt System', () => {
       const subtotal = await page.inputValue('#subtotal');
       const balance = await page.inputValue('#balance');
       
-      expect(parseFloat(subtotal)).toBe(50000); // 45000 + 5000
-      expect(parseFloat(balance)).toBe(35000);  // 50000 - 15000
+      expect(parseFloat(subtotal.replace(/,/g, ''))).toBe(50000); // 45000 + 5000
+      expect(parseFloat(balance.replace(/,/g, ''))).toBe(35000);  // 50000 - 15000
     });
 
     const downloadPromise = page.waitForEvent('download');
@@ -355,8 +366,8 @@ test.describe('PDF Validation Tests - ciaociao.mx Receipt System', () => {
       console.log('💰 Cálculos de Veronica - Subtotal:', subtotal, 'Balance:', balance);
       
       // Este era el problema original - subtotal debe ser 78300, no 0
-      expect(parseFloat(subtotal)).toBe(78300); // 39150 + 39150
-      expect(parseFloat(balance)).toBe(78300);  // Sin anticipo
+      expect(parseFloat(subtotal.replace(/,/g, ''))).toBe(78300); // 39150 + 39150
+      expect(parseFloat(balance.replace(/,/g, ''))).toBe(78300);  // Sin anticipo
     });
 
     const downloadPromise = page.waitForEvent('download');

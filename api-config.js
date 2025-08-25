@@ -11,7 +11,7 @@ console.log('🔧 Cargando configuración de APIs reales...');
 const API_CONFIGURATION = {
     // Configuración para MetalpriceAPI (plan gratuito: 100 requests/mes)
     metalpriceapi: {
-        enabled: true,
+        enabled: false, // Deshabilitado hasta que se configure API key
         name: 'MetalpriceAPI',
         baseURL: 'https://api.metalpriceapi.com/v1',
         apiKey: process.env.METALPRICEAPI_KEY || 'YOUR_METALPRICEAPI_KEY_HERE', // Registrarse en metalpriceapi.com
@@ -26,7 +26,7 @@ const API_CONFIGURATION = {
 
     // Configuración para Metals.dev (plan gratuito: 100 requests/mes)
     metalsdev: {
-        enabled: true,
+        enabled: false, // Deshabilitado hasta que se configure API key
         name: 'MetalsDev',
         baseURL: 'https://api.metals.dev/v1',
         apiKey: process.env.METALSDEV_KEY || 'YOUR_METALSDEV_KEY_HERE', // Registrarse en metals.dev
@@ -56,7 +56,7 @@ const API_CONFIGURATION = {
 
     // Configuración para Free Currency API (backup para tipo de cambio)
     freecurrencyapi: {
-        enabled: true,
+        enabled: false, // Deshabilitado hasta que se configure API key
         name: 'FreeCurrencyAPI',
         baseURL: 'https://api.freecurrencyapi.com/v1',
         apiKey: process.env.FREECURRENCY_KEY || 'YOUR_FREECURRENCY_KEY_HERE', // Registrarse en freecurrencyapi.com
@@ -71,7 +71,7 @@ const API_CONFIGURATION = {
 
     // Configuración para APIs públicas de bancos mexicanos
     bancomex: {
-        enabled: true,
+        enabled: false, // Deshabilitado hasta que se configure token
         name: 'Banco de México',
         baseURL: 'https://www.banxico.org.mx/SieAPIRest/service/v1/series',
         apiKey: process.env.BANXICO_TOKEN || 'YOUR_BANXICO_TOKEN_HERE', // Token gratuito de Banxico
@@ -95,54 +95,56 @@ const API_CONFIGURATION = {
 // =================================================================
 
 const MARKET_PRICES_AUGUST_2025 = {
-    // Precios base en USD por onza troy (actualizados agosto 18, 2025)
+    // Precios base en USD por onza troy (actualizados agosto 25, 2025)
     metals_usd_per_oz: {
-        gold: 1955.50,      // Oro USD/oz
-        silver: 23.45,      // Plata USD/oz  
-        platinum: 920.75,   // Platino USD/oz
-        palladium: 1285.30  // Paladio USD/oz
+        gold: 2508.00,      // Oro USD/oz
+        silver: 29.85,      // Plata USD/oz  
+        platinum: 945.00,   // Platino USD/oz
+        palladium: 1050.00  // Paladio USD/oz
     },
 
-    // Tipo de cambio USD/MXN (actualizado agosto 18, 2025)
+    // Tipo de cambio USD/MXN (actualizado agosto 25, 2025)
     exchange_rate: {
-        usd_mxn: 19.85,
-        last_update: '2025-08-18T12:00:00Z',
+        usd_mxn: 18.50,
+        last_update: '2025-08-25T12:00:00Z',
         source: 'Banco de México'
     },
 
     // Precios calculados en MXN por gramo (base para cálculos)
+    // Oro: 2508 USD/oz * 18.50 MXN/USD / 31.1035 g/oz = 1492.50 MXN/g
+    // Plata: 29.85 USD/oz * 18.50 MXN/USD / 31.1035 g/oz = 17.75 MXN/g
     metals_mxn_per_gram: {
         gold: {
-            '24k': 1245.50,   // 100% pureza
-            '22k': 1141.71,   // 91.67% pureza
-            '18k': 934.13,    // 75% pureza
-            '14k': 726.54,    // 58.33% pureza
-            '10k': 518.96     // 41.67% pureza
+            '24k': 1492.50,   // 100% pureza
+            '22k': 1368.13,   // 91.67% pureza
+            '18k': 1119.38,   // 75% pureza
+            '14k': 870.63,    // 58.33% pureza
+            '10k': 622.19     // 41.67% pureza
         },
         silver: {
-            '999': 14.95,     // 99.9% pureza
-            '958': 14.34,     // 95.8% pureza (plata esterlina premium)
-            '925': 13.84,     // 92.5% pureza (plata esterlina)
-            '900': 13.46,     // 90% pureza
-            '800': 11.96      // 80% pureza
+            '999': 17.73,     // 99.9% pureza
+            '958': 17.00,     // 95.8% pureza (plata esterlina premium)
+            '925': 16.40,     // 92.5% pureza (plata esterlina)
+            '900': 15.96,     // 90% pureza
+            '800': 14.18      // 80% pureza
         },
         platinum: {
-            '999': 587.42,    // 99.9% pureza
-            '950': 558.05,    // 95% pureza
-            '900': 528.68,    // 90% pureza
-            '850': 499.31     // 85% pureza
+            '999': 562.22,    // 99.9% pureza - Platino: 945 USD/oz * 18.50 / 31.1035
+            '950': 534.11,    // 95% pureza
+            '900': 505.99,    // 90% pureza
+            '850': 477.88     // 85% pureza
         },
         palladium: {
-            '999': 820.45,    // 99.9% pureza
-            '950': 779.43,    // 95% pureza
-            '900': 738.41     // 90% pureza
+            '999': 624.69,    // 99.9% pureza - Paladio: 1050 USD/oz * 18.50 / 31.1035
+            '950': 593.46,    // 95% pureza
+            '900': 562.22     // 90% pureza
         }
     },
 
     // Información adicional
     market_info: {
         source: 'Promedio de mercados internacionales',
-        last_update: '2025-08-18T12:00:00Z',
+        last_update: '2025-08-25T12:00:00Z',
         confidence: 'high',
         volatility: 'normal',
         trend: 'stable'
