@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simplified Functionality</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        canvas {
+            border: 1px solid #ddd;
+            background: white;
+        }
+        button {
+            background: #D4AF37;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #B8941F;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Sistema Simplificado - ciaociao.mx</h1>
+    <p>Prueba de funcionalidades core después de simplificación</p>
+
+    <!-- Test Results Container -->
+    <div id="testResults"></div>
+
+    <!-- Signature Test -->
+    <div class="test-section">
+        <h2>✍️ Prueba de Firma Digital</h2>
+        <canvas id="testSignatureCanvas" width="400" height="200"></canvas>
+        <div>
+            <button onclick="clearSignature()">Limpiar Firma</button>
+            <button onclick="testSignatureData()">Probar Datos de Firma</button>
+        </div>
+        <div id="signatureResult"></div>
+    </div>
+
+    <!-- PDF Test -->
+    <div class="test-section">
+        <h2>📄 Prueba de Generación PDF</h2>
+        <button onclick="testPDFGeneration()">Generar PDF de Prueba</button>
+        <div id="pdfResult"></div>
+    </div>
+
+    <!-- Dependencies Test -->
+    <div class="test-section">
+        <h2>📦 Prueba de Dependencias</h2>
+        <button onclick="testDependencies()">Verificar Librerías</button>
+        <div id="dependenciesResult"></div>
+    </div>
+
+    <!-- CDN Libraries (same as simplified system) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        let testSignaturePad;
+        const results = [];
+
+        // Initialize test
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 Iniciando pruebas del sistema simplificado...');
+            runAllTests();
+        });
+
+        function addResult(message, type = 'success') {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${message}`;
+            document.getElementById('testResults').appendChild(resultDiv);
+            results.push({message, type, timestamp: new Date()});
+        }
+
+        function runAllTests() {
+            testDependencies();
+            setTimeout(initializeSignatureTest, 1000);
+        }
+
+        function testDependencies() {
+            addResult('🔍 Verificando dependencias...', 'warning');
+            
+            // Test jsPDF
+            if (typeof window.jsPDF !== 'undefined') {
+                addResult('✅ jsPDF cargado correctamente');
+            } else {
+                addResult('❌ jsPDF no disponible', 'error');
+            }
+
+            // Test SignaturePad
+            if (typeof SignaturePad !== 'undefined') {
+                addResult('✅ SignaturePad cargado correctamente');
+            } else {
+                addResult('❌ SignaturePad no disponible', 'error');
+            }
+
+            // Test html2canvas
+            if (typeof html2canvas !== 'undefined') {
+                addResult('✅ html2canvas cargado correctamente');
+            } else {
+                addResult('❌ html2canvas no disponible', 'error');
+            }
+
+            document.getElementById('dependenciesResult').innerHTML = 
+                '<div class="success">✅ Verificación de dependencias completada - Ver resultados arriba</div>';
+        }
+
+        function initializeSignatureTest() {
+            try {
+                const canvas = document.getElementById('testSignatureCanvas');
+                if (canvas) {
+                    testSignaturePad = new SignaturePad(canvas, {
+                        backgroundColor: 'rgb(255, 255, 255)',
+                        penColor: 'rgb(0, 0, 0)'
+                    });
+                    addResult('✅ SignaturePad inicializado correctamente');
+                    document.getElementById('signatureResult').innerHTML = 
+                        '<div class="success">✅ Firma digital lista - Prueba dibujando en el canvas</div>';
+                } else {
+                    addResult('❌ Canvas de firma no encontrado', 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error inicializando SignaturePad: ${error.message}`, 'error');
+                document.getElementById('signatureResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function clearSignature() {
+            if (testSignaturePad) {
+                testSignaturePad.clear();
+                addResult('🧹 Firma limpiada');
+            }
+        }
+
+        function testSignatureData() {
+            if (testSignaturePad) {
+                if (testSignaturePad.isEmpty()) {
+                    document.getElementById('signatureResult').innerHTML = 
+                        '<div class="warning">⚠️ Canvas vacío - dibuja algo primero</div>';
+                } else {
+                    const dataURL = testSignaturePad.toDataURL();
+                    addResult('✅ Datos de firma extraídos correctamente');
+                    document.getElementById('signatureResult').innerHTML = 
+                        '<div class="success">✅ Firma capturada - Datos disponibles</div>';
+                }
+            }
+        }
+
+        function testPDFGeneration() {
+            try {
+                addResult('🔄 Probando generación de PDF...', 'warning');
+                
+                const { jsPDF } = window.jsPDF;
+                const doc = new jsPDF();
+                
+                // Add content
+                doc.setFontSize(20);
+                doc.text('Test PDF - ciaociao.mx', 20, 30);
+                doc.setFontSize(12);
+                doc.text('Este es un PDF de prueba del sistema simplificado', 20, 50);
+                doc.text(`Generado: ${new Date().toLocaleString()}`, 20, 70);
+                
+                // Add signature if available
+                if (testSignaturePad && !testSignaturePad.isEmpty()) {
+                    const signatureData = testSignaturePad.toDataURL();
+                    doc.text('Firma de prueba:', 20, 90);
+                    doc.addImage(signatureData, 'PNG', 20, 95, 100, 30);
+                }
+                
+                // Save
+                doc.save('test-sistema-simplificado.pdf');
+                
+                addResult('✅ PDF generado y descargado exitosamente');
+                document.getElementById('pdfResult').innerHTML = 
+                    '<div class="success">✅ PDF de prueba generado - Verifica tu carpeta de descargas</div>';
+                    
+            } catch (error) {
+                addResult(`❌ Error generando PDF: ${error.message}`, 'error');
+                document.getElementById('pdfResult').innerHTML = 
+                    `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        // Export results for debugging
+        window.getTestResults = function() {
+            return {
+                results: results,
+                summary: {
+                    total: results.length,
+                    success: results.filter(r => r.type === 'success').length,
+                    errors: results.filter(r => r.type === 'error').length,
+                    warnings: results.filter(r => r.type === 'warning').length
+                }
+            };
+        };
+
+        console.log('🧪 Sistema de pruebas cargado. Usa getTestResults() para ver resumen.');
+    </script>
+</body>
+</html>

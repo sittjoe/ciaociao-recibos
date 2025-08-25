@@ -420,52 +420,17 @@
     <!-- XSS Protection System -->
     <!-- <script src="xss-protection.js"></script> TEMPORALMENTE DESHABILITADO - BLOQUEA PASSWORD INPUT -->
     
-    <!-- 1. CDN Libraries (críticas) -->
+    <!-- CDN Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
-    <!-- 2. Módulos Base (sin DOMContentLoaded) -->
+    <!-- Core System Files -->
     <script src="utils.js"></script>
     <script src="database.js"></script>
     <script src="camera.js"></script>
     <script src="payments.js"></script>
-    
-    <!-- 3. Coordinador de Inicialización (NUEVO) -->
-    <script src="initialization-coordinator.js"></script>
-    
-    <!-- 4. Script Principal (sin DOMContentLoaded) -->
-    <script src="script.js"></script>
-    
-    <!-- 5. Sistema Auto-Complete (sin inicialización automática) -->
-    <script src="autocomplete-engine.js"></script>
-    <script src="smart-dropdown.js"></script>
-    <script src="autocomplete-integration.js"></script>
-    
-    <!-- 6. PDF Scaling y Script Principal -->
-    <script src="improved-pdf-scaling.js"></script>
-    <script src="script.js"></script>
-    
-    <!-- 7. Sistema de Seguridad Enterprise (antes de autenticación) -->
-    <script src="security-manager.js"></script>
-    
-    <!-- 8. Autenticación (último, inicia todo el sistema) -->
     <script src="auth.js"></script>
-    
-    <script>
-        // Inicializador maestro - se ejecuta después de cargar todos los scripts
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando sistema con coordinador...');
-            if (window.InitializationCoordinator) {
-                window.InitializationCoordinator.initialize();
-            } else {
-                console.error('❌ Coordinador de inicialización no disponible');
-                // Fallback de emergencia
-                if (typeof window.initializeApp === 'function') {
-                    setTimeout(window.initializeApp, 500);
-                }
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
