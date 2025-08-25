@@ -1,4 +1,4 @@
-// database.js - Sistema robusto de base de datos local
+// database.js - Sistema robusto de base de datos local con encriptación AES-256
 class ReceiptDatabase {
     constructor() {
         this.dbName = 'ciaociao_receipts';
@@ -7,27 +7,38 @@ class ReceiptDatabase {
         this.maxReceipts = 1000;
         this.maxQuotations = 500;
         this.backupInterval = 5;
+        this.securityManager = null; // Se inicializará cuando esté disponible
+        this.backupManager = null;   // Integración con BackupManager enterprise
+        this.encryptionEnabled = false;
+        this.autoBackupEnabled = true;
+        this.lastBackupTrigger = null;
         this.initializeDatabase();
     }
 
-    initializeDatabase() {
+    async initializeDatabase() {
         try {
             // Verificar si localStorage está disponible
             if (typeof(Storage) === "undefined") {
                 throw new Error("LocalStorage no está disponible en este navegador");
             }
 
+            // Esperar a que SecurityManager esté disponible
+            await this.waitForSecurityManager();
+            
+            // Integrar con BackupManager enterprise
+            await this.integrateBackupManager();
+
             // Inicializar base de datos si no existe
             if (!localStorage.getItem(this.dbName)) {
-                localStorage.setItem(this.dbName, JSON.stringify([]));
+                await this.setItem(this.dbName, []);
             }
             
             if (!localStorage.getItem(this.clientsDbName)) {
-                localStorage.setItem(this.clientsDbName, JSON.stringify([]));
+                await this.setItem(this.clientsDbName, []);
             }
             
             if (!localStorage.getItem(this.quotationsDbName)) {
-                localStorage.setItem(this.quotationsDbName, JSON.stringify([]));
+                await this.setItem(this.quotationsDbName, []);
             }
 
             // Verificar integridad de datos
@@ -36,10 +47,120 @@ class ReceiptDatabase {
             // Limpiar datos antiguos si excede el límite
             this.cleanOldReceipts();
             
-            console.log('✅ Base de datos inicializada correctamente');
+            console.log('✅ Base de datos inicializada correctamente' + 
+                       (this.encryptionEnabled ? ' con encriptación AES-256' : ' (sin encriptación)') +
+                       (this.backupManager ? ' + BackupManager enterprise' : ''));
         } catch (error) {
             console.error('❌ Error inicializando base de datos:', error);
             this.handleDatabaseError(error);
+        }
+    }
+
+    /**
+     * Espera a que SecurityManager esté disponible
+     */
+    async waitForSecurityManager(maxAttempts = 15) {
+        for (let i = 0; i < maxAttempts; i++) {
+            if (window.authManager?.securityManager) {
+                this.securityManager = window.authManager.securityManager;
+                this.encryptionEnabled = true;
+                console.log('✅ Database: Encriptación AES-256 habilitada');
+                return;
+            }
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
+        console.warn('⚠️ Database: SecurityManager no disponible, datos sin encriptar');
+        this.encryptionEnabled = false;
+    }
+    
+    /**
+     * Integra con BackupManager enterprise para protección completa
+     */
+    async integrateBackupManager(maxAttempts = 20) {
+        for (let i = 0; i < maxAttempts; i++) {
+            if (window.backupManager && window.backupManager.isInitialized) {
+                this.backupManager = window.backupManager;
+                console.log('✅ Database: Integración con BackupManager enterprise completada');
+                
+                // Configurar triggers automáticos
+                this.setupAutomaticBackupTriggers();
+                return;
+            }
+            await new Promise(resolve => setTimeout(resolve, 400));
+        }
+        
+        console.warn('⚠️ Database: BackupManager no disponible, usando sistema legacy');
+        this.backupManager = null;
+    }
+    
+    /**
+     * Configura triggers automáticos de backup
+     */
+    setupAutomaticBackupTriggers() {
+        if (!this.backupManager || !this.autoBackupEnabled) {
+            return;
+        }
+        
+        // Configurar backup inteligente basado en actividad
+        this.backupTriggerCount = 0;
+        this.lastSignificantChange = Date.now();
+        
+        console.log('🔄 Triggers automáticos de backup configurados');
+    }
+
+    /**
+     * Método de almacenamiento con encriptación AES-256
+     */
+    async setItem(key, data) {
+        try {
+            const jsonData = JSON.stringify(data);
+            
+            if (this.encryptionEnabled && this.securityManager) {
+                // Encriptar datos sensibles usando SecurityManager
+                const encryptedData = await this.securityManager.encryptData(jsonData);
+                localStorage.setItem(key + '_encrypted', encryptedData);
+                console.log(`🔒 Datos encriptados guardados: ${key}`);
+            } else {
+                // Fallback sin encriptación
+                localStorage.setItem(key, jsonData);
+                console.log(`💾 Datos guardados sin encriptar: ${key}`);
+            }
+        } catch (error) {
+            console.error('❌ Error guardando datos:', error);
+            // Fallback a almacenamiento sin encriptar en caso de error
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+    }
+
+    /**
+     * Método de lectura con desencriptación AES-256
+     */
+    async getItem(key) {
+        try {
+            // Intentar leer datos encriptados primero
+            if (this.encryptionEnabled && this.securityManager) {
+                const encryptedData = localStorage.getItem(key + '_encrypted');
+                if (encryptedData) {
+                    const decryptedData = await this.securityManager.decryptData(encryptedData);
+                    console.log(`🔓 Datos desencriptados leídos: ${key}`);
+                    return JSON.parse(decryptedData);
+                }
+            }
+            
+            // Fallback a datos sin encriptar
+            const rawData = localStorage.getItem(key);
+            if (rawData) {
+                console.log(`📖 Datos sin encriptar leídos: ${key}`);
+                return JSON.parse(rawData);
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('❌ Error leyendo datos:', error);
+            // Fallback a datos sin encriptar en caso de error
+            const rawData = localStorage.getItem(key);
+            return rawData ? JSON.parse(rawData) : [];
         }
     }
 
@@ -64,14 +185,14 @@ class ReceiptDatabase {
         }
     }
 
-    saveReceipt(receiptData) {
+    async saveReceipt(receiptData) {
         try {
             // Validar datos del recibo
             if (!this.validateReceiptData(receiptData)) {
                 throw new Error('Datos del recibo inválidos');
             }
 
-            const receipts = this.getAllReceipts();
+            const receipts = await this.getAllReceipts();
             
             // Agregar timestamp y ID único
             receiptData.id = this.generateUniqueId();
@@ -82,16 +203,17 @@ class ReceiptDatabase {
             // Agregar al inicio del array (más recientes primero)
             receipts.unshift(receiptData);
             
-            // Guardar en localStorage
-            localStorage.setItem(this.dbName, JSON.stringify(receipts));
+            // Guardar con encriptación AES-256
+            await this.setItem(this.dbName, receipts);
             
             // Guardar cliente si es nuevo
-            this.saveClientIfNew(receiptData);
+            await this.saveClientIfNew(receiptData);
             
-            // Hacer backup automático cada X recibos
-            if (receipts.length % this.backupInterval === 0) {
-                this.createBackup();
-            }
+            // Trigger de backup inteligente
+            await this.triggerIntelligentBackup('receipt_saved', {
+                receiptId: receiptData.id,
+                totalReceipts: receipts.length
+            });
             
             console.log('✅ Recibo guardado:', receiptData.receiptNumber);
             return { success: true, data: receiptData };
@@ -129,19 +251,18 @@ class ReceiptDatabase {
         return true;
     }
 
-    getAllReceipts() {
+    async getAllReceipts() {
         try {
-            const receipts = JSON.parse(localStorage.getItem(this.dbName) || '[]');
-            return receipts;
+            return await this.getItem(this.dbName);
         } catch (error) {
             console.error('❌ Error obteniendo recibos:', error);
             return [];
         }
     }
 
-    getReceiptById(id) {
+    async getReceiptById(id) {
         try {
-            const receipts = this.getAllReceipts();
+            const receipts = await this.getAllReceipts();
             return receipts.find(r => r.id === id) || null;
         } catch (error) {
             console.error('❌ Error buscando recibo:', error);
@@ -179,9 +300,9 @@ class ReceiptDatabase {
         }
     }
 
-    updateReceipt(id, updates) {
+    async updateReceipt(id, updates) {
         try {
-            const receipts = this.getAllReceipts();
+            const receipts = await this.getAllReceipts();
             const index = receipts.findIndex(r => r.id === id);
             
             if (index === -1) {
@@ -195,10 +316,10 @@ class ReceiptDatabase {
                 updatedAt: new Date().toISOString()
             };
             
-            // Guardar cambios
-            localStorage.setItem(this.dbName, JSON.stringify(receipts));
+            // Guardar cambios con encriptación
+            await this.setItem(this.dbName, receipts);
             
-            console.log('✅ Recibo actualizado:', id);
+            console.log('✅ Recibo actualizado con seguridad:', id);
             return { success: true, data: receipts[index] };
             
         } catch (error) {
@@ -399,8 +520,96 @@ class ReceiptDatabase {
         }
     }
 
-    // Backup y restauración
-    createBackup() {
+    /**
+     * Sistema de backup inteligente enterprise
+     */
+    async triggerIntelligentBackup(trigger, metadata = {}) {
+        if (!this.autoBackupEnabled) {
+            return;
+        }
+        
+        try {
+            this.backupTriggerCount++;
+            this.lastSignificantChange = Date.now();
+            
+            // Usar BackupManager enterprise si está disponible
+            if (this.backupManager && this.backupManager.isInitialized) {
+                // Backup incremental inteligente
+                const shouldBackup = this.shouldTriggerBackup(trigger, metadata);
+                
+                if (shouldBackup.incremental) {
+                    console.log(`🔄 Triggering incremental backup: ${trigger}`);
+                    await this.backupManager.performIncrementalBackup(`database_${trigger}`);
+                    this.lastBackupTrigger = { type: 'incremental', trigger, timestamp: Date.now() };
+                }
+                
+                if (shouldBackup.full) {
+                    console.log(`🔄 Triggering full backup: ${trigger}`);
+                    await this.backupManager.performFullBackup(`database_${trigger}`);
+                    this.lastBackupTrigger = { type: 'full', trigger, timestamp: Date.now() };
+                }
+                
+            } else {
+                // Fallback al sistema legacy
+                if (this.backupTriggerCount % this.backupInterval === 0) {
+                    this.createLegacyBackup();
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ Error en backup inteligente:', error);
+        }
+    }
+    
+    /**
+     * Determina si debe disparar backup basado en heurísticas
+     */
+    shouldTriggerBackup(trigger, metadata) {
+        const result = { incremental: false, full: false };
+        const now = Date.now();
+        
+        try {
+            // Reglas para backup incremental
+            if (trigger === 'receipt_saved' || trigger === 'client_saved' || trigger === 'quotation_saved') {
+                // Backup incremental cada 5 cambios significativos
+                if (this.backupTriggerCount % 5 === 0) {
+                    result.incremental = true;
+                }
+            }
+            
+            if (trigger === 'bulk_operation' || trigger === 'data_migration') {
+                result.incremental = true;
+            }
+            
+            // Reglas para backup completo
+            if (trigger === 'daily_maintenance' || trigger === 'system_shutdown') {
+                result.full = true;
+            }
+            
+            // Backup completo si ha pasado mucho tiempo
+            const lastFullBackup = this.lastBackupTrigger?.type === 'full' ? 
+                this.lastBackupTrigger.timestamp : 0;
+            const timeSinceLastFull = now - lastFullBackup;
+            
+            if (timeSinceLastFull > (24 * 60 * 60 * 1000)) { // 24 horas
+                result.full = true;
+            }
+            
+            // Backup completo si hay muchos cambios acumulados
+            if (this.backupTriggerCount > 50) {
+                result.full = true;
+                this.backupTriggerCount = 0; // Reset counter
+            }
+            
+        } catch (error) {
+            console.error('Error evaluando reglas de backup:', error);
+        }
+        
+        return result;
+    }
+    
+    // Backup legacy (mantener compatibilidad)
+    createLegacyBackup() {
         try {
             const backup = {
                 version: '1.0',
@@ -415,23 +624,70 @@ class ReceiptDatabase {
             
             const link = document.createElement('a');
             link.href = url;
-            link.download = `backup_ciaociao_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `backup_legacy_ciaociao_${new Date().toISOString().split('T')[0]}.json`;
             link.click();
             
             URL.revokeObjectURL(url);
-            console.log('✅ Backup creado exitosamente');
+            console.log('✅ Backup legacy creado exitosamente');
             
         } catch (error) {
-            console.error('❌ Error creando backup:', error);
+            console.error('❌ Error creando backup legacy:', error);
+        }
+    }
+    
+    /**
+     * Backup manual enterprise
+     */
+    async createBackup(type = 'full') {
+        if (this.backupManager && this.backupManager.isInitialized) {
+            try {
+                if (type === 'incremental') {
+                    return await this.backupManager.performIncrementalBackup('manual_database');
+                } else {
+                    return await this.backupManager.performFullBackup('manual_database');
+                }
+            } catch (error) {
+                console.error('Error en backup enterprise, usando legacy:', error);
+                this.createLegacyBackup();
+            }
+        } else {
+            this.createLegacyBackup();
         }
     }
 
-    restoreFromBackup(file) {
-        return new Promise((resolve, reject) => {
+    /**
+     * Sistema de restauración enterprise
+     */
+    async restoreFromBackup(file) {
+        return new Promise(async (resolve, reject) => {
             try {
+                // Intentar restauración enterprise primero
+                if (this.backupManager && this.backupManager.isInitialized) {
+                    try {
+                        const backupId = await this.backupManager.importBackup(file);
+                        const result = await this.backupManager.restoreFromBackup(backupId, {
+                            skipSafetyBackup: false,
+                            reloadAfterRestore: true
+                        });
+                        
+                        console.log('✅ Restauración enterprise exitosa:', result);
+                        resolve({
+                            success: true,
+                            message: 'Backup restaurado exitosamente con BackupManager enterprise',
+                            details: result
+                        });
+                        return;
+                        
+                    } catch (enterpriseError) {
+                        console.warn('⚠️ Restauración enterprise falló, usando método legacy:', enterpriseError);
+                        // Continuar con método legacy
+                    }
+                }
+                
+                // Método legacy como fallback
                 const reader = new FileReader();
                 
-                reader.onload = (e) => {
+                reader.onload = async (e) => {
                     try {
                         const backup = JSON.parse(e.target.result);
                         
@@ -446,12 +702,38 @@ class ReceiptDatabase {
                             return;
                         }
                         
-                        // Restaurar datos
-                        localStorage.setItem(this.dbName, JSON.stringify(backup.receipts));
-                        localStorage.setItem(this.clientsDbName, JSON.stringify(backup.clients));
+                        // Crear backup de seguridad antes de restaurar
+                        if (this.backupManager) {
+                            try {
+                                await this.backupManager.performFullBackup('safety_before_legacy_restore');
+                                console.log('💾 Backup de seguridad creado antes de restauración legacy');
+                            } catch (safetyError) {
+                                console.warn('⚠️ No se pudo crear backup de seguridad:', safetyError);
+                            }
+                        }
                         
-                        console.log('✅ Backup restaurado exitosamente');
-                        resolve({ success: true, message: 'Backup restaurado exitosamente' });
+                        // Restaurar datos usando métodos encriptados si están disponibles
+                        if (this.encryptionEnabled && this.setItem) {
+                            await this.setItem(this.dbName, backup.receipts);
+                            await this.setItem(this.clientsDbName, backup.clients);
+                            if (backup.quotations) {
+                                await this.setItem(this.quotationsDbName, backup.quotations);
+                            }
+                        } else {
+                            // Fallback sin encriptación
+                            localStorage.setItem(this.dbName, JSON.stringify(backup.receipts));
+                            localStorage.setItem(this.clientsDbName, JSON.stringify(backup.clients));
+                            if (backup.quotations) {
+                                localStorage.setItem(this.quotationsDbName, JSON.stringify(backup.quotations));
+                            }
+                        }
+                        
+                        console.log('✅ Backup legacy restaurado exitosamente');
+                        resolve({ 
+                            success: true, 
+                            message: 'Backup restaurado exitosamente (método legacy)',
+                            method: 'legacy'
+                        });
                         
                         // Recargar página para aplicar cambios
                         setTimeout(() => location.reload(), 1000);
@@ -472,6 +754,43 @@ class ReceiptDatabase {
                 reject(error.message);
             }
         });
+    }
+    
+    /**
+     * Obtiene lista de backups disponibles (enterprise)
+     */
+    getAvailableBackups() {
+        if (this.backupManager && this.backupManager.isInitialized) {
+            return this.backupManager.getAvailableBackups();
+        }
+        return [];
+    }
+    
+    /**
+     * Restaura desde backup específico por ID (enterprise)
+     */
+    async restoreFromBackupId(backupId, options = {}) {
+        if (!this.backupManager || !this.backupManager.isInitialized) {
+            throw new Error('BackupManager no disponible');
+        }
+        
+        return await this.backupManager.restoreFromBackup(backupId, options);
+    }
+    
+    /**
+     * Obtiene estado del sistema de backup
+     */
+    getBackupStatus() {
+        if (this.backupManager && this.backupManager.isInitialized) {
+            return this.backupManager.getSystemStatus();
+        }
+        
+        return {
+            available: false,
+            method: 'legacy',
+            lastBackup: this.lastBackupTrigger,
+            autoBackupEnabled: this.autoBackupEnabled
+        };
     }
 
     exportToExcel() {

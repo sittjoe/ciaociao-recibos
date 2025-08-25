@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDN Circuit Breaker Demo - ciaociao.mx</title>
+    <style>
+        :root {
+            --primary: #2c5aa0;
+            --secondary: #f39c12;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --info: #3498db;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #e1e8ed;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .status-item {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--light);
+        }
+        
+        .status-item.healthy {
+            background: #d5f4e6;
+            color: var(--success);
+        }
+        
+        .status-item.degraded {
+            background: #fff3cd;
+            color: var(--warning);
+        }
+        
+        .status-item.unhealthy {
+            background: #f8d7da;
+            color: var(--danger);
+        }
+        
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .status-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .btn.success {
+            background: var(--success);
+        }
+        
+        .btn.warning {
+            background: var(--warning);
+        }
+        
+        .btn.danger {
+            background: var(--danger);
+        }
+        
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .circuit-breaker {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .circuit-breaker:last-child {
+            border-bottom: none;
+        }
+        
+        .circuit-info {
+            flex: 1;
+        }
+        
+        .circuit-name {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .circuit-url {
+            font-size: 0.8rem;
+            color: #666;
+            word-break: break-all;
+        }
+        
+        .circuit-state {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .circuit-state.closed {
+            background: #d5f4e6;
+            color: var(--success);
+        }
+        
+        .circuit-state.open {
+            background: #f8d7da;
+            color: var(--danger);
+        }
+        
+        .circuit-state.half-open {
+            background: #fff3cd;
+            color: var(--warning);
+        }
+        
+        .metrics {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .metric {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .metric-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .alert.info {
+            background: #e1f5fe;
+            border-color: var(--info);
+            color: #01579b;
+        }
+        
+        .alert.success {
+            background: #e8f5e8;
+            border-color: var(--success);
+            color: #2e7d32;
+        }
+        
+        .alert.warning {
+            background: #fff8e1;
+            border-color: var(--warning);
+            color: #ef6c00;
+        }
+        
+        .alert.danger {
+            background: #ffebee;
+            border-color: var(--danger);
+            color: #c62828;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 CDN Circuit Breaker Demo</h1>
+            <p>Enterprise-grade CDN failure management for ciaociao.mx</p>
+        </div>
+        
+        <div class="content">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Initializing CDN Circuit Breaker System...</p>
+            </div>
+            
+            <div id="dashboard" style="display: none;">
+                <div class="grid">
+                    <!-- System Status -->
+                    <div class="card">
+                        <h3>📊 System Status</h3>
+                        <div class="status-grid">
+                            <div id="systemStatus" class="status-item">
+                                <span class="status-value">-</span>
+                                <span class="status-label">System</span>
+                            </div>
+                            <div id="circuitCount" class="status-item">
+                                <span class="status-value">-</span>
+                                <span class="status-label">Circuits</span>
+                            </div>
+                            <div id="cacheSize" class="status-item">
+                                <span class="status-value">-</span>
+                                <span class="status-label">Cache</span>
+                            </div>
+                            <div id="hitRate" class="status-item">
+                                <span class="status-value">-</span>
+                                <span class="status-label">Hit Rate</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Performance Metrics -->
+                    <div class="card">
+                        <h3>⚡ Performance</h3>
+                        <div class="metrics">
+                            <div class="metric">
+                                <div id="avgLatency" class="metric-value">-</div>
+                                <div class="metric-label">Avg Latency</div>
+                            </div>
+                            <div class="metric">
+                                <div id="successRate" class="metric-value">-</div>
+                                <div class="metric-label">Success Rate</div>
+                            </div>
+                            <div class="metric">
+                                <div id="throughput" class="metric-value">-</div>
+                                <div class="metric-label">Throughput</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Circuit Breakers -->
+                <div class="card">
+                    <h3>🔧 Circuit Breakers</h3>
+                    <div id="circuitBreakers">Loading circuit breakers...</div>
+                </div>
+                
+                <!-- Active Alerts -->
+                <div class="card">
+                    <h3>🚨 Health Alerts</h3>
+                    <div id="healthAlerts">No active alerts</div>
+                </div>
+                
+                <!-- Controls -->
+                <div class="card">
+                    <h3>🎮 Test Controls</h3>
+                    <div>
+                        <button class="btn success" onclick="loadLibrary('domPurify')">Load DOMPurify</button>
+                        <button class="btn success" onclick="loadLibrary('jsPDF')">Load jsPDF</button>
+                        <button class="btn success" onclick="loadLibrary('html2canvas')">Load html2canvas</button>
+                        <button class="btn warning" onclick="simulateFailure()">Simulate CDN Failure</button>
+                        <button class="btn danger" onclick="clearCache()">Clear Cache</button>
+                        <button class="btn" onclick="refreshStatus()">Refresh Status</button>
+                    </div>
+                </div>
+                
+                <!-- System Log -->
+                <div class="card">
+                    <h3>📜 System Log</h3>
+                    <div id="systemLog" class="log">System initialized. Ready for operations...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CDN Circuit Breaker System -->
+    <script src="cdn-circuit-breaker.js"></script>
+    <script src="cdn-health-monitor.js"></script>
+    <script src="cdn-cache-manager.js"></script>
+    
+    <!-- Demo Application -->
+    <script>
+        let logContainer;
+        let updateInterval;
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            logContainer = document.getElementById('systemLog');
+            
+            try {
+                await initializeDemoSystem();
+            } catch (error) {
+                log(`ERROR: Failed to initialize demo: ${error.message}`, 'error');
+            }
+        });
+        
+        async function initializeDemoSystem() {
+            log('Initializing CDN Circuit Breaker Demo...', 'info');
+            
+            // Wait for CDN Circuit Breaker to initialize
+            let attempts = 0;
+            const maxAttempts = 50;
+            
+            while (attempts < maxAttempts) {
+                if (window.cdnCircuitBreaker && window.cdnCircuitBreaker.isInitialized) {
+                    break;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            if (!window.cdnCircuitBreaker || !window.cdnCircuitBreaker.isInitialized) {
+                throw new Error('CDN Circuit Breaker failed to initialize within timeout');
+            }
+            
+            log('CDN Circuit Breaker initialized successfully!', 'success');
+            
+            // Initialize health monitor if available
+            if (window.CDNHealthMonitor && window.cdnCircuitBreaker) {
+                window.cdnHealthMonitor = new window.CDNHealthMonitor(window.cdnCircuitBreaker);
+                log('CDN Health Monitor initialized', 'success');
+            }
+            
+            // Initialize cache manager if available
+            if (window.CDNCacheManager && window.cdnCircuitBreaker) {
+                window.cdnCacheManager = new window.CDNCacheManager(window.cdnCircuitBreaker);
+                log('CDN Cache Manager initialized', 'success');
+            }
+            
+            // Hide loading and show dashboard
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            // Start status updates
+            updateStatus();
+            updateInterval = setInterval(updateStatus, 5000); // Update every 5 seconds
+            
+            log('Demo system ready! All components initialized.', 'success');
+        }
+        
+        function updateStatus() {
+            try {
+                if (!window.cdnCircuitBreaker) return;
+                
+                const status = window.cdnCircuitBreaker.getSystemStatus();
+                
+                // Update system status
+                updateElement('systemStatus', status.isInitialized ? '✅ Ready' : '❌ Not Ready');
+                setStatusClass('systemStatus', status.isInitialized ? 'healthy' : 'unhealthy');
+                
+                updateElement('circuitCount', status.circuitBreakers.length);
+                updateElement('cacheSize', formatBytes(status.cache.size));
+                
+                // Update performance metrics
+                const perf = status.performance;
+                updateElement('avgLatency', perf.averageLatency ? `${perf.averageLatency.toFixed(0)}ms` : '0ms');
+                updateElement('successRate', `${(perf.successRate * 100).toFixed(1)}%`);
+                updateElement('throughput', `${perf.throughput.toFixed(1)} req/min`);
+                
+                // Update cache hit rate
+                let hitRate = '0%';
+                if (window.cdnCacheManager) {
+                    const cacheStats = window.cdnCacheManager.getStats();
+                    hitRate = `${(cacheStats.hitRate * 100).toFixed(1)}%`;
+                }
+                updateElement('hitRate', hitRate);
+                
+                // Update circuit breakers
+                updateCircuitBreakers(status.circuitBreakers);
+                
+                // Update health alerts
+                updateHealthAlerts();
+                
+            } catch (error) {
+                log(`Status update error: ${error.message}`, 'error');
+            }
+        }
+        
+        function updateElement(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                const valueSpan = element.querySelector('.status-value') || element.querySelector('.metric-value');
+                if (valueSpan) {
+                    valueSpan.textContent = value;
+                } else {
+                    element.textContent = value;
+                }
+            }
+        }
+        
+        function setStatusClass(id, className) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.className = `status-item ${className}`;
+            }
+        }
+        
+        function updateCircuitBreakers(breakers) {
+            const container = document.getElementById('circuitBreakers');
+            
+            if (!breakers || breakers.length === 0) {
+                container.innerHTML = '<p>No circuit breakers available</p>';
+                return;
+            }
+            
+            const html = breakers.map(breaker => `
+                <div class="circuit-breaker">
+                    <div class="circuit-info">
+                        <div class="circuit-name">${breaker.id}</div>
+                        <div class="circuit-url">${breaker.endpoint}</div>
+                    </div>
+                    <div>
+                        <span class="circuit-state ${breaker.state.toLowerCase()}">${breaker.state}</span>
+                        <small>${breaker.isHealthy ? '🟢 Healthy' : '🔴 Unhealthy'}</small>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        function updateHealthAlerts() {
+            const container = document.getElementById('healthAlerts');
+            
+            if (!window.cdnHealthMonitor) {
+                container.innerHTML = '<div class="alert info">Health monitoring not available</div>';
+                return;
+            }
+            
+            const alerts = window.cdnHealthMonitor.getActiveAlerts();
+            
+            if (alerts.length === 0) {
+                container.innerHTML = '<div class="alert success">✅ All systems healthy - no active alerts</div>';
+                return;
+            }
+            
+            const html = alerts.map(alert => {
+                const severityClass = alert.severity.toLowerCase();
+                const icon = {
+                    'low': '🟡',
+                    'medium': '🟠',
+                    'high': '🟠',
+                    'critical': '🔴'
+                }[severityClass] || '⚠️';
+                
+                return `
+                    <div class="alert ${severityClass === 'low' ? 'info' : severityClass === 'critical' ? 'danger' : 'warning'}">
+                        ${icon} <strong>[${alert.severity}]</strong> ${alert.message}
+                        <br><small>Timestamp: ${new Date(alert.timestamp).toLocaleTimeString()}</small>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
+        
+        // Demo functions
+        async function loadLibrary(libraryName) {
+            log(`Loading library: ${libraryName}`, 'info');
+            
+            try {
+                const result = await window.cdnCircuitBreaker.loadLibrary(libraryName);
+                
+                if (result.success) {
+                    log(`✅ Successfully loaded ${libraryName} from ${result.source} in ${result.duration}ms`, 'success');
+                } else {
+                    log(`❌ Failed to load ${libraryName}: ${result.error || result.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error loading ${libraryName}: ${error.message}`, 'error');
+            }
+            
+            updateStatus();
+        }
+        
+        function simulateFailure() {
+            log('Simulating CDN failure...', 'warning');
+            
+            // Manually open a circuit breaker to simulate failure
+            if (window.cdnCircuitBreaker && window.cdnCircuitBreaker.circuitBreakers) {
+                const breakerIds = Array.from(window.cdnCircuitBreaker.circuitBreakers.keys());
+                if (breakerIds.length > 0) {
+                    const randomBreaker = breakerIds[Math.floor(Math.random() * breakerIds.length)];
+                    const [libraryName, endpointName] = randomBreaker.split('_');
+                    
+                    const success = window.cdnCircuitBreaker.openCircuit(libraryName, endpointName);
+                    if (success) {
+                        log(`🚨 Circuit breaker opened for ${randomBreaker}`, 'warning');
+                        
+                        // Auto-recover after 10 seconds (for demo purposes)
+                        setTimeout(() => {
+                            window.cdnCircuitBreaker.closeCircuit(libraryName, endpointName);
+                            log(`✅ Circuit breaker recovered for ${randomBreaker}`, 'success');
+                            updateStatus();
+                        }, 10000);
+                    } else {
+                        log(`❌ Failed to open circuit breaker for ${randomBreaker}`, 'error');
+                    }
+                } else {
+                    log('⚠️ No circuit breakers available for failure simulation', 'warning');
+                }
+            }
+            
+            updateStatus();
+        }
+        
+        function clearCache() {
+            log('Clearing CDN cache...', 'info');
+            
+            if (window.cdnCacheManager) {
+                window.cdnCacheManager.clear();
+                log('✅ Cache cleared successfully', 'success');
+            } else if (window.cdnCircuitBreaker && window.cdnCircuitBreaker.clearCache) {
+                window.cdnCircuitBreaker.clearCache();
+                log('✅ Circuit breaker cache cleared', 'success');
+            } else {
+                log('⚠️ No cache manager available', 'warning');
+            }
+            
+            updateStatus();
+        }
+        
+        function refreshStatus() {
+            log('Refreshing status...', 'info');
+            updateStatus();
+            log('✅ Status refreshed', 'success');
+        }
+        
+        // Utility functions
+        function log(message, type = 'info') {
+            if (!logContainer) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                'info': '#00aaff',
+                'success': '#00ff00',
+                'warning': '#ffaa00',
+                'error': '#ff4444'
+            };
+            
+            const logEntry = document.createElement('div');
+            logEntry.style.color = colors[type] || '#00ff00';
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 50 log entries
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+        
+        console.log('📊 CDN Circuit Breaker Demo loaded');
+        console.log('🔧 Available functions: loadLibrary(), simulateFailure(), clearCache(), refreshStatus()');
+    </script>
+</body>
+</html>

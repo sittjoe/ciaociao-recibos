@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BackupManager Enterprise Demo - ciaociao.mx</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .status-card.success {
+            border-left-color: #28a745;
+        }
+        
+        .status-card.warning {
+            border-left-color: #ffc107;
+        }
+        
+        .status-card.error {
+            border-left-color: #dc3545;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .backup-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .backup-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .backup-item.full {
+            border-left-color: #28a745;
+        }
+        
+        .backup-item.incremental {
+            border-left-color: #ffc107;
+        }
+        
+        .backup-info {
+            flex: 1;
+        }
+        
+        .backup-meta {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .backup-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .logs {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .integration-status {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .integration-item {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .integration-item.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .integration-item.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 BackupManager Enterprise Demo</h1>
+        
+        <!-- Estado de integración -->
+        <div class="integration-status" id="integrationStatus">
+            <div class="integration-item inactive">SecurityManager</div>
+            <div class="integration-item inactive">XSSProtection</div>
+            <div class="integration-item inactive">ReceiptDatabase</div>
+            <div class="integration-item inactive">BackupManager</div>
+        </div>
+        
+        <!-- Estados del sistema -->
+        <div class="status-grid">
+            <div class="status-card" id="systemStatus">
+                <h3>📊 Estado del Sistema</h3>
+                <div id="systemStatusContent">Inicializando...</div>
+            </div>
+            
+            <div class="status-card" id="backupStatus">
+                <h3>💾 Estado de Backup</h3>
+                <div id="backupStatusContent">Verificando...</div>
+            </div>
+            
+            <div class="status-card" id="securityStatus">
+                <h3>🔒 Estado de Seguridad</h3>
+                <div id="securityStatusContent">Evaluando...</div>
+            </div>
+        </div>
+        
+        <!-- Métricas -->
+        <div class="metrics-grid" id="metricsGrid">
+            <div class="metric-card">
+                <div class="metric-value" id="totalBackups">0</div>
+                <div class="metric-label">Backups Totales</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="successfulBackups">0</div>
+                <div class="metric-label">Backups Exitosos</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="avgBackupTime">0ms</div>
+                <div class="metric-label">Tiempo Promedio</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="storageUsage">0%</div>
+                <div class="metric-label">Uso de Almacenamiento</div>
+            </div>
+        </div>
+        
+        <!-- Controles -->
+        <div class="controls">
+            <button class="btn-primary" onclick="performFullBackup()">
+                🗄️ Backup Completo
+            </button>
+            <button class="btn-secondary" onclick="performIncrementalBackup()">
+                📊 Backup Incremental
+            </button>
+            <button class="btn-success" onclick="refreshStatus()">
+                🔄 Refrescar Estado
+            </button>
+            <button class="btn-warning" onclick="showBackupsList()">
+                📋 Ver Backups
+            </button>
+            <button class="btn-secondary" onclick="exportBackup()">
+                📤 Exportar Backup
+            </button>
+            <button class="btn-danger" onclick="performCleanup()">
+                🧹 Cleanup
+            </button>
+        </div>
+        
+        <!-- Lista de backups -->
+        <div class="backup-list">
+            <h3>📚 Backups Disponibles</h3>
+            <div id="backupsList">
+                <p>Cargando lista de backups...</p>
+            </div>
+        </div>
+        
+        <!-- Logs en tiempo real -->
+        <div>
+            <h3>📝 Logs del Sistema</h3>
+            <div class="logs" id="systemLogs"></div>
+        </div>
+    </div>
+
+    <!-- Scripts necesarios -->
+    <script src="security-manager.js"></script>
+    <script src="xss-protection.js"></script>
+    <script src="database.js"></script>
+    <script src="backup-manager.js"></script>
+    
+    <script>
+        // Estado global de la demo
+        let demoState = {
+            initialized: false,
+            logBuffer: [],
+            refreshInterval: null
+        };
+        
+        // Interceptar console.log para mostrar en la UI
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+        const originalError = console.error;
+        
+        function interceptConsole() {
+            console.log = function(...args) {
+                logToUI('INFO', args.join(' '));
+                originalLog.apply(console, args);
+            };
+            
+            console.warn = function(...args) {
+                logToUI('WARN', args.join(' '));
+                originalWarn.apply(console, args);
+            };
+            
+            console.error = function(...args) {
+                logToUI('ERROR', args.join(' '));
+                originalError.apply(console, args);
+            };
+        }
+        
+        function logToUI(level, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${level}: ${message}`;
+            
+            demoState.logBuffer.push(logEntry);
+            
+            // Mantener solo los últimos 100 logs
+            if (demoState.logBuffer.length > 100) {
+                demoState.logBuffer.shift();
+            }
+            
+            // Actualizar UI
+            const logsElement = document.getElementById('systemLogs');
+            if (logsElement) {
+                logsElement.textContent = demoState.logBuffer.join('\n');
+                logsElement.scrollTop = logsElement.scrollHeight;
+            }
+        }
+        
+        // Inicializar demo
+        async function initializeDemo() {
+            try {
+                interceptConsole();
+                logToUI('INFO', 'Inicializando BackupManager Enterprise Demo...');
+                
+                // Esperar a que todos los sistemas se inicialicen
+                await waitForSystemsInitialization();
+                
+                // Configurar actualización automática
+                demoState.refreshInterval = setInterval(refreshStatus, 5000);
+                
+                // Actualizar estado inicial
+                await refreshStatus();
+                
+                demoState.initialized = true;
+                logToUI('INFO', 'Demo inicializada exitosamente');
+                
+            } catch (error) {
+                logToUI('ERROR', `Error inicializando demo: ${error.message}`);
+            }
+        }
+        
+        // Esperar a que los sistemas se inicialicen
+        async function waitForSystemsInitialization() {
+            const maxAttempts = 30;
+            const delay = 1000;
+            
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                logToUI('INFO', `Verificando sistemas... Intento ${attempt}/${maxAttempts}`);
+                
+                const systemsReady = {
+                    securityManager: window.securityManager && window.securityManager.isInitialized,
+                    xssProtection: window.xssProtection && window.xssProtection.isReady(),
+                    database: window.database || window.receiptDB,
+                    backupManager: window.backupManager && window.backupManager.isInitialized
+                };
+                
+                updateIntegrationStatus(systemsReady);
+                
+                if (systemsReady.backupManager) {
+                    logToUI('INFO', 'Todos los sistemas críticos están listos');
+                    return;
+                }
+                
+                if (attempt === maxAttempts) {
+                    logToUI('WARN', 'Algunos sistemas no se inicializaron completamente');
+                    return;
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+        
+        // Actualizar estado de integración
+        function updateIntegrationStatus(systems) {
+            const container = document.getElementById('integrationStatus');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            Object.entries(systems).forEach(([name, active]) => {
+                const item = document.createElement('div');
+                item.className = `integration-item ${active ? 'active' : 'inactive'}`;
+                item.textContent = name;
+                container.appendChild(item);
+            });
+        }
+        
+        // Refrescar estado del sistema
+        async function refreshStatus() {
+            try {
+                await updateSystemStatus();
+                await updateBackupStatus();
+                await updateSecurityStatus();
+                await updateMetrics();
+                await updateBackupsList();
+                
+            } catch (error) {
+                logToUI('ERROR', `Error refrescando estado: ${error.message}`);
+            }
+        }
+        
+        // Actualizar estado del sistema
+        async function updateSystemStatus() {
+            const statusElement = document.getElementById('systemStatusContent');
+            const cardElement = document.getElementById('systemStatus');
+            
+            if (!statusElement || !cardElement) return;
+            
+            try {
+                if (window.backupManager && window.backupManager.isInitialized) {
+                    const status = window.backupManager.getSystemStatus();
+                    
+                    cardElement.className = 'status-card success';
+                    statusElement.innerHTML = `
+                        <strong>✅ Sistema Operativo</strong><br>
+                        Versión: ${status.version}<br>
+                        Backup en progreso: ${status.isBackupInProgress ? 'Sí' : 'No'}<br>
+                        Recovery en progreso: ${status.isRecoveryInProgress ? 'Sí' : 'No'}<br>
+                        Último backup: ${status.lastBackupTime ? new Date(status.lastBackupTime).toLocaleString() : 'Nunca'}
+                    `;
+                } else {
+                    cardElement.className = 'status-card warning';
+                    statusElement.innerHTML = `
+                        <strong>⚠️ Sistema Inicializando</strong><br>
+                        BackupManager no está completamente inicializado
+                    `;
+                }
+                
+            } catch (error) {
+                cardElement.className = 'status-card error';
+                statusElement.innerHTML = `
+                    <strong>❌ Error del Sistema</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+        
+        // Actualizar estado de backup
+        async function updateBackupStatus() {
+            const statusElement = document.getElementById('backupStatusContent');
+            const cardElement = document.getElementById('backupStatus');
+            
+            if (!statusElement || !cardElement) return;
+            
+            try {
+                if (window.backupManager && window.backupManager.isInitialized) {
+                    const backups = window.backupManager.getAvailableBackups();
+                    const metrics = window.backupManager.getMetrics();
+                    
+                    cardElement.className = 'status-card success';
+                    statusElement.innerHTML = `
+                        <strong>💾 Sistema de Backup Activo</strong><br>
+                        Backups disponibles: ${backups.length}<br>
+                        Backups exitosos: ${metrics.successfulBackups}<br>
+                        Backups fallidos: ${metrics.failedBackups}<br>
+                        Encriptación: ${window.backupManager.encryptionEnabled ? 'Habilitada' : 'Deshabilitada'}
+                    `;
+                } else {
+                    cardElement.className = 'status-card warning';
+                    statusElement.innerHTML = `
+                        <strong>⚠️ Sistema Legacy</strong><br>
+                        Usando sistema de backup básico
+                    `;
+                }
+                
+            } catch (error) {
+                cardElement.className = 'status-card error';
+                statusElement.innerHTML = `
+                    <strong>❌ Error de Backup</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+        
+        // Actualizar estado de seguridad
+        async function updateSecurityStatus() {
+            const statusElement = document.getElementById('securityStatusContent');
+            const cardElement = document.getElementById('securityStatus');
+            
+            if (!statusElement || !cardElement) return;
+            
+            try {
+                let securityLevel = 'UNKNOWN';
+                let details = '';
+                
+                if (window.securityManager) {
+                    const securityStats = window.securityManager.getComprehensiveSecurityStatus();
+                    securityLevel = securityStats.securityLevel;
+                    
+                    details = `
+                        <strong>🔒 Nivel: ${securityLevel}</strong><br>
+                        Encriptación: ${securityStats.authentication.hasEncryptionKey ? 'Activa' : 'Inactiva'}<br>
+                        XSS Protection: ${securityStats.xssProtection ? 'Activo' : 'Inactivo'}<br>
+                        Rate Limiting: ${securityStats.authentication.isRateLimited ? 'Activo' : 'Normal'}
+                    `;
+                } else {
+                    details = `
+                        <strong>⚠️ SecurityManager no disponible</strong><br>
+                        Funcionando en modo básico
+                    `;
+                }
+                
+                const levelColors = {
+                    'EXCELLENT': 'success',
+                    'GOOD': 'success',
+                    'FAIR': 'warning',
+                    'POOR': 'warning',
+                    'CRITICAL': 'error',
+                    'UNKNOWN': 'warning'
+                };
+                
+                cardElement.className = `status-card ${levelColors[securityLevel] || 'warning'}`;
+                statusElement.innerHTML = details;
+                
+            } catch (error) {
+                cardElement.className = 'status-card error';
+                statusElement.innerHTML = `
+                    <strong>❌ Error de Seguridad</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+        
+        // Actualizar métricas
+        async function updateMetrics() {
+            try {
+                if (window.backupManager && window.backupManager.isInitialized) {
+                    const metrics = window.backupManager.getMetrics();
+                    
+                    document.getElementById('totalBackups').textContent = metrics.totalBackups || 0;
+                    document.getElementById('successfulBackups').textContent = metrics.successfulBackups || 0;
+                    document.getElementById('avgBackupTime').textContent = 
+                        (metrics.averageBackupTime ? metrics.averageBackupTime.toFixed(0) + 'ms' : '0ms');
+                    document.getElementById('storageUsage').textContent = 
+                        (metrics.storage ? metrics.storage.usagePercent + '%' : '0%');
+                } else {
+                    // Valores por defecto
+                    document.getElementById('totalBackups').textContent = '0';
+                    document.getElementById('successfulBackups').textContent = '0';
+                    document.getElementById('avgBackupTime').textContent = '0ms';
+                    document.getElementById('storageUsage').textContent = '0%';
+                }
+                
+            } catch (error) {
+                logToUI('ERROR', `Error actualizando métricas: ${error.message}`);
+            }
+        }
+        
+        // Actualizar lista de backups
+        async function updateBackupsList() {
+            const container = document.getElementById('backupsList');
+            if (!container) return;
+            
+            try {
+                if (window.backupManager && window.backupManager.isInitialized) {
+                    const backups = window.backupManager.getAvailableBackups();
+                    
+                    if (backups.length === 0) {
+                        container.innerHTML = '<p>No hay backups disponibles</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = backups.map(backup => `
+                        <div class="backup-item ${backup.type}">
+                            <div class="backup-info">
+                                <strong>${backup.id}</strong>
+                                <div class="backup-meta">
+                                    Tipo: ${backup.type} | 
+                                    Fecha: ${new Date(backup.timestamp).toLocaleString()} |
+                                    Trigger: ${backup.trigger} |
+                                    Tamaño: ${backup.size}KB
+                                </div>
+                            </div>
+                            <div class="backup-actions">
+                                <button class="btn-success" onclick="restoreBackup('${backup.id}')">
+                                    🔄 Restaurar
+                                </button>
+                                <button class="btn-secondary" onclick="exportSpecificBackup('${backup.id}')">
+                                    📤 Exportar
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p>BackupManager no disponible</p>';
+                }
+                
+            } catch (error) {
+                container.innerHTML = `<p>Error cargando backups: ${error.message}</p>`;
+            }
+        }
+        
+        // Funciones de control
+        async function performFullBackup() {
+            try {
+                logToUI('INFO', 'Iniciando backup completo...');
+                const result = await window.performBackup('full');
+                logToUI('INFO', `Backup completo completado: ${result}`);
+                await refreshStatus();
+                
+            } catch (error) {
+                logToUI('ERROR', `Error en backup completo: ${error.message}`);
+            }
+        }
+        
+        async function performIncrementalBackup() {
+            try {
+                logToUI('INFO', 'Iniciando backup incremental...');
+                const result = await window.performBackup('incremental');
+                if (result) {
+                    logToUI('INFO', `Backup incremental completado: ${result}`);
+                } else {
+                    logToUI('INFO', 'Backup incremental: No hay cambios desde el último backup');
+                }
+                await refreshStatus();
+                
+            } catch (error) {
+                logToUI('ERROR', `Error en backup incremental: ${error.message}`);
+            }
+        }
+        
+        async function performCleanup() {
+            try {
+                if (window.backupManager && window.backupManager.isInitialized) {
+                    logToUI('INFO', 'Iniciando cleanup...');
+                    await window.backupManager.performAutomaticCleanup();
+                    logToUI('INFO', 'Cleanup completado');
+                    await refreshStatus();
+                } else {
+                    logToUI('WARN', 'BackupManager no disponible para cleanup');
+                }
+                
+            } catch (error) {
+                logToUI('ERROR', `Error en cleanup: ${error.message}`);
+            }
+        }
+        
+        async function showBackupsList() {
+            await updateBackupsList();
+            logToUI('INFO', 'Lista de backups actualizada');
+        }
+        
+        async function restoreBackup(backupId) {
+            try {
+                const confirmed = confirm(`¿Está seguro de restaurar el backup ${backupId}? Esto reemplazará todos los datos actuales.`);
+                if (!confirmed) {
+                    logToUI('INFO', 'Restauración cancelada por el usuario');
+                    return;
+                }
+                
+                logToUI('INFO', `Iniciando restauración desde ${backupId}...`);
+                const result = await window.restoreBackup(backupId);
+                logToUI('INFO', `Restauración completada: ${JSON.stringify(result)}`);
+                
+            } catch (error) {
+                logToUI('ERROR', `Error en restauración: ${error.message}`);
+            }
+        }
+        
+        async function exportBackup() {
+            try {
+                if (window.backupManager && window.backupManager.isInitialized) {
+                    const backups = window.backupManager.getAvailableBackups();
+                    if (backups.length === 0) {
+                        alert('No hay backups disponibles para exportar');
+                        return;
+                    }
+                    
+                    const latestBackup = backups[0];
+                    logToUI('INFO', `Exportando backup ${latestBackup.id}...`);
+                    
+                    const success = await window.backupManager.exportBackup(latestBackup.id);
+                    if (success) {
+                        logToUI('INFO', 'Backup exportado exitosamente');
+                    } else {
+                        logToUI('ERROR', 'Error exportando backup');
+                    }
+                } else {
+                    logToUI('WARN', 'BackupManager no disponible para exportar');
+                }
+                
+            } catch (error) {
+                logToUI('ERROR', `Error exportando: ${error.message}`);
+            }
+        }
+        
+        async function exportSpecificBackup(backupId) {
+            try {
+                logToUI('INFO', `Exportando backup específico ${backupId}...`);
+                const success = await window.backupManager.exportBackup(backupId);
+                if (success) {
+                    logToUI('INFO', 'Backup exportado exitosamente');
+                } else {
+                    logToUI('ERROR', 'Error exportando backup');
+                }
+                
+            } catch (error) {
+                logToUI('ERROR', `Error exportando backup específico: ${error.message}`);
+            }
+        }
+        
+        // Inicializar cuando DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDemo);
+        } else {
+            initializeDemo();
+        }
+        
+        // Cleanup al cerrar página
+        window.addEventListener('beforeunload', () => {
+            if (demoState.refreshInterval) {
+                clearInterval(demoState.refreshInterval);
+            }
+        });
+        
+        // Exponer funciones globalmente para debugging
+        window.demoFunctions = {
+            performFullBackup,
+            performIncrementalBackup,
+            performCleanup,
+            refreshStatus,
+            restoreBackup,
+            exportBackup,
+            logToUI
+        };
+    </script>
+</body>
+</html>

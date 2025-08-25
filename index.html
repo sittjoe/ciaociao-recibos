@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestión - ciaociao.mx</title>
     <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts will be loaded via CDN Circuit Breaker -->
 </head>
 <body>
     <div class="mode-selector-container">
@@ -72,8 +72,240 @@
     </div>
 
     <!-- Scripts -->
+    <!-- CDN Circuit Breaker System - Enterprise-grade CDN Management -->
+    <script src="cdn-circuit-breaker.js"></script>
+    <script src="cdn-health-monitor.js"></script>
+    <script src="cdn-cache-manager.js"></script>
+    
+    <!-- Enhanced CDN Loading with Circuit Breaker -->
+    <script>
+        // Initialize CDN Circuit Breaker system
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log('🚀 Initializing CDN Circuit Breaker System...');
+                
+                // Wait for CDN Circuit Breaker to initialize
+                let maxAttempts = 50; // 5 seconds max wait
+                while (maxAttempts > 0 && (!window.cdnCircuitBreaker || !window.cdnCircuitBreaker.isInitialized)) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    maxAttempts--;
+                }
+                
+                if (!window.cdnCircuitBreaker || !window.cdnCircuitBreaker.isInitialized) {
+                    console.warn('⚠️ CDN Circuit Breaker not initialized, falling back to legacy loading');
+                    loadDOMPurifyLegacy();
+                    return;
+                }
+                
+                // Load critical libraries through Circuit Breaker
+                await loadLibrariesWithCircuitBreaker();
+                
+            } catch (error) {
+                console.error('❌ CDN Circuit Breaker initialization failed:', error);
+                loadDOMPurifyLegacy();
+            }
+        });
+        
+        // Enhanced library loading with Circuit Breaker
+        async function loadLibrariesWithCircuitBreaker() {
+            const libraries = ['domPurify', 'googleFonts'];
+            const results = [];
+            
+            for (const library of libraries) {
+                try {
+                    console.log(`📦 Loading ${library} with Circuit Breaker...`);
+                    const result = await window.cdnCircuitBreaker.loadLibrary(library);
+                    results.push({ library, result });
+                    
+                    if (result.success) {
+                        console.log(`✅ ${library} loaded successfully from ${result.source}`);
+                        
+                        // Special handling for DOMPurify
+                        if (library === 'domPurify' && typeof DOMPurify !== 'undefined') {
+                            window.domPurifyLoaded = true;
+                            console.log('🛡️ DOMPurify ready for XSS protection');
+                        }
+                    } else {
+                        console.warn(`⚠️ ${library} loading failed:`, result.error || result.message);
+                        
+                        // Handle fallbacks
+                        if (library === 'domPurify') {
+                            console.log('🔄 Enabling XSS protection fallback methods');
+                            if (window.xssProtection) {
+                                window.xssProtection.setupFallbackProtection();
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(`❌ Failed to load ${library}:`, error);
+                    results.push({ library, error: error.message });
+                }
+            }
+            
+            // Log loading summary
+            console.log('📊 CDN Loading Summary:', results);
+            
+            // Display system status (for debugging)
+            setTimeout(() => {
+                displayCDNStatus();
+            }, 2000);
+        }
+        
+        // Legacy DOMPurify loading (fallback)
+        function loadDOMPurifyLegacy() {
+            console.log('🔄 Using legacy DOMPurify loading...');
+            
+            const domPurifyUrls = [
+                'https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js',
+                'https://unpkg.com/dompurify@3.0.5/dist/purify.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js'
+            ];
+            
+            function loadDOMPurifyScript(index = 0) {
+                if (index >= domPurifyUrls.length) {
+                    console.warn('⚠️ All DOMPurify CDNs failed, XSS protection will use fallback methods');
+                    if (window.xssProtection) {
+                        window.xssProtection.setupFallbackProtection();
+                    }
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = domPurifyUrls[index];
+                script.async = true;
+                
+                script.onload = function() {
+                    window.domPurifyLoaded = true;
+                    console.log(`✅ DOMPurify loaded from: ${domPurifyUrls[index]}`);
+                };
+                
+                script.onerror = function() {
+                    console.warn(`❌ Failed to load DOMPurify from: ${domPurifyUrls[index]}`);
+                    loadDOMPurifyScript(index + 1);
+                };
+                
+                document.head.appendChild(script);
+            }
+            
+            loadDOMPurifyScript();
+        }
+        
+        // Display CDN system status (for debugging and monitoring)
+        function displayCDNStatus() {
+            if (!window.cdnCircuitBreaker) return;
+            
+            try {
+                const status = window.cdnCircuitBreaker.getSystemStatus();
+                console.group('🔍 CDN Circuit Breaker Status');
+                console.log('System Initialized:', status.isInitialized);
+                console.log('Circuit Breakers:', status.circuitBreakers.length);
+                console.log('Cache Size:', status.cache.size);
+                console.log('Performance:', status.performance);
+                
+                // Log circuit breaker states
+                status.circuitBreakers.forEach(cb => {
+                    const stateEmoji = cb.state === 'CLOSED' ? '✅' : cb.state === 'OPEN' ? '❌' : '⚠️';
+                    console.log(`${stateEmoji} ${cb.id}: ${cb.state} (Health: ${cb.isHealthy ? 'Good' : 'Poor'})`);
+                });
+                
+                console.groupEnd();
+                
+                // Show health alerts if any
+                if (window.cdnHealthMonitor) {
+                    const alerts = window.cdnHealthMonitor.getActiveAlerts();
+                    if (alerts.length > 0) {
+                        console.warn('🚨 Active CDN Health Alerts:', alerts.length);
+                        alerts.forEach(alert => {
+                            console.warn(`[${alert.severity}] ${alert.message}`);
+                        });
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to get CDN status:', error);
+            }
+        }
+        
+        // Expose CDN management functions globally
+        window.CDNManager = {
+            getStatus: () => {
+                if (window.cdnCircuitBreaker) {
+                    return window.cdnCircuitBreaker.getSystemStatus();
+                }
+                return { error: 'CDN Circuit Breaker not available' };
+            },
+            
+            getHealthReport: () => {
+                if (window.cdnHealthMonitor) {
+                    return window.cdnHealthMonitor.getHealthStatus();
+                }
+                return { error: 'CDN Health Monitor not available' };
+            },
+            
+            getCacheStats: () => {
+                if (window.cdnCacheManager) {
+                    return window.cdnCacheManager.getStats();
+                }
+                return { error: 'CDN Cache Manager not available' };
+            },
+            
+            forceLibraryReload: async (libraryName) => {
+                if (window.cdnCircuitBreaker) {
+                    return await window.cdnCircuitBreaker.loadLibrary(libraryName, { maxAttempts: 10 });
+                }
+                return { error: 'CDN Circuit Breaker not available' };
+            },
+            
+            clearCache: () => {
+                if (window.cdnCacheManager) {
+                    return window.cdnCacheManager.clear();
+                }
+                return { error: 'CDN Cache Manager not available' };
+            },
+            
+            displayStatus: displayCDNStatus
+        };
+        
+        // Add CDN status to SecurityManager if available
+        if (window.securityManager) {
+            setTimeout(() => {
+                window.securityManager.getCDNCircuitBreakerStatus = () => {
+                    return window.CDNManager.getStatus();
+                };
+            }, 3000);
+        }
+        
+        console.log('🔧 CDN Management functions exposed at window.CDNManager');
+    </script>
+    
+    <!-- Core Security and Application Systems -->
+    <script src="xss-protection.js"></script>
+    <script src="security-manager.js"></script>
     <script src="auth.js"></script>
     <script src="database.js"></script>
     <script src="mode-selector.js"></script>
+    
+    <!-- Development Helper: CDN Status Monitor -->
+    <script>
+        // Add keyboard shortcut for CDN status (Ctrl+Shift+C)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                console.clear();
+                console.log('%c🔍 CDN CIRCUIT BREAKER SYSTEM STATUS', 'font-size: 16px; font-weight: bold; color: #00ff00;');
+                window.CDNManager.displayStatus();
+                
+                // Also log security status
+                if (window.securityManager && window.securityManager.getComprehensiveSecurityStatus) {
+                    const securityStatus = window.securityManager.getComprehensiveSecurityStatus();
+                    console.log('%c🔒 COMPREHENSIVE SECURITY STATUS', 'font-size: 14px; font-weight: bold; color: #ff9000;');
+                    console.log(securityStatus);
+                }
+                
+                e.preventDefault();
+            }
+        });
+        
+        console.log('%c🔧 Development Helper: Press Ctrl+Shift+C to view CDN status', 'color: #00aaff;');
+    </script>
 </body>
 </html>

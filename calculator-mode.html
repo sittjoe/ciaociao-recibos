@@ -511,9 +511,50 @@
     </div>
 
     <!-- Scripts -->
+    <!-- DOMPurify XSS Protection with CDN Fallbacks -->
+    <script>
+        // Load DOMPurify with multiple CDN fallbacks
+        const domPurifyUrls = [
+            'https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js',
+            'https://unpkg.com/dompurify@3.0.5/dist/purify.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js'
+        ];
+        
+        let domPurifyLoaded = false;
+        
+        function loadDOMPurifyScript(index = 0) {
+            if (index >= domPurifyUrls.length) {
+                console.warn('⚠️ All DOMPurify CDNs failed, XSS protection will use fallback methods');
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = domPurifyUrls[index];
+            script.async = true;
+            
+            script.onload = function() {
+                domPurifyLoaded = true;
+                console.log(`✅ DOMPurify loaded from: ${domPurifyUrls[index]}`);
+            };
+            
+            script.onerror = function() {
+                console.warn(`❌ Failed to load DOMPurify from: ${domPurifyUrls[index]}`);
+                loadDOMPurifyScript(index + 1);
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        loadDOMPurifyScript();
+    </script>
+    
+    <!-- XSS Protection System -->
+    <script src="xss-protection.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="security-manager.js"></script>
     <script src="auth.js"></script>
     <script src="utils.js"></script>
     <script src="database.js"></script>

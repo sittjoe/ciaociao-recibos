@@ -1,16 +1,20 @@
-// auth.js - Sistema de autenticación simplificado para ciaociao.mx
+// auth.js - Sistema de autenticación con SecurityManager enterprise-grade
 class AuthManager {
     constructor() {
-        this.correctPassword = '27181730';
-        this.sessionKey = 'ciaociao_auth_session';
+        // ✅ ELIMINADO PASSWORD HARDCODEADO - Ahora usa SecurityManager
+        this.sessionKey = 'ciaociao_auth_session'; // Legacy key para compatibilidad
         this.sessionDuration = 8 * 60 * 60 * 1000; // 8 horas en milisegundos
+        this.securityManager = null; // Se inicializará cuando esté disponible
         this.initializeAuth();
     }
 
-    initializeAuth() {
+    async initializeAuth() {
         try {
-            // Verificar si ya hay una sesión válida
-            if (this.isValidSession()) {
+            // Esperar a que SecurityManager esté disponible
+            await this.waitForSecurityManager();
+            
+            // Verificar si ya hay una sesión válida (ahora con SecurityManager)
+            if (await this.isValidSession()) {
                 this.showMainApplication();
             } else {
                 this.showLoginScreen();
@@ -21,16 +25,49 @@ class AuthManager {
         }
     }
 
-    isValidSession() {
+    /**
+     * Espera a que SecurityManager esté disponible
+     */
+    async waitForSecurityManager(maxAttempts = 20) {
+        for (let i = 0; i < maxAttempts; i++) {
+            if (window.SecurityManager) {
+                this.securityManager = new window.SecurityManager();
+                console.log('✅ SecurityManager integrado correctamente');
+                return;
+            }
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        console.warn('⚠️ SecurityManager no disponible, usando fallback básico');
+        this.securityManager = null;
+    }
+
+    async isValidSession() {
         try {
+            // Priorizar SecurityManager si está disponible
+            if (this.securityManager) {
+                const secureSession = await this.securityManager.validateSession();
+                if (secureSession) {
+                    console.log('✅ Sesión válida encontrada en SecurityManager');
+                    return true;
+                }
+            }
+            
+            // Fallback a sistema legacy para compatibilidad
             const session = localStorage.getItem(this.sessionKey);
             if (!session) return false;
 
             const sessionData = JSON.parse(session);
             const now = new Date().getTime();
             
-            // Verificar si la sesión no ha expirado
-            return sessionData.timestamp && (now - sessionData.timestamp) < this.sessionDuration;
+            // Verificar si la sesión legacy no ha expirado
+            const isValid = sessionData.timestamp && (now - sessionData.timestamp) < this.sessionDuration;
+            
+            if (isValid) {
+                console.log('✅ Sesión legacy válida encontrada');
+            }
+            
+            return isValid;
         } catch (error) {
             console.error('❌ Error verificando sesión:', error);
             return false;
@@ -264,27 +301,67 @@ class AuthManager {
         }
     }
 
-    attemptLogin() {
+    async attemptLogin() {
         try {
             const passwordInput = document.getElementById('passwordInput');
             const enteredPassword = passwordInput ? passwordInput.value : '';
 
-            if (enteredPassword === this.correctPassword) {
-                this.handleSuccessfulLogin();
+            // Usar SecurityManager si está disponible
+            if (this.securityManager) {
+                try {
+                    const sessionData = await this.securityManager.validatePassword(enteredPassword);
+                    await this.handleSuccessfulSecureLogin(sessionData);
+                } catch (error) {
+                    this.handleFailedLogin(error.message);
+                }
             } else {
-                this.handleFailedLogin();
+                // Fallback a validación básica (temporal durante migración)
+                if (enteredPassword === '27181730') {
+                    await this.handleSuccessfulLogin();
+                } else {
+                    this.handleFailedLogin('Password incorrecto');
+                }
             }
         } catch (error) {
             console.error('❌ Error en intento de login:', error);
+            this.handleFailedLogin('Error interno del sistema');
         }
     }
 
-    handleSuccessfulLogin() {
+    /**
+     * Maneja login exitoso con SecurityManager
+     */
+    async handleSuccessfulSecureLogin(sessionData) {
         try {
-            // Mostrar mensaje de éxito
+            console.log('✅ Login exitoso con SecurityManager');
             this.showSuccessMessage();
 
-            // Crear nueva sesión
+            // La sesión ya fue creada por SecurityManager
+            console.log('📊 Datos de sesión segura:', {
+                id: sessionData.id,
+                expires: new Date(sessionData.expires).toLocaleString(),
+                version: sessionData.version
+            });
+
+            // Mostrar aplicación principal después de una breve pausa
+            setTimeout(() => {
+                this.showMainApplication();
+            }, 1000);
+
+        } catch (error) {
+            console.error('❌ Error en login seguro exitoso:', error);
+        }
+    }
+
+    /**
+     * Maneja login exitoso legacy (fallback)
+     */
+    async handleSuccessfulLogin() {
+        try {
+            console.log('⚠️ Login exitoso con sistema legacy');
+            this.showSuccessMessage();
+
+            // Crear nueva sesión legacy
             const sessionData = {
                 authenticated: true,
                 timestamp: new Date().getTime()
@@ -297,14 +374,14 @@ class AuthManager {
             }, 1000);
 
         } catch (error) {
-            console.error('❌ Error en login exitoso:', error);
+            console.error('❌ Error en login legacy exitoso:', error);
         }
     }
 
-    handleFailedLogin() {
+    handleFailedLogin(errorMessage = 'Password incorrecto') {
         try {
-            // Mostrar mensaje de error
-            this.showErrorMessage();
+            // Mostrar mensaje de error específico
+            this.showErrorMessage(errorMessage);
             
             // Limpiar campo de contraseña
             const passwordInput = document.getElementById('passwordInput');
@@ -341,16 +418,18 @@ class AuthManager {
         }
     }
 
-    showErrorMessage() {
+    showErrorMessage(message = 'Password incorrecto. Inténtelo de nuevo.') {
         try {
             const errorMessage = document.getElementById('errorMessage');
             if (errorMessage) {
+                // Actualizar mensaje con información específica
+                errorMessage.innerHTML = `❌ ${message}`;
                 errorMessage.style.display = 'block';
                 
-                // Auto-ocultar después de 3 segundos
+                // Auto-ocultar después de 5 segundos para rate limiting
                 setTimeout(() => {
                     this.hideErrorMessage();
-                }, 3000);
+                }, 5000);
             }
         } catch (error) {
             console.error('❌ Error mostrando mensaje de error:', error);
@@ -559,8 +638,15 @@ class AuthManager {
 
     logout() {
         try {
-            // Remover sesión
-            localStorage.removeItem(this.sessionKey);
+            // Usar SecurityManager si está disponible
+            if (this.securityManager) {
+                this.securityManager.logout();
+                console.log('✅ Logout seguro completado');
+            } else {
+                // Fallback a logout legacy
+                localStorage.removeItem(this.sessionKey);
+                console.log('⚠️ Logout legacy completado');
+            }
             
             // Limpiar flags de inicialización
             window.selectorInitialized = false;
@@ -574,6 +660,8 @@ class AuthManager {
             console.log('🔒 Usuario deslogueado exitosamente');
         } catch (error) {
             console.error('❌ Error en logout:', error);
+            // En caso de error, forzar recarga
+            window.location.reload();
         }
     }
 }

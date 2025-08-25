@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Boundary & Recovery System - Demo Completo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #4facfe;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #5ee7df 0%, #66a6ff 100%);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .status-panel {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border: 2px solid #e9ecef;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4facfe;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .integration-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .integration-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .status-active {
+            background: #28a745;
+        }
+        
+        .status-inactive {
+            background: #dc3545;
+        }
+        
+        .status-partial {
+            background: #ffc107;
+        }
+        
+        .error-log {
+            background: #1a1a1a;
+            color: #00ff41;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 2px solid #333;
+        }
+        
+        .recovery-timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .recovery-timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #4facfe, #00f2fe);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            background: #4facfe;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-color: #bee5eb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffeaa7;
+        }
+        
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            transition: width 0.3s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Error Boundary & Recovery System</h1>
+            <p>Sistema Enterprise de Manejo de Errores y Recuperación Automática</p>
+        </div>
+        
+        <div class="content">
+            <!-- System Status Section -->
+            <div class="section">
+                <h2>
+                    <span>📊</span>
+                    Estado del Sistema
+                </h2>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="totalErrors">0</div>
+                        <div class="metric-label">Errores Totales</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="criticalErrors">0</div>
+                        <div class="metric-label">Errores Críticos</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="recoveredErrors">0</div>
+                        <div class="metric-label">Errores Recuperados</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="errorRate">0.00%</div>
+                        <div class="metric-label">Tasa de Error</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="sloCompliance">100.0%</div>
+                        <div class="metric-label">Cumplimiento SLO</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="errorBudget">100.0%</div>
+                        <div class="metric-label">Presupuesto de Error</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <strong>ℹ️ Sistema Inicializado:</strong> 
+                    El Error Boundary & Recovery System está activo y monitoreando todas las operaciones.
+                </div>
+            </div>
+            
+            <!-- Integration Status Section -->
+            <div class="section">
+                <h2>
+                    <span>🔗</span>
+                    Estado de Integraciones
+                </h2>
+                
+                <div class="integration-status" id="integrationStatus">
+                    <div class="integration-card">
+                        <div class="status-indicator status-inactive" id="securityStatus"></div>
+                        <span>SecurityManager</span>
+                    </div>
+                    <div class="integration-card">
+                        <div class="status-indicator status-inactive" id="backupStatus"></div>
+                        <span>BackupManager</span>
+                    </div>
+                    <div class="integration-card">
+                        <div class="status-indicator status-inactive" id="cdnStatus"></div>
+                        <span>CDN Circuit Breaker</span>
+                    </div>
+                    <div class="integration-card">
+                        <div class="status-indicator status-inactive" id="databaseStatus"></div>
+                        <span>Database</span>
+                    </div>
+                    <div class="integration-card">
+                        <div class="status-indicator status-inactive" id="xssStatus"></div>
+                        <span>XSS Protection</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Test Error Types Section -->
+            <div class="section">
+                <h2>
+                    <span>🧪</span>
+                    Pruebas de Manejo de Errores
+                </h2>
+                
+                <div class="button-group">
+                    <button class="btn btn-danger" onclick="testNetworkError()">
+                        🌐 Probar Error de Red
+                    </button>
+                    <button class="btn btn-danger" onclick="testDOMError()">
+                        🏗️ Probar Error DOM
+                    </button>
+                    <button class="btn btn-danger" onclick="testSecurityError()">
+                        🔒 Probar Error de Seguridad
+                    </button>
+                    <button class="btn btn-danger" onclick="testDataError()">
+                        💾 Probar Error de Datos
+                    </button>
+                    <button class="btn btn-warning" onclick="testMemoryError()">
+                        🧠 Probar Error de Memoria
+                    </button>
+                    <button class="btn btn-warning" onclick="testPerformanceError()">
+                        ⚡ Probar Error de Performance
+                    </button>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="testRecoveryStrategies()">
+                        🔄 Probar Estrategias de Recuperación
+                    </button>
+                    <button class="btn btn-success" onclick="testFullErrorHandling()">
+                        ✅ Prueba Completa del Sistema
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Recovery Timeline Section -->
+            <div class="section">
+                <h2>
+                    <span>⏱️</span>
+                    Cronología de Recuperación
+                </h2>
+                
+                <div class="recovery-timeline" id="recoveryTimeline">
+                    <div class="timeline-item">
+                        <strong>Sistema Inicializado</strong>
+                        <p>Error Boundary & Recovery System cargado e integrado con sistemas existentes.</p>
+                        <small>Hace unos momentos</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Error Log Section -->
+            <div class="section">
+                <h2>
+                    <span>📋</span>
+                    Log de Errores en Tiempo Real
+                </h2>
+                
+                <div class="error-log" id="errorLog">
+                    <div>🟢 [SISTEMA] Error Boundary & Recovery System inicializado exitosamente</div>
+                    <div>🔍 [MONITOR] Iniciando monitoreo de errores y métricas de rendimiento</div>
+                    <div>🔗 [INTEGRACIÓN] Buscando sistemas disponibles para integración...</div>
+                    <div>📊 [MÉTRICAS] SLO target configurado en 99.9% - Error budget: 0.1%</div>
+                    <div>✅ [READY] Sistema listo para manejar errores y ejecutar recuperación automática</div>
+                </div>
+            </div>
+            
+            <!-- System Controls Section -->
+            <div class="section">
+                <h2>
+                    <span>⚙️</span>
+                    Controles del Sistema
+                </h2>
+                
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="showSystemStatus()">
+                        📊 Ver Estado Completo
+                    </button>
+                    <button class="btn btn-primary" onclick="showErrorReports()">
+                        📋 Ver Reportes de Error
+                    </button>
+                    <button class="btn btn-primary" onclick="showRecoveryStats()">
+                        📈 Ver Estadísticas de Recuperación
+                    </button>
+                    <button class="btn btn-success" onclick="performHealthCheck()">
+                        🏥 Revisar Salud del Sistema
+                    </button>
+                    <button class="btn btn-warning" onclick="triggerMaintenance()">
+                        🛠️ Mantenimiento Automático
+                    </button>
+                    <button class="btn btn-danger" onclick="enableSafeMode()">
+                        🔒 Activar Modo Seguro
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Performance Metrics Section -->
+            <div class="section">
+                <h2>
+                    <span>📈</span>
+                    Métricas de Rendimiento SRE
+                </h2>
+                
+                <div class="alert alert-success">
+                    <strong>✅ SLO Compliance:</strong> 
+                    <span id="sloStatus">99.9% (Within target)</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="sloProgress" style="width: 99.9%"></div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <strong>💰 Error Budget:</strong> 
+                    <span id="budgetStatus">100.0% remaining</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="budgetProgress" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="status-panel" id="performanceMetrics">
+                    <div>📊 Performance Metrics Dashboard</div>
+                    <div>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+                    <div>🎯 SLO Target: 99.9% uptime</div>
+                    <div>📈 Current SLO: 100.0%</div>
+                    <div>💰 Error Budget: 100.0% remaining</div>
+                    <div>⚡ Mean Time to Recovery: 0.00s</div>
+                    <div>🔄 Recovery Success Rate: N/A</div>
+                    <div>🚨 Critical Errors: 0</div>
+                    <div>⚠️  High Priority Errors: 0</div>
+                    <div>📋 Total Error Rate: 0.00%</div>
+                    <div>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
+                    <div>✅ All systems operational</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="security-manager.js"></script>
+    <script src="backup-manager.js"></script>
+    <script src="cdn-circuit-breaker.js"></script>
+    <script src="database.js"></script>
+    <script src="error-boundary-recovery-system.js"></script>
+    
+    <script>
+        // Demo functionality
+        let errorCount = 0;
+        let criticalErrorCount = 0;
+        let recoveredErrorCount = 0;
+        
+        function updateMetrics() {
+            const system = window.errorBoundaryRecoverySystem;
+            if (system) {
+                const status = system.getSystemStatus();
+                const metrics = status.metrics;
+                
+                document.getElementById('totalErrors').textContent = metrics.totalErrors || errorCount;
+                document.getElementById('criticalErrors').textContent = metrics.criticalErrors || criticalErrorCount;
+                document.getElementById('recoveredErrors').textContent = metrics.recoveredErrors || recoveredErrorCount;
+                document.getElementById('errorRate').textContent = (metrics.errorRate * 100).toFixed(2) + '%';
+                document.getElementById('sloCompliance').textContent = (metrics.sloCompliance * 100).toFixed(1) + '%';
+                document.getElementById('errorBudget').textContent = (metrics.errorBudgetRemaining * 100).toFixed(1) + '%';
+                
+                // Update progress bars
+                document.getElementById('sloProgress').style.width = (metrics.sloCompliance * 100) + '%';
+                document.getElementById('budgetProgress').style.width = (metrics.errorBudgetRemaining * 100) + '%';
+            }
+        }
+        
+        function updateIntegrationStatus() {
+            // Check SecurityManager
+            const securityStatus = document.getElementById('securityStatus');
+            if (window.securityManager) {
+                securityStatus.className = 'status-indicator status-active';
+            }
+            
+            // Check BackupManager
+            const backupStatus = document.getElementById('backupStatus');
+            if (window.backupManager) {
+                backupStatus.className = 'status-indicator status-active';
+            }
+            
+            // Check CDN Circuit Breaker
+            const cdnStatus = document.getElementById('cdnStatus');
+            if (window.cdnCircuitBreaker) {
+                cdnStatus.className = 'status-indicator status-active';
+            }
+            
+            // Check Database
+            const databaseStatus = document.getElementById('databaseStatus');
+            if (window.receiptDatabase || window.ReceiptDatabase) {
+                databaseStatus.className = 'status-indicator status-active';
+            }
+            
+            // Check XSS Protection
+            const xssStatus = document.getElementById('xssStatus');
+            if (window.xssProtection) {
+                xssStatus.className = 'status-indicator status-active';
+            }
+        }
+        
+        function logMessage(message, type = 'info') {
+            const errorLog = document.getElementById('errorLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = {
+                'info': '🔍',
+                'success': '✅',
+                'warning': '⚠️',
+                'error': '❌',
+                'recovery': '🔄'
+            }[type] || '📝';
+            
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `${icon} [${timestamp}] ${message}`;
+            errorLog.appendChild(logEntry);
+            errorLog.scrollTop = errorLog.scrollHeight;
+        }
+        
+        function addTimelineEntry(title, description, type = 'info') {
+            const timeline = document.getElementById('recoveryTimeline');
+            const entry = document.createElement('div');
+            entry.className = 'timeline-item';
+            entry.innerHTML = `
+                <strong>${title}</strong>
+                <p>${description}</p>
+                <small>${new Date().toLocaleString()}</small>
+            `;
+            timeline.appendChild(entry);
+        }
+        
+        // Test functions
+        function testNetworkError() {
+            logMessage('Simulando error de red...', 'info');
+            const error = new Error('Simulated network timeout during fetch operation');
+            error.name = 'NetworkError';
+            
+            if (window.errorBoundaryRecoverySystem) {
+                window.errorBoundaryRecoverySystem.reportError(error, {
+                    url: 'https://api.example.com/data',
+                    method: 'GET',
+                    timeout: 5000,
+                    source: 'demo'
+                });
+            }
+            
+            errorCount++;
+            addTimelineEntry('Error de Red Detectado', 'Error de timeout en operación de red simulado y procesado.', 'error');
+            updateMetrics();
+        }
+        
+        function testDOMError() {
+            logMessage('Simulando error DOM...', 'info');
+            const error = new Error('Cannot read property of null (reading appendChild)');
+            error.name = 'DOMError';
+            
+            if (window.errorBoundaryRecoverySystem) {
+                window.errorBoundaryRecoverySystem.reportError(error, {
+                    element: '#nonExistentElement',
+                    operation: 'appendChild',
+                    source: 'demo'
+                });
+            }
+            
+            errorCount++;
+            addTimelineEntry('Error DOM Detectado', 'Error de manipulación DOM simulado y manejado con degradación graciosa.', 'error');
+            updateMetrics();
+        }
+        
+        function testSecurityError() {
+            logMessage('Simulando error de seguridad...', 'warning');
+            const error = new Error('Potential XSS attack detected in user input');
+            error.name = 'SecurityError';
+            
+            if (window.errorBoundaryRecoverySystem) {
+                window.errorBoundaryRecoverySystem.reportError(error, {
+                    input: '<script>alert("xss")</script>',
+                    field: 'clientName',
+                    source: 'demo'
+                });
+            }
+            
+            errorCount++;
+            criticalErrorCount++;
+            addTimelineEntry('Error de Seguridad Crítico', 'Posible ataque XSS detectado y neutralizado automáticamente.', 'error');
+            updateMetrics();
+        }
+        
+        function testDataError() {
+            logMessage('Simulando error de datos...', 'warning');
+            const error = new Error('Database validation failed: Invalid receipt data');
+            error.name = 'DataError';
+            
+            if (window.errorBoundaryRecoverySystem) {
+                window.errorBoundaryRecoverySystem.reportError(error, {
+                    operation: 'saveReceipt',
+                    data: { receiptNumber: '', clientName: '', price: -100 },
+                    source: 'demo'
+                });
+            }
+            
+            errorCount++;
+            criticalErrorCount++;
+            addTimelineEntry('Error de Validación de Datos', 'Error en validación de datos detectado, backup automático creado.', 'error');
+            updateMetrics();
+        }
+        
+        function testMemoryError() {
+            logMessage('Simulando error de memoria...', 'warning');
+            const error = new Error('Maximum call stack size exceeded');
+            error.name = 'MemoryError';
+            
+            if (window.errorBoundaryRecoverySystem) {
+                window.errorBoundaryRecoverySystem.reportError(error, {
+                    operation: 'recursive_function',
+                    memoryUsage: '95%',
+                    source: 'demo'
+                });
+            }
+            
+            errorCount++;
+            criticalErrorCount++;
+            addTimelineEntry('Error de Memoria Crítico', 'Desbordamiento de pila detectado, limpieza automática de memoria ejecutada.', 'error');
+            updateMetrics();
+        }
+        
+        function testPerformanceError() {
+            logMessage('Simulando error de rendimiento...', 'info');
+            const error = new Error('Operation took longer than 10 seconds to complete');
+            error.name = 'PerformanceError';
+            
+            if (window.errorBoundaryRecoverySystem) {
+                window.errorBoundaryRecoverySystem.reportError(error, {
+                    operation: 'generatePDF',
+                    duration: 12000,
+                    threshold: 10000,
+                    source: 'demo'
+                });
+            }
+            
+            errorCount++;
+            addTimelineEntry('Error de Rendimiento', 'Operación lenta detectada, optimizaciones aplicadas automáticamente.', 'warning');
+            updateMetrics();
+        }
+        
+        function testRecoveryStrategies() {
+            logMessage('Probando estrategias de recuperación...', 'recovery');
+            
+            // Simulate multiple recovery attempts
+            setTimeout(() => {
+                logMessage('Estrategia de reintento ejecutada...', 'recovery');
+                addTimelineEntry('Estrategia de Reintento', 'Reintentando operación fallida con backoff exponencial.', 'recovery');
+            }, 1000);
+            
+            setTimeout(() => {
+                logMessage('Estrategia de fallback ejecutada...', 'recovery');
+                addTimelineEntry('Estrategia de Fallback', 'Cambiando a método alternativo de operación.', 'recovery');
+            }, 2000);
+            
+            setTimeout(() => {
+                logMessage('Recuperación exitosa!', 'success');
+                addTimelineEntry('Recuperación Exitosa', 'Sistema recuperado exitosamente usando estrategia de fallback.', 'success');
+                recoveredErrorCount++;
+                updateMetrics();
+            }, 3000);
+        }
+        
+        function testFullErrorHandling() {
+            logMessage('Iniciando prueba completa del sistema...', 'info');
+            
+            if (window.errorBoundaryRecoverySystem) {
+                window.errorBoundaryRecoverySystem.testErrorHandling();
+                addTimelineEntry('Prueba Completa Iniciada', 'Ejecutando suite completa de pruebas de manejo de errores.', 'info');
+            }
+        }
+        
+        function showSystemStatus() {
+            if (window.errorBoundaryRecoverySystem) {
+                const status = window.errorBoundaryRecoverySystem.getSystemStatus();
+                console.log('🔍 System Status:', status);
+                alert('Estado del sistema mostrado en consola. Presiona F12 para ver detalles.');
+                logMessage('Estado completo del sistema exportado a consola', 'info');
+            }
+        }
+        
+        function showErrorReports() {
+            if (window.errorBoundaryRecoverySystem) {
+                const reports = window.errorBoundaryRecoverySystem.getErrorReports();
+                console.log('📋 Error Reports:', reports);
+                alert(`Se encontraron ${reports.length} errores en las últimas 24 horas. Ver consola para detalles.`);
+                logMessage(`Reporte de ${reports.length} errores exportado a consola`, 'info');
+            }
+        }
+        
+        function showRecoveryStats() {
+            if (window.errorBoundaryRecoverySystem) {
+                const stats = window.errorBoundaryRecoverySystem.getRecoveryStats();
+                console.log('📈 Recovery Stats:', stats);
+                alert('Estadísticas de recuperación mostradas en consola. Presiona F12 para ver detalles.');
+                logMessage('Estadísticas de recuperación exportadas a consola', 'info');
+            }
+        }
+        
+        function performHealthCheck() {
+            logMessage('Ejecutando revisión de salud del sistema...', 'info');
+            
+            setTimeout(() => {
+                logMessage('✅ Sistemas integrados: OK', 'success');
+                logMessage('✅ Error boundaries: OK', 'success');
+                logMessage('✅ Recovery strategies: OK', 'success');
+                logMessage('✅ Performance monitoring: OK', 'success');
+                logMessage('✅ SLO compliance: 99.9%', 'success');
+                addTimelineEntry('Health Check Completado', 'Todos los sistemas reportan estado saludable.', 'success');
+            }, 2000);
+        }
+        
+        function triggerMaintenance() {
+            logMessage('Iniciando mantenimiento automático...', 'info');
+            
+            setTimeout(() => {
+                logMessage('🧹 Limpieza de logs antiguos...', 'info');
+            }, 500);
+            
+            setTimeout(() => {
+                logMessage('🔄 Reinicio de error budgets...', 'info');
+            }, 1000);
+            
+            setTimeout(() => {
+                logMessage('💾 Optimización de memoria...', 'info');
+            }, 1500);
+            
+            setTimeout(() => {
+                logMessage('✅ Mantenimiento completado exitosamente', 'success');
+                addTimelineEntry('Mantenimiento Automático', 'Rutinas de mantenimiento completadas exitosamente.', 'success');
+            }, 2000);
+        }
+        
+        function enableSafeMode() {
+            logMessage('🔒 Activando modo seguro...', 'warning');
+            
+            setTimeout(() => {
+                logMessage('🚫 Funciones no esenciales deshabilitadas', 'warning');
+                logMessage('✅ Solo funciones críticas disponibles', 'info');
+                logMessage('🔒 Modo seguro activo', 'success');
+                addTimelineEntry('Modo Seguro Activado', 'Sistema operando en modo seguro con funcionalidad limitada.', 'warning');
+            }, 1000);
+        }
+        
+        // Initialize demo
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                updateIntegrationStatus();
+                updateMetrics();
+                logMessage('Demo de Error Boundary & Recovery System cargado', 'success');
+                
+                // Update metrics every 5 seconds
+                setInterval(updateMetrics, 5000);
+                
+                // Update integration status every 10 seconds
+                setInterval(updateIntegrationStatus, 10000);
+                
+                // Add some demo log entries
+                setTimeout(() => {
+                    logMessage('🔍 Monitoreo activo de errores y métricas SRE', 'info');
+                }, 2000);
+                
+                setTimeout(() => {
+                    logMessage('📊 SLO target: 99.9% | Error budget: 0.1%', 'info');
+                }, 3000);
+                
+                setTimeout(() => {
+                    logMessage('✅ Todos los sistemas listos para manejo de errores', 'success');
+                }, 4000);
+                
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

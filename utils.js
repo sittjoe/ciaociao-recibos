@@ -92,6 +92,115 @@ class Utils {
             errors: errors
         };
     }
+    
+    /**
+     * Sanitize all form inputs on a page
+     */
+    sanitizeAllInputs() {
+        const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="url"], textarea');
+        
+        inputs.forEach(input => {
+            this.autoSanitizeField(input);
+        });
+        
+        console.log(`🧹 Sanitized ${inputs.length} input fields`);
+    }
+    
+    /**
+     * Setup real-time sanitization for new inputs
+     */
+    setupRealTimeSanitization() {
+        // Monitor for new input fields
+        if (window.MutationObserver) {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            const inputs = node.querySelectorAll ? 
+                                node.querySelectorAll('input, textarea') : 
+                                (node.tagName && (node.tagName === 'INPUT' || node.tagName === 'TEXTAREA') ? [node] : []);
+                            
+                            inputs.forEach(input => {
+                                this.setupInputSanitization(input);
+                            });
+                        }
+                    });
+                });
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        // Setup existing inputs
+        document.querySelectorAll('input, textarea').forEach(input => {
+            this.setupInputSanitization(input);
+        });
+    }
+    
+    /**
+     * Setup sanitization for a specific input
+     */
+    setupInputSanitization(input) {
+        // Remove existing listeners to avoid duplicates
+        input.removeEventListener('input', input._sanitizeHandler);
+        input.removeEventListener('paste', input._pasteHandler);
+        
+        // Input event handler
+        input._sanitizeHandler = (e) => {
+            setTimeout(() => this.autoSanitizeField(e.target), 10);
+        };
+        
+        // Paste event handler
+        input._pasteHandler = (e) => {
+            setTimeout(() => this.autoSanitizeField(e.target), 50);
+        };
+        
+        input.addEventListener('input', input._sanitizeHandler);
+        input.addEventListener('paste', input._pasteHandler);
+    }
+    
+    /**
+     * Get sanitization metrics
+     */
+    getSanitizationMetrics() {
+        if (this.xssProtection) {
+            return this.xssProtection.getMetrics();
+        }
+        
+        return {
+            status: 'XSS Protection not available',
+            fallbackMode: true
+        };
+    }
+    
+    /**
+     * Enhanced notification with security context
+     */
+    showSecurityNotification(message, type = 'warning', duration = 5000) {
+        this.showNotification('🛡️ ' + message, type, duration);
+        
+        // Log security-related notifications
+        if (window.securityManager) {
+            window.securityManager.reportSecurityEvent?.({ 
+                type: 'user_notification', 
+                message: message, 
+                level: type 
+            });
+        }
+    }
+    
+    /**
+     * Initialize real-time sanitization when Utils is ready
+     */
+    initializeSecurityFeatures() {
+        this.setupRealTimeSanitization();
+        this.sanitizeAllInputs();
+        
+        console.log('🛡️ Utils security features initialized');
+    }
 
     // Resaltar campo con error
     highlightError(element) {
@@ -364,6 +473,12 @@ class Utils {
     
     showNotification(message, type = 'info', duration = 3000) {
         try {
+            // Usar SecurityManager para notificaciones de error de seguridad si está disponible
+            if (type === 'error' && window.SecurityManager && window.authManager?.securityManager) {
+                window.authManager.securityManager.showSecurityError(message);
+                return;
+            }
+            
             // Remover notificación anterior si existe
             const existing = document.querySelector('.notification-toast');
             if (existing) {
@@ -639,3 +754,16 @@ window.Utils = Utils;
 
 // Inicializar automáticamente
 window.utils = new Utils();
+
+// Auto-initialize Utils with security features
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            window.utils.initializeSecurityFeatures();
+        }, 200); // Wait for XSS protection to be ready
+    });
+} else {
+    setTimeout(() => {
+        window.utils.initializeSecurityFeatures();
+    }, 200);
+}
