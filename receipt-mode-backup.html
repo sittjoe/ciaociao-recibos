@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Recibos - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="main-header" style="position: relative;">
+            <button onclick="window.location.href='index.html'" class="btn-back">← Volver al Inicio</button>
+            <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" class="logo">
+            <h1>Generador de Recibos</h1>
+        </header>
+
+        <div class="form-container">
+            <form id="receiptForm">
+                <!-- Información del Recibo -->
+                <section class="form-section">
+                    <h2>Información del Recibo</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="receiptNumber">Número de Recibo</label>
+                            <input type="text" id="receiptNumber" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="receiptDate">Fecha</label>
+                            <input type="date" id="receiptDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transactionType">Tipo de Transacción</label>
+                            <select id="transactionType" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="venta">Venta</option>
+                                <option value="reparacion">Reparación</option>
+                                <option value="consignacion">Consignación</option>
+                                <option value="apartado">Apartado</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Datos del Cliente -->
+                <section class="form-section">
+                    <h2>Datos del Cliente</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientName">Nombre Completo *</label>
+                            <input type="text" id="clientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientPhone">Teléfono *</label>
+                            <input type="tel" id="clientPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientEmail">Email</label>
+                            <input type="email" id="clientEmail">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Detalles de la Pieza -->
+                <section class="form-section">
+                    <h2>Detalles de la Pieza</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pieceType">Tipo de Pieza *</label>
+                            <select id="pieceType" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="anillo">Anillo</option>
+                                <option value="collar">Collar</option>
+                                <option value="pulsera">Pulsera</option>
+                                <option value="aretes">Aretes</option>
+                                <option value="reloj">Reloj</option>
+                                <option value="dije">Dije</option>
+                                <option value="brazalete">Brazalete</option>
+                                <option value="broche">Broche</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="material">Material *</label>
+                            <select id="material" required>
+                                <option value="">Seleccionar...</option>
+                                <option value="oro-10k">Oro 10k</option>
+                                <option value="oro-14k">Oro 14k</option>
+                                <option value="oro-18k">Oro 18k</option>
+                                <option value="oro-24k">Oro 24k</option>
+                                <option value="plata-925">Plata .925</option>
+                                <option value="platino">Platino</option>
+                                <option value="oro-blanco">Oro Blanco</option>
+                                <option value="acero">Acero Inoxidable</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="weight">Peso (gramos)</label>
+                            <input type="number" id="weight" step="0.01" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="size">Talla/Medida</label>
+                            <input type="text" id="size" placeholder="Ej: 7, 45cm">
+                        </div>
+                        <div class="form-group">
+                            <label for="sku">SKU (Código)</label>
+                            <input type="text" id="sku" placeholder="Código del producto (opcional)">
+                        </div>
+                        <div class="form-group">
+                            <label for="stones">Descripción de Piedras</label>
+                            <input type="text" id="stones" placeholder="Ej: Diamante 0.5ct, Zafiro azul">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="orderNumber">Número de Pedido</label>
+                            <input type="text" id="orderNumber">
+                        </div>
+                        <div class="form-group">
+                            <!-- Espacio para mantener diseño -->
+                        </div>
+                        <div class="form-group">
+                            <!-- Espacio para mantener diseño -->
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="description">Descripción Detallada</label>
+                            <textarea id="description" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="repairSection" style="display: none;">
+                        <div class="form-group full-width">
+                            <label for="pieceCondition">Estado de la Pieza (para reparación)</label>
+                            <textarea id="pieceCondition" rows="2" placeholder="Describe el estado actual y el trabajo a realizar"></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Información Financiera -->
+                <section class="form-section">
+                    <h2>Información Financiera</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="price">Precio Total *</label>
+                            <input type="number" id="price" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contribution">Aportación</label>
+                            <input type="number" id="contribution" step="0.01" min="0" value="0" placeholder="Depósitos previos">
+                        </div>
+                        <div class="form-group">
+                            <label for="subtotal">Subtotal</label>
+                            <input type="number" id="subtotal" step="0.01" min="0" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="deposit">Anticipo</label>
+                            <input type="number" id="deposit" step="0.01" min="0" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="balance">Saldo Pendiente</label>
+                            <input type="number" id="balance" step="0.01" min="0" readonly>
+                        </div>
+                        <div class="form-group">
+                            <!-- Espacio para mantener el diseño -->
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="deliveryDate">Fecha de Entrega</label>
+                            <input type="date" id="deliveryDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryStatus">Estado de Entrega</label>
+                            <select id="deliveryStatus">
+                                <option value="">Seleccionar...</option>
+                                <option value="entregado">Entregado</option>
+                                <option value="pendiente">Pendiente de Entrega</option>
+                                <option value="proceso">En Proceso</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Método de Pago</label>
+                            <select id="paymentMethod">
+                                <option value="">Seleccionar...</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="tarjeta">Tarjeta</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="mixto">Mixto</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button type="button" id="configurePaymentPlan" class="btn-plan">📅 Configurar Plan de Pagos</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Fotografías de la Pieza -->
+                <section class="form-section">
+                    <h2>Fotografías de la Pieza</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <button type="button" id="takePhotoBtn" class="btn-camera">📸 Tomar Foto</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadPhoto">Subir Fotos</label>
+                            <input type="file" id="uploadPhoto" accept="image/*" multiple>
+                        </div>
+                    </div>
+                    <div id="imageGallery" class="image-gallery-container">
+                        <!-- Las imágenes aparecerán aquí -->
+                    </div>
+                </section>
+
+                <!-- Observaciones -->
+                <section class="form-section">
+                    <h2>Observaciones</h2>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <textarea id="observations" rows="3" placeholder="Notas adicionales..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Firma Digital -->
+                <section class="form-section">
+                    <h2>Firma del Cliente</h2>
+                    <div class="signature-container">
+                        <canvas id="signatureCanvas"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" id="clearSignature" class="btn-secondary">Limpiar Firma</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Firma de la Empresa -->
+                <section class="form-section">
+                    <h2>Firma de CIAOCIAO.MX</h2>
+                    <div class="signature-container">
+                        <canvas id="companySignatureCanvas"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" id="clearCompanySignature" class="btn-secondary">Limpiar Firma</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Botones de Acción -->
+                <div class="action-buttons">
+                    <button type="button" id="previewBtn" class="btn-primary">Vista Previa</button>
+                    <button type="button" id="generatePdfBtn" class="btn-success">Generar PDF</button>
+                    <button type="button" id="shareWhatsappBtn" class="btn-whatsapp">Compartir por WhatsApp</button>
+                    <button type="button" id="historyBtn" class="btn-info">📚 Historial</button>
+                    <button type="button" id="cdnHealthBtn" class="btn-info">🔍 Estado CDN</button>
+                    <button type="button" id="resetBtn" class="btn-secondary">Limpiar Formulario</button>
+                    <button type="button" id="logoutBtn" class="btn-logout">🔒 Cerrar Sesión</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal de Vista Previa -->
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="receiptPreview" class="receipt-preview"></div>
+                <div class="modal-actions">
+                    <button id="confirmGeneratePdf" class="btn-success">Confirmar y Generar PDF</button>
+                    <button id="closePreview" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Historial -->
+        <div id="historyModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📚 Historial de Recibos</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="history-controls">
+                    <input type="text" id="historySearch" placeholder="🔍 Buscar por cliente, número o teléfono...">
+                    <button id="exportHistoryBtn" class="btn-secondary">📊 Exportar</button>
+                </div>
+                <div id="historyList" class="history-list">
+                    <!-- Lista de recibos aparecerá aquí -->
+                </div>
+                <div class="modal-actions">
+                    <button id="closeHistory" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Pagos -->
+        <div id="paymentsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>💰 Gestión de Pagos</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div id="paymentContent">
+                    <!-- Contenido de pagos -->
+                </div>
+                <div class="modal-actions">
+                    <button id="addPaymentBtn" class="btn-success">➕ Registrar Pago</button>
+                    <button id="closePayments" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Plan de Pagos -->
+        <div id="paymentPlanModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📅 Configurar Plan de Pagos</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="payment-plan-content">
+                    <div class="plan-options">
+                        <h4>Selecciona el Plan de Pagos</h4>
+                        <div class="plan-grid">
+                            <div class="plan-option" data-plan="1">
+                                <div class="plan-circle">1</div>
+                                <h5>Pago Único</h5>
+                                <p>100% al momento</p>
+                            </div>
+                            <div class="plan-option" data-plan="2">
+                                <div class="plan-circle">2</div>
+                                <h5>2 Pagos</h5>
+                                <p>50% - 50%</p>
+                            </div>
+                            <div class="plan-option" data-plan="3">
+                                <div class="plan-circle">3</div>
+                                <h5>3 Pagos</h5>
+                                <p>33% - 33% - 34%</p>
+                            </div>
+                            <div class="plan-option" data-plan="4">
+                                <div class="plan-circle">4</div>
+                                <h5>4 Pagos</h5>
+                                <p>25% cada uno</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="plan-details" id="planDetails" style="display: none;">
+                        <h4>Detalles del Plan</h4>
+                        <div class="plan-schedule" id="planSchedule">
+                            <!-- Se genera dinámicamente -->
+                        </div>
+                        
+                        <div class="plan-frequency">
+                            <label>Frecuencia de Pagos:</label>
+                            <select id="paymentFrequency">
+                                <option value="15">Cada 15 días</option>
+                                <option value="30">Mensual</option>
+                                <option value="custom">Fechas específicas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="savePlan" class="btn-success" style="display: none;">💾 Guardar Plan</button>
+                    <button id="closePlanModal" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de CDN Health Dashboard -->
+        <div id="cdnHealthModal" class="modal">
+            <div class="modal-content" style="max-width: 90vw; width: 1200px; height: 80vh;">
+                <div class="modal-header">
+                    <h3>🔍 Dashboard de Estado CDN</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div style="height: calc(100% - 60px); overflow: hidden;">
+                    <iframe id="cdnHealthFrame" src="cdn-health-dashboard.html" 
+                            style="width: 100%; height: 100%; border: none; border-radius: 8px;">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - OPTIMIZED LOADING ORDER TO PREVENT RACE CONDITIONS -->
+    
+    <!-- DOMPurify XSS Protection with CDN Fallbacks -->
+    <script>
+        // Load DOMPurify with multiple CDN fallbacks
+        const domPurifyUrls = [
+            'https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js',
+            'https://unpkg.com/dompurify@3.0.5/dist/purify.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js'
+        ];
+        
+        let domPurifyLoaded = false;
+        
+        function loadDOMPurifyScript(index = 0) {
+            if (index >= domPurifyUrls.length) {
+                console.warn('⚠️ All DOMPurify CDNs failed, XSS protection will use fallback methods');
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = domPurifyUrls[index];
+            script.async = true;
+            
+            script.onload = function() {
+                domPurifyLoaded = true;
+                console.log(`✅ DOMPurify loaded from: ${domPurifyUrls[index]}`);
+            };
+            
+            script.onerror = function() {
+                console.warn(`❌ Failed to load DOMPurify from: ${domPurifyUrls[index]}`);
+                loadDOMPurifyScript(index + 1);
+            }
+            
+            document.head.appendChild(script);
+        }
+        
+        loadDOMPurifyScript();
+    </script>
+    
+    <!-- Enhanced XSS Protection System - REMOVED - blocking functionality -->
+    <!-- <script src="enhanced-xss-protection.js"></script> -->
+    
+    <!-- ENHANCED CDN DEPENDENCIES LOADING SYSTEM v2.0 -->
+    <script>
+        // Advanced CDN Management System with Sequential Loading and Comprehensive Monitoring
+        window.CDNManager = {
+            version: '2.0.0',
+            initialized: false,
+            
+            // Enhanced CDN configuration with version pinning and multiple sources
+            cdnConfig: {
+                jsPDF: {
+                    name: 'jsPDF',
+                    urls: [
+                        'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+                        'https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+                    ],
+                    globalCheck: () => typeof window.jspdf !== 'undefined' || typeof window.jsPDF !== 'undefined',
+                    functionalCheck: () => {
+                        try {
+                            const jsPDFLib = window.jspdf || window.jsPDF;
+                            if (!jsPDFLib) return false;
+                            const doc = new jsPDFLib.jsPDF();
+                            return typeof doc.text === 'function' && typeof doc.save === 'function';
+                        } catch (e) {
+                            return false;
+                        }
+                    },
+                    timeout: 12000,
+                    retries: 3,
+                    critical: true
+                },
+                html2canvas: {
+                    name: 'html2canvas',
+                    urls: [
+                        'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+                        'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+                    ],
+                    globalCheck: () => typeof window.html2canvas === 'function',
+                    functionalCheck: () => {
+                        try {
+                            return typeof window.html2canvas === 'function' && 
+                                   window.html2canvas.toString().includes('[native code]') === false;
+                        } catch (e) {
+                            return false;
+                        }
+                    },
+                    timeout: 15000,
+                    retries: 3,
+                    critical: true
+                },
+                SignaturePad: {
+                    name: 'SignaturePad',
+                    urls: [
+                        'https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js',
+                        'https://unpkg.com/signature_pad@4.1.7/dist/signature_pad.umd.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js'
+                    ],
+                    globalCheck: () => typeof window.SignaturePad === 'function',
+                    functionalCheck: () => {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const pad = new window.SignaturePad(canvas);
+                            return typeof pad.clear === 'function' && typeof pad.toDataURL === 'function';
+                        } catch (e) {
+                            return false;
+                        }
+                    },
+                    timeout: 10000,
+                    retries: 2,
+                    critical: true
+                }
+            },
+            
+            // Loading state management
+            loadingState: {
+                status: 'initializing', // initializing, loading, completed, failed
+                loadedLibraries: [],
+                failedLibraries: [],
+                startTime: Date.now(),
+                logs: []
+            },
+            
+            // Enhanced logging system
+            log(level, message, data = null) {
+                const timestamp = new Date().toISOString();
+                const elapsed = Date.now() - this.loadingState.startTime;
+                const logEntry = {
+                    timestamp,
+                    level,
+                    message,
+                    data,
+                    elapsed: `${elapsed}ms`
+                };
+                
+                this.loadingState.logs.push(logEntry);
+                
+                // Console output with colors
+                const colors = {
+                    'INFO': 'color: #2196F3; font-weight: bold;',
+                    'SUCCESS': 'color: #4CAF50; font-weight: bold;',
+                    'WARNING': 'color: #FF9800; font-weight: bold;',
+                    'ERROR': 'color: #F44336; font-weight: bold;',
+                    'DEBUG': 'color: #9C27B0;'
+                };
+                
+                const prefix = `[CDN-${level}][${elapsed}ms]`;
+                if (data) {
+                    console.log(`%c${prefix} ${message}`, colors[level] || '', data);
+                } else {
+                    console.log(`%c${prefix} ${message}`, colors[level] || '');
+                }
+            },
+            
+            // Sequential library loader with comprehensive error handling
+            async loadLibrarySequentially(libName, config) {
+                this.log('INFO', `Starting sequential load for ${libName}...`);
+                
+                // Check if already loaded
+                if (config.globalCheck()) {
+                    if (config.functionalCheck()) {
+                        this.log('SUCCESS', `${libName} already loaded and functional`);
+                        return { success: true, source: 'already_loaded', library: libName };
+                    } else {
+                        this.log('WARNING', `${libName} loaded but not functional, reloading...`);
+                    }
+                }
+                
+                let lastError = null;
+                
+                // Try each URL with retries
+                for (let urlIndex = 0; urlIndex < config.urls.length; urlIndex++) {
+                    const url = config.urls[urlIndex];
+                    
+                    for (let retry = 0; retry < config.retries; retry++) {
+                        try {
+                            this.log('INFO', `Attempting ${libName} from ${url} (attempt ${retry + 1}/${config.retries})`);
+                            
+                            const result = await this.loadSingleScript(url, config, libName);
+                            
+                            if (result.success) {
+                                this.log('SUCCESS', `${libName} loaded successfully from ${url}`);
+                                this.loadingState.loadedLibraries.push(libName);
+                                return result;
+                            }
+                            
+                        } catch (error) {
+                            lastError = error;
+                            this.log('WARNING', `${libName} attempt ${retry + 1} failed:`, error.message);
+                            
+                            if (retry < config.retries - 1) {
+                                // Exponential backoff between retries
+                                const delay = Math.min(1000 * Math.pow(2, retry), 5000);
+                                this.log('INFO', `Retrying ${libName} in ${delay}ms...`);
+                                await new Promise(resolve => setTimeout(resolve, delay));
+                            }
+                        }
+                    }
+                }
+                
+                // All attempts failed
+                this.log('ERROR', `All attempts failed for ${libName}`, lastError);
+                this.loadingState.failedLibraries.push({ library: libName, error: lastError });
+                
+                if (config.critical) {
+                    throw new Error(`Critical library ${libName} failed to load: ${lastError?.message}`);
+                }
+                
+                return { success: false, error: lastError, library: libName };
+            },
+            
+            // Enhanced single script loader with timeout and verification
+            loadSingleScript(url, config, libName) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    const timeoutId = setTimeout(() => {
+                        this.cleanupScript(script);
+                        reject(new Error(`Timeout loading ${libName} from ${url} after ${config.timeout}ms`));
+                    }, config.timeout);
+                    
+                    script.onload = () => {
+                        clearTimeout(timeoutId);
+                        
+                        // Wait a moment for library to initialize
+                        setTimeout(() => {
+                            try {
+                                // Perform both global and functional checks
+                                if (config.globalCheck() && config.functionalCheck()) {
+                                    this.log('SUCCESS', `${libName} verified as functional from ${url}`);
+                                    resolve({
+                                        success: true,
+                                        source: url,
+                                        library: libName,
+                                        loadTime: Date.now() - this.loadingState.startTime
+                                    });
+                                } else {
+                                    this.cleanupScript(script);
+                                    reject(new Error(`${libName} loaded but failed verification checks`));
+                                }
+                            } catch (verifyError) {
+                                this.cleanupScript(script);
+                                reject(new Error(`${libName} verification failed: ${verifyError.message}`));
+                            }
+                        }, 200); // Allow library initialization time
+                    };
+                    
+                    script.onerror = (error) => {
+                        clearTimeout(timeoutId);
+                        this.cleanupScript(script);
+                        reject(new Error(`Network error loading ${libName} from ${url}`));
+                    };
+                    
+                    script.src = url;
+                    script.async = false; // Ensure sequential loading
+                    script.crossOrigin = 'anonymous';
+                    document.head.appendChild(script);
+                });
+            },
+            
+            // Script cleanup helper
+            cleanupScript(script) {
+                try {
+                    if (script && script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                } catch (e) {
+                    // Ignore cleanup errors
+                }
+            },
+            
+            // Main initialization method
+            async initialize() {
+                if (this.initialized) {
+                    this.log('WARNING', 'CDN Manager already initialized');
+                    return this.getStatus();
+                }
+                
+                this.log('INFO', 'Starting Enhanced CDN Manager v2.0...');
+                this.loadingState.status = 'loading';
+                
+                const libraries = Object.entries(this.cdnConfig);
+                const results = [];
+                
+                try {
+                    // Load libraries sequentially to avoid race conditions
+                    for (const [libName, config] of libraries) {
+                        this.log('INFO', `Loading ${libName}...`);
+                        const result = await this.loadLibrarySequentially(libName, config);
+                        results.push(result);
+                    }
+                    
+                    this.loadingState.status = 'completed';
+                    this.initialized = true;
+                    
+                    const totalTime = Date.now() - this.loadingState.startTime;
+                    this.log('SUCCESS', `All libraries loaded successfully in ${totalTime}ms`);
+                    
+                    // Set global flag for backward compatibility
+                    window.cdnLibrariesReady = true;
+                    
+                    return {
+                        success: true,
+                        totalTime,
+                        loadedLibraries: this.loadingState.loadedLibraries,
+                        results
+                    };
+                    
+                } catch (error) {
+                    this.loadingState.status = 'failed';
+                    this.log('ERROR', 'CDN Manager initialization failed', error);
+                    
+                    // Attempt progressive degradation
+                    this.handleCriticalFailure(error);
+                    
+                    throw error;
+                }
+            },
+            
+            // Progressive degradation for critical failures
+            handleCriticalFailure(error) {
+                this.log('WARNING', 'Attempting progressive degradation...');
+                
+                // Check which libraries are available
+                const availableLibraries = [];
+                const missingLibraries = [];
+                
+                for (const [libName, config] of Object.entries(this.cdnConfig)) {
+                    if (config.globalCheck() && config.functionalCheck()) {
+                        availableLibraries.push(libName);
+                    } else {
+                        missingLibraries.push(libName);
+                    }
+                }
+                
+                this.log('INFO', `Available libraries: ${availableLibraries.join(', ')}`);
+                this.log('WARNING', `Missing libraries: ${missingLibraries.join(', ')}`);
+                
+                // Create fallback functions for missing critical libraries
+                this.createFallbackFunctions(missingLibraries);
+            },
+            
+            // Create fallback functions for missing libraries
+            createFallbackFunctions(missingLibraries) {
+                missingLibraries.forEach(libName => {
+                    switch (libName) {
+                        case 'jsPDF':
+                            this.log('WARNING', 'Creating jsPDF fallback - PDF generation will be unavailable');
+                            window.jsPDFUnavailable = true;
+                            break;
+                        case 'html2canvas':
+                            this.log('WARNING', 'Creating html2canvas fallback - Screenshot functionality will be limited');
+                            window.html2canvasUnavailable = true;
+                            break;
+                        case 'SignaturePad':
+                            this.log('WARNING', 'Creating SignaturePad fallback - Signature functionality will use text input');
+                            window.SignaturePadUnavailable = true;
+                            break;
+                    }
+                });
+            },
+            
+            // System status and health check
+            getStatus() {
+                const status = {
+                    initialized: this.initialized,
+                    status: this.loadingState.status,
+                    loadedLibraries: this.loadingState.loadedLibraries,
+                    failedLibraries: this.loadingState.failedLibraries,
+                    totalTime: Date.now() - this.loadingState.startTime,
+                    libraryStatus: {}
+                };
+                
+                // Check current status of each library
+                for (const [libName, config] of Object.entries(this.cdnConfig)) {
+                    status.libraryStatus[libName] = {
+                        globalAvailable: config.globalCheck(),
+                        functionalAvailable: config.functionalCheck(),
+                        isHealthy: config.globalCheck() && config.functionalCheck()
+                    };
+                }
+                
+                return status;
+            },
+            
+            // Get detailed logs for debugging
+            getLogs() {
+                return this.loadingState.logs;
+            },
+            
+            // Health monitoring
+            startHealthMonitoring() {
+                this.log('INFO', 'Starting continuous health monitoring...');
+                
+                setInterval(() => {
+                    this.performHealthCheck();
+                }, 30000); // Check every 30 seconds
+            },
+            
+            performHealthCheck() {
+                let healthyCount = 0;
+                let totalCount = 0;
+                
+                for (const [libName, config] of Object.entries(this.cdnConfig)) {
+                    totalCount++;
+                    const isHealthy = config.globalCheck() && config.functionalCheck();
+                    
+                    if (isHealthy) {
+                        healthyCount++;
+                    } else {
+                        this.log('WARNING', `Health check failed for ${libName}`);
+                    }
+                }
+                
+                if (healthyCount < totalCount) {
+                    this.log('WARNING', `Health check: ${healthyCount}/${totalCount} libraries healthy`);
+                } else {
+                    this.log('DEBUG', `Health check: All ${totalCount} libraries healthy`);
+                }
+                
+                return { healthy: healthyCount, total: totalCount };
+            }
+        };
+        
+        // Initialize the CDN Manager
+        window.CDNManager.log('INFO', 'Enhanced CDN Manager v2.0 loaded and ready');
+    </script>
+    
+    <!-- SEQUENTIAL CDN LOADING INITIALIZATION -->
+    <script>
+        // Initialize the Enhanced CDN Manager
+        async function initializeCDNDependencies() {
+            window.CDNManager.log('INFO', 'Starting CDN initialization process...');
+            
+            try {
+                const result = await window.CDNManager.initialize();
+                
+                if (result.success) {
+                    window.CDNManager.log('SUCCESS', 'CDN dependencies loaded successfully');
+                    window.CDNManager.startHealthMonitoring();
+                    
+                    // Continue with application initialization
+                    loadApplicationScripts();
+                } else {
+                    throw new Error('CDN Manager initialization failed');
+                }
+                
+            } catch (error) {
+                window.CDNManager.log('ERROR', 'Critical CDN loading failure', error);
+                
+                // Activate fallback systems
+                window.CDNManager.log('INFO', 'Activating fallback systems...');
+                
+                // Wait for fallback manager to be available
+                setTimeout(() => {
+                    if (window.cdnFallbackManager) {
+                        const fallbackResult = window.cdnFallbackManager.activateAllFallbacks();
+                        window.CDNManager.log('INFO', `Fallbacks activated: ${fallbackResult.activated}/${fallbackResult.total}`);
+                    } else {
+                        window.CDNManager.log('WARNING', 'Fallback manager not available');
+                    }
+                    
+                    // Continue with whatever libraries are available
+                    window.CDNManager.log('WARNING', 'Continuing with limited functionality...');
+                    window.cdnLibrariesReady = true; // Allow app to continue
+                    loadApplicationScripts();
+                }, 500);
+            }
+        }
+        
+        // Start CDN loading process
+        initializeCDNDependencies();
+    </script>
+    
+    <!-- Core System Files - PROPER ORDER TO ENSURE DEPENDENCIES ARE AVAILABLE -->
+    <!-- Step 1: Load utility and data layer first -->
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    
+    <!-- CDN Fallback Manager for robust offline functionality -->
+    <script src="cdn-fallback-manager.js"></script>
+    
+    <!-- Enhanced PDF Generator - PROFESSIONAL DESIGN -->
+    <script src="enhanced-pdf-generator.js"></script>
+    
+    <!-- Data protection systems - REMOVED - unnecessary complexity -->
+    <!-- <script src="storage-monitor.js"></script> -->
+    <!-- <script src="data-integrity-guardian.js"></script> -->
+    
+    <!-- Step 2: Load feature modules -->
+    <script src="camera.js"></script>
+    <script src="payments.js"></script>
+    
+    <!-- Step 3: Main application logic MOVED BELOW coordinator -->
+    <!-- script.js will be loaded after initialization-coordinator.js -->
+    
+    <!-- Step 4: Enhanced script coordination with CDN and dependency checks -->
+    <script>
+        // Enhanced dependency verification system
+        function verifySystemDependencies() {
+            const dependencies = {
+                cdnLibraries: {
+                    jsPDF: () => typeof window.jsPDF !== 'undefined',
+                    SignaturePad: () => typeof window.SignaturePad !== 'undefined',
+                    html2canvas: () => typeof window.html2canvas !== 'undefined'
+                },
+                coreFunctions: {
+                    initializeApp: () => typeof window.initializeApp === 'function',
+                    authManager: () => typeof window.authManager !== 'undefined' || window.authManager === null,
+                    utils: () => typeof window.utils !== 'undefined' || window.utils === null
+                }
+            };
+            
+            let allReady = true;
+            
+            // Check CDN dependencies
+            console.log('🔍 Checking CDN dependencies...');
+            for (const [name, check] of Object.entries(dependencies.cdnLibraries)) {
+                if (check()) {
+                    console.log(`✅ ${name} is available`);
+                } else {
+                    console.warn(`⚠️ ${name} not yet available`);
+                    allReady = false;
+                }
+            }
+            
+            // Check core function dependencies  
+            console.log('🔍 Checking core function dependencies...');
+            for (const [name, check] of Object.entries(dependencies.coreFunctions)) {
+                if (check()) {
+                    console.log(`✅ ${name} is available`);
+                } else {
+                    console.warn(`⚠️ ${name} not yet available`);
+                    if (name === 'initializeApp') allReady = false;
+                }
+            }
+            
+            return allReady;
+        }
+        
+        // Enhanced initializeApp verification with retry mechanism
+        function waitForInitializeApp(callback, maxAttempts = 10, attempt = 1) {
+            if (typeof window.initializeApp === 'function') {
+                console.log(`✅ initializeApp available on attempt ${attempt}`);
+                callback(true);
+                return;
+            }
+            
+            if (attempt >= maxAttempts) {
+                console.error('❌ CRITICAL ERROR: initializeApp function not found after max attempts');
+                console.log('Available window functions:', Object.keys(window).filter(k => typeof window[k] === 'function' && k.startsWith('init')));
+                
+                // Create enhanced fallback function
+                window.initializeApp = function() {
+                    console.error('❌ Enhanced fallback initializeApp called');
+                    
+                    // Try to initialize basic signature pad functionality
+                    try {
+                        if (typeof window.SignaturePad !== 'undefined') {
+                            console.log('🔄 Attempting basic signature pad initialization...');
+                            const canvas = document.getElementById('signatureCanvas');
+                            if (canvas) {
+                                window.signaturePad = new SignaturePad(canvas);
+                                console.log('✅ Basic signature pad initialized');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('❌ Even fallback signature initialization failed:', error);
+                    }
+                    
+                    // Setup CDN Health Dashboard button
+                    const cdnHealthBtn = document.getElementById('cdnHealthBtn');
+                    if (cdnHealthBtn) {
+                        cdnHealthBtn.onclick = function() {
+                            const modal = document.getElementById('cdnHealthModal');
+                            if (modal) {
+                                modal.style.display = 'block';
+                            }
+                        };
+                    }
+                    
+                    // Setup modal close buttons
+                    const cdnHealthModal = document.getElementById('cdnHealthModal');
+                    if (cdnHealthModal) {
+                        const closeBtn = cdnHealthModal.querySelector('.close');
+                        if (closeBtn) {
+                            closeBtn.onclick = function() {
+                                cdnHealthModal.style.display = 'none';
+                            };
+                        }
+                        
+                        // Close modal when clicking outside
+                        window.onclick = function(event) {
+                            if (event.target == cdnHealthModal) {
+                                cdnHealthModal.style.display = 'none';
+                            }
+                        };
+                    }
+                    
+                    // Show error to user
+                    if (window.utils && utils.showNotification) {
+                        utils.showNotification('Error de inicialización. Funcionalidad limitada disponible.', 'warning');
+                    } else {
+                        alert('Advertencia: El sistema no se inicializó completamente. Algunas funciones pueden no estar disponibles.');
+                    }
+                };
+                
+                callback(false);
+                return;
+            }
+            
+            console.log(`⏳ Waiting for initializeApp... attempt ${attempt}/${maxAttempts}`);
+            setTimeout(() => waitForInitializeApp(callback, maxAttempts, attempt + 1), 500);
+        }
+        
+        // Create dummy functions for mode selector calls
+        const dummyFunctions = [
+            'initializeModeSelector',
+            'initializeQuotationSystem', 
+            'initializeCalculatorSystem'
+        ];
+        
+        dummyFunctions.forEach(funcName => {
+            if (typeof window[funcName] !== 'function') {
+                window[funcName] = function() {
+                    console.log(`⚠️ ${funcName} called but not needed in receipt mode`);
+                };
+            }
+        });
+        
+        // Enhanced signature pad re-initialization function
+        window.reinitializeSignaturePads = function() {
+            console.log('🔄 Re-initializing signature pads post-authentication...');
+            
+            try {
+                // Wait for elements to be visible
+                setTimeout(() => {
+                    if (typeof window.SignaturePad !== 'undefined' && window.initializeSignaturePad) {
+                        window.initializeSignaturePad();
+                        console.log('✅ Signature pads re-initialized successfully');
+                    } else if (typeof window.SignaturePad !== 'undefined') {
+                        // Manual fallback initialization
+                        const canvas = document.getElementById('signatureCanvas');
+                        const companyCanvas = document.getElementById('companySignatureCanvas');
+                        
+                        if (canvas && !window.signaturePad) {
+                            window.signaturePad = new SignaturePad(canvas);
+                            console.log('✅ Manual signature pad initialized');
+                        }
+                        
+                        if (companyCanvas && !window.companySignaturePad) {
+                            window.companySignaturePad = new SignaturePad(companyCanvas);
+                            console.log('✅ Manual company signature pad initialized');
+                        }
+                    }
+                }, 1000);
+            } catch (error) {
+                console.error('❌ Error re-initializing signature pads:', error);
+            }
+        };
+        
+        console.log('🔧 Enhanced script coordination ready');
+    </script>
+    
+    <!-- ENHANCED APPLICATION SCRIPTS LOADING -->
+    <script>
+        // Enhanced application scripts loader with CDN Manager integration
+        function loadApplicationScripts() {
+            // Check if scripts are already loaded to prevent duplicates
+            if (window.scriptsAlreadyLoaded) {
+                window.CDNManager.log('WARNING', 'Application scripts already loaded, preventing duplicates');
+                return;
+            }
+            
+            window.CDNManager.log('INFO', 'Starting application scripts loading sequence...');
+            
+            // Mark as loading to prevent duplicates
+            window.scriptsAlreadyLoaded = true;
+            
+            // Load scripts in sequence with enhanced error handling
+            const scriptsToLoad = [
+                'initialization-coordinator.js',
+                'script.js',
+                'auth.js'
+            ];
+            
+            let index = 0;
+            let loadErrors = [];
+            
+            function loadNext() {
+                if (index < scriptsToLoad.length) {
+                    const scriptName = scriptsToLoad[index];
+                    const script = document.createElement('script');
+                    
+                    window.CDNManager.log('INFO', `Loading application script: ${scriptName}`);
+                    
+                    script.onload = () => {
+                        window.CDNManager.log('SUCCESS', `Application script loaded: ${scriptName}`);
+                        index++;
+                        loadNext();
+                    };
+                    
+                    script.onerror = (error) => {
+                        const errorMsg = `Failed to load application script: ${scriptName}`;
+                        window.CDNManager.log('ERROR', errorMsg, error);
+                        loadErrors.push({ script: scriptName, error });
+                        
+                        // Continue with next script even if one fails
+                        index++;
+                        loadNext();
+                    };
+                    
+                    script.src = scriptName;
+                    script.async = false; // Ensure sequential loading
+                    document.body.appendChild(script);
+                    
+                } else {
+                    // All scripts processed
+                    if (loadErrors.length > 0) {
+                        window.CDNManager.log('WARNING', `Application loading completed with ${loadErrors.length} errors`, loadErrors);
+                    } else {
+                        window.CDNManager.log('SUCCESS', 'All application scripts loaded successfully');
+                    }
+                    
+                    // Start final initialization
+                    initializeApplicationAfterScripts();
+                }
+            }
+            
+            loadNext();
+        }
+        
+        // Enhanced final initialization with better error handling
+        function initializeApplicationAfterScripts() {
+            window.CDNManager.log('INFO', 'Starting final application initialization...');
+            
+            // Wait a moment for all scripts to settle
+            setTimeout(() => {
+                try {
+                    // Check if the initialization coordinator is available
+                    if (window.InitializationCoordinator && typeof window.InitializationCoordinator.initialize === 'function') {
+                        window.CDNManager.log('SUCCESS', 'Starting InitializationCoordinator...');
+                        window.InitializationCoordinator.initialize();
+                    } else {
+                        window.CDNManager.log('WARNING', 'InitializationCoordinator not available, trying direct initialization...');
+                        
+                        // Fallback to direct initialization
+                        if (typeof window.initializeApp === 'function') {
+                            window.CDNManager.log('INFO', 'Using direct initializeApp fallback...');
+                            window.initializeApp();
+                        } else {
+                            window.CDNManager.log('ERROR', 'No initialization method available');
+                            
+                            // Emergency fallback
+                            showCriticalErrorMessage();
+                        }
+                    }
+                } catch (error) {
+                    window.CDNManager.log('ERROR', 'Critical initialization error', error);
+                    showCriticalErrorMessage();
+                }
+            }, 500);
+        }
+        
+        // Critical error message for user
+        function showCriticalErrorMessage() {
+            window.CDNManager.log('ERROR', 'Displaying critical error message to user');
+            
+            const errorMsg = `
+                ⚠️ Error Crítico de Inicialización
+                
+                El sistema no pudo inicializarse correctamente.
+                
+                Por favor:
+                1. Verifique su conexión a internet
+                2. Recargue la página (F5)
+                3. Si el problema persiste, contacte al administrador
+                
+                Estado de dependencias CDN: 
+                ${window.CDNManager.getStatus().loadedLibraries.join(', ') || 'Ninguna cargada'}
+            `;
+            
+            // Show modal or alert
+            if (document.getElementById('previewModal')) {
+                const modal = document.getElementById('previewModal');
+                const content = modal.querySelector('.modal-content');
+                content.innerHTML = `
+                    <div style="padding: 20px; text-align: center;">
+                        <h3 style="color: #F44336;">⚠️ Error Crítico</h3>
+                        <p style="white-space: pre-line;">${errorMsg}</p>
+                        <button onclick="location.reload()" style="margin: 10px; padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            🔄 Recargar Página
+                        </button>
+                        <button onclick="window.CDNManager.initialize().then(() => location.reload())" style="margin: 10px; padding: 10px 20px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            🔧 Reintentar CDN
+                        </button>
+                    </div>
+                `;
+                modal.style.display = 'block';
+            } else {
+                alert(errorMsg);
+            }
+        }
+    </script>
+    
+    <!-- Script Loading Verification -->
+    <script>
+        // Verify all critical functions are available
+        setTimeout(function() {
+            const criticalFunctions = [
+                'initializeApp',
+                'window.authManager'
+            ];
+            
+            let allLoaded = true;
+            criticalFunctions.forEach(funcName => {
+                const parts = funcName.split('.');
+                let obj = window;
+                for (let part of parts) {
+                    obj = obj[part];
+                    if (!obj) {
+                        console.error(`❌ MISSING: ${funcName}`);
+                        allLoaded = false;
+                        break;
+                    }
+                }
+            });
+            
+            if (allLoaded) {
+                console.log('✅ All critical functions loaded successfully');
+            } else {
+                console.error('❌ Some critical functions are missing - the app may not work correctly');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

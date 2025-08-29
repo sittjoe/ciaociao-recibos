@@ -48,31 +48,6 @@
       border: 2px solid transparent;
     }
 
-    /* Botón volver */
-    .btn-back {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      padding: 10px 20px;
-      background: linear-gradient(180deg, var(--gold-2), var(--gold-1));
-      border: 1px solid var(--gold-3);
-      border-radius: 12px;
-      color: #664f22;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      z-index: 100;
-      box-shadow: 0 4px 10px rgba(191,163,111,.25);
-      transition: all 0.3s ease;
-    }
-    .btn-back:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(191,163,111,.35);
-    }
-
     /* CABECERA */
     .header{ display: grid; grid-template-columns: 160px 1fr 210px; gap: 20px; align-items: center; margin-bottom: 20px; }
     .brand{ display:flex; align-items:center; gap:14px; }
@@ -205,7 +180,7 @@
 
     /* BARRA ACCIONES */
     .actions{ display:flex; justify-content:space-between; gap:10px; margin-top:22px; flex-wrap: wrap; }
-    .actions-left, .actions-right { display: flex; gap: 10px; flex-wrap: wrap; }
+    .actions-left, .actions-right { display: flex; gap: 10px; }
     .btn{
       border:1px solid var(--gold-1); 
       color:#664f22; 
@@ -223,7 +198,6 @@
     .btn.secondary{ background:#fff; color:var(--ink); border:1px solid var(--line); box-shadow:none; }
     .btn.success{ background:linear-gradient(180deg, #22c55e, #16a34a); border-color: #16a34a; color: white; }
     .btn.danger{ background:linear-gradient(180deg, #ef4444, #dc2626); border-color: #dc2626; color: white; }
-    .btn.primary{ background:linear-gradient(180deg, #3b82f6, #2563eb); border-color: #2563eb; color: white; }
 
     /* FOOTER */
     footer{ margin-top:24px; text-align:center; font-size:12px; color:var(--muted); }
@@ -300,61 +274,6 @@
       margin-top: 16px;
     }
 
-    /* Modal de historial */
-    .history-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-    .history-modal.active { display: flex; }
-    .history-modal-content {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 900px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    .history-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-    }
-    .history-table th {
-      background: linear-gradient(180deg, #fffdf6, #faf6eb);
-      padding: 12px;
-      text-align: left;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      border-bottom: 1px solid var(--line);
-    }
-    .history-table td {
-      padding: 12px;
-      border-bottom: 1px dashed #efe9dd;
-    }
-    .history-table tr:hover {
-      background: rgba(217, 192, 140, 0.05);
-    }
-    .history-actions {
-      display: flex;
-      gap: 8px;
-    }
-    .btn-small {
-      padding: 6px 10px;
-      font-size: 12px;
-    }
-
     /* Notificación */
     .notification {
       position: fixed;
@@ -372,7 +291,6 @@
     }
     .notification.success { border-left: 4px solid var(--success); }
     .notification.error { border-left: 4px solid var(--error); }
-    .notification.info { border-left: 4px solid #3b82f6; }
     .notification.show { display: flex; }
     
     @keyframes slideIn {
@@ -380,34 +298,16 @@
       to { transform: translateX(0); opacity: 1; }
     }
 
-    /* Select personalizado para tipo de transacción */
-    .transaction-type-select {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-weight: 600;
-      color: var(--ink);
-      cursor: pointer;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-    .transaction-type-select:focus {
-      border-color: var(--gold-1);
-      box-shadow: 0 0 0 3px rgba(191, 163, 111, 0.1);
-    }
-
     /* PRINT */
     @media print{
       body{ background:#fff; }
       .sheet{ margin:0; box-shadow:none; padding: 0; }
-      .actions, .watermark, .delete-row, .clear-sig, .btn-back { display:none !important; }
+      .actions, .watermark, .delete-row, .clear-sig { display:none !important; }
       [contenteditable] { background: transparent !important; padding: 0 !important; margin: 0 !important; }
     }
 
     /* Responsive */
     @media (max-width: 768px) {
-      .btn-back { position: static; margin-bottom: 20px; }
       .header { grid-template-columns: 1fr; text-align: center; gap: 16px; }
       .meta { border-left: none; border-top: 1px solid var(--line); padding: 16px 0 0 0; justify-self: center; }
       .two-col { grid-template-columns: 1fr; }
@@ -419,9 +319,6 @@
   </style>
 </head>
 <body>
-  <!-- Botón volver -->
-  <a href="index.html" class="btn-back">← Volver al Inicio</a>
-
   <!-- Notification -->
   <div id="notification" class="notification">
     <span id="notification-message"></span>
@@ -442,35 +339,6 @@
     </div>
   </div>
 
-  <!-- Modal de historial -->
-  <div id="historyModal" class="history-modal">
-    <div class="history-modal-content">
-      <h3>Historial de Recibos</h3>
-      <div style="margin-bottom: 16px;">
-        <input type="text" id="searchHistory" placeholder="Buscar por cliente, número o fecha..." 
-               style="width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px;">
-      </div>
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th>Número</th>
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th>Total</th>
-            <th>Tipo</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="historyTableBody">
-          <!-- Se llena dinámicamente -->
-        </tbody>
-      </table>
-      <div style="margin-top: 20px; text-align: right;">
-        <button class="btn danger" onclick="closeHistoryModal()">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
   <div class="sheet">
     <div class="watermark">CIAO CIAO MX</div>
     <div class="gilded-frame">
@@ -484,24 +352,8 @@
         </div>
         <div class="meta">
           <div class="row"><span>Folio</span><span class="value" id="receiptNumber">---</span></div>
-          <div class="row">
-            <span>Tipo</span>
-            <select id="transactionType" class="transaction-type-select">
-              <option value="venta">Venta</option>
-              <option value="apartado">Apartado</option>
-              <option value="reparacion">Reparación</option>
-              <option value="consignacion">Consignación</option>
-            </select>
-          </div>
-          <div class="row">
-            <span>Método</span>
-            <select id="paymentMethod" class="transaction-type-select">
-              <option value="efectivo">Efectivo</option>
-              <option value="tarjeta">Tarjeta</option>
-              <option value="transferencia">Transferencia</option>
-              <option value="mixto">Mixto</option>
-            </select>
-          </div>
+          <div class="row"><span>Moneda</span><span class="value editable" contenteditable>MXN</span></div>
+          <div class="row"><span>Método</span><span class="value editable" contenteditable>Efectivo</span></div>
         </div>
       </header>
 
@@ -518,7 +370,6 @@
           <div class="field"><div class="label">Fecha de emisión</div><div class="value" id="issueDate">---</div></div>
           <div class="field"><div class="label">Fecha de entrega</div><div class="value editable" contenteditable id="deliveryDate">---</div></div>
           <div class="field"><div class="label">Válido hasta</div><div class="value" id="validUntil">---</div></div>
-          <div class="field"><div class="label">Orden #</div><div class="value editable" contenteditable id="orderNumber">001</div></div>
         </div>
       </section>
 
@@ -527,13 +378,12 @@
           <table id="tabla-items">
             <thead>
               <tr>
-                <th style="width:36%">Descripción</th>
+                <th style="width:38%">Descripción</th>
                 <th class="center" style="width:8%">Cant.</th>
-                <th class="right" style="width:15%">Precio Unit.</th>
-                <th class="right" style="width:15%">Importe</th>
-                <th class="center" style="width:12%">SKU</th>
-                <th style="width:8%">Tipo</th>
-                <th style="width:6%"></th>
+                <th class="right" style="width:16%">Precio Unit.</th>
+                <th class="right" style="width:16%">Importe</th>
+                <th class="center" style="width:14%">SKU</th>
+                <th style="width:8%"></th>
               </tr>
             </thead>
             <tbody id="itemsBody">
@@ -543,13 +393,6 @@
                 <td class="right editable price" contenteditable>0.00</td>
                 <td class="right subtotal">0.00</td>
                 <td class="center editable" contenteditable>—</td>
-                <td class="center">
-                  <select class="transaction-type-select item-type" style="font-size: 11px; padding: 4px;">
-                    <option value="producto">Producto</option>
-                    <option value="servicio">Servicio</option>
-                    <option value="reparacion">Reparación</option>
-                  </select>
-                </td>
                 <td style="position:relative;">
                   <span class="delete-row" onclick="deleteRow(this)">×</span>
                 </td>
@@ -567,11 +410,8 @@
           <div class="sum-card" id="totales">
             <div class="row"><div>Subtotal</div><div class="right" id="subtotal">0.00</div></div>
             <div class="row"><div>Descuento</div><div class="right editable" contenteditable id="descuento">0.00</div></div>
-            <div class="row"><div>Aportación</div><div class="right editable" contenteditable id="aportacion">0.00</div></div>
             <div class="row"><div>IVA (16%)</div><div class="right" id="iva">0.00</div></div>
-            <div class="row"><div>Anticipo</div><div class="right editable" contenteditable id="anticipo">0.00</div></div>
             <div class="row total"><div>Total</div><div class="right" id="total">$0.00</div></div>
-            <div class="row" style="background: #f0fdf4;"><div>Saldo Pendiente</div><div class="right" id="saldo" style="color: var(--success); font-weight: 700;">$0.00</div></div>
           </div>
         </div>
       </section>
@@ -609,14 +449,12 @@
 
       <div class="actions no-print">
         <div class="actions-left">
-          <button class="btn secondary" id="add-row">➕ Agregar</button>
+          <button class="btn secondary" id="add-row">➕ Agregar Producto</button>
           <button class="btn secondary" id="save-receipt">💾 Guardar</button>
           <button class="btn secondary" id="new-receipt">📄 Nuevo</button>
-          <button class="btn secondary" id="show-history">📚 Historial</button>
         </div>
         <div class="actions-right">
-          <button class="btn primary" onclick="shareWhatsApp()">📱 WhatsApp</button>
-          <button class="btn success" onclick="generatePDF()">📥 PDF</button>
+          <button class="btn success" onclick="generatePDF()">📥 Descargar PDF</button>
           <button class="btn" onclick="window.print()">🖨️ Imprimir</button>
         </div>
       </div>
@@ -624,11 +462,502 @@
       <footer>
         <span>© <span id="year"></span> CIAO CIAO MX</span><span class="sep">•</span>
         <span>Sistema Premium de Recibos</span><span class="sep">•</span>
-        <span>Joyería Fina</span>
+        <span>Hecho con 💛 para la alta joyería</span>
       </footer>
     </div>
   </div>
 
-  <script src="premium-receipt-system.js"></script>
+  <script>
+    // Utilidades
+    const $ = (sel, ctx = document) => ctx.querySelector(sel);
+    const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+
+    // Variables globales
+    let currentSignatureType = null;
+    let signatureCanvas = null;
+    let signatureCtx = null;
+    let isDrawing = false;
+    let signatures = {
+      client: null,
+      company: null
+    };
+
+    // Formateo de números
+    function parseMoney(v) {
+      if (!v) return 0;
+      return parseFloat(String(v).replace(/[^0-9.\-]/g, '')) || 0;
+    }
+
+    function formato(n) {
+      return new Intl.NumberFormat('es-MX', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+      }).format(n);
+    }
+
+    function formatoConSigno(n) {
+      return '$' + formato(n);
+    }
+
+    // Generación automática de número de recibo
+    function generateReceiptNumber() {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      // Obtener contador del día desde localStorage
+      const dateKey = `CCI-${year}${month}${day}`;
+      let dailyCounter = localStorage.getItem(dateKey) || '0';
+      dailyCounter = parseInt(dailyCounter) + 1;
+      
+      // Guardar nuevo contador
+      localStorage.setItem(dateKey, dailyCounter.toString());
+      
+      // Limpiar contadores antiguos (más de 30 días)
+      cleanOldCounters();
+      
+      const receiptNumber = `CCI-${year}-${month}${day}-${String(dailyCounter).padStart(3, '0')}`;
+      $('#receiptNumber').textContent = receiptNumber;
+      
+      return receiptNumber;
+    }
+
+    function cleanOldCounters() {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('CCI-')) {
+          const dateStr = key.split('-')[1];
+          const keyDate = new Date(
+            dateStr.substr(0, 4),
+            parseInt(dateStr.substr(4, 2)) - 1,
+            dateStr.substr(6, 2)
+          );
+          
+          if (keyDate < thirtyDaysAgo) {
+            localStorage.removeItem(key);
+          }
+        }
+      });
+    }
+
+    // Fechas
+    function formatDate(date) {
+      const months = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      ];
+      
+      return `${date.getDate()} de ${months[date.getMonth()]} de ${date.getFullYear()}`;
+    }
+
+    function initializeDates() {
+      const today = new Date();
+      const validDate = new Date(today);
+      validDate.setDate(validDate.getDate() + 30);
+      
+      $('#issueDate').textContent = formatDate(today);
+      $('#deliveryDate').textContent = formatDate(today);
+      $('#validUntil').textContent = formatDate(validDate);
+    }
+
+    // Cálculos
+    function recalc() {
+      let subtotal = 0;
+      
+      $$('#tabla-items tbody tr').forEach(tr => {
+        const qty = parseMoney($('.qty', tr)?.textContent);
+        const unit = parseMoney($('.price', tr)?.textContent);
+        const imp = (qty * unit) || 0;
+        $('.subtotal', tr).textContent = formato(imp);
+        subtotal += imp;
+      });
+      
+      $('#subtotal').textContent = formato(subtotal);
+      
+      const descuento = parseMoney($('#descuento')?.textContent);
+      const base = Math.max(subtotal - descuento, 0);
+      const iva = base * 0.16;
+      
+      $('#iva').textContent = formato(iva);
+      $('#total').textContent = formatoConSigno(base + iva);
+    }
+
+    // Gestión de filas
+    function addRow() {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="editable" contenteditable>Artículo de joyería</td>
+        <td class="center editable qty" contenteditable>1</td>
+        <td class="right editable price" contenteditable>0.00</td>
+        <td class="right subtotal">0.00</td>
+        <td class="center editable" contenteditable>—</td>
+        <td style="position:relative;">
+          <span class="delete-row" onclick="deleteRow(this)">×</span>
+        </td>
+      `;
+      $('#itemsBody').appendChild(tr);
+      
+      // Focus en el primer campo
+      tr.querySelector('.editable').focus();
+      
+      showNotification('Producto agregado', 'success');
+    }
+
+    function deleteRow(btn) {
+      const tr = btn.closest('tr');
+      const tbody = tr.parentElement;
+      
+      // No eliminar si es la última fila
+      if (tbody.children.length > 1) {
+        tr.remove();
+        recalc();
+        showNotification('Producto eliminado', 'success');
+      } else {
+        showNotification('Debe mantener al menos un producto', 'error');
+      }
+    }
+
+    // Sistema de firmas
+    function initSignatureCanvas() {
+      signatureCanvas = $('#signatureCanvas');
+      signatureCtx = signatureCanvas.getContext('2d');
+      
+      signatureCtx.strokeStyle = '#1f2937';
+      signatureCtx.lineWidth = 2;
+      signatureCtx.lineCap = 'round';
+      signatureCtx.lineJoin = 'round';
+      
+      // Mouse events
+      signatureCanvas.addEventListener('mousedown', startDrawing);
+      signatureCanvas.addEventListener('mousemove', draw);
+      signatureCanvas.addEventListener('mouseup', stopDrawing);
+      signatureCanvas.addEventListener('mouseout', stopDrawing);
+      
+      // Touch events
+      signatureCanvas.addEventListener('touchstart', handleTouch);
+      signatureCanvas.addEventListener('touchmove', handleTouch);
+      signatureCanvas.addEventListener('touchend', stopDrawing);
+    }
+
+    function startDrawing(e) {
+      isDrawing = true;
+      const rect = signatureCanvas.getBoundingClientRect();
+      signatureCtx.beginPath();
+      signatureCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      
+      const rect = signatureCanvas.getBoundingClientRect();
+      signatureCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      signatureCtx.stroke();
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+    }
+
+    function handleTouch(e) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                       e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      signatureCanvas.dispatchEvent(mouseEvent);
+    }
+
+    function openSignatureModal(type) {
+      currentSignatureType = type;
+      $('#signatureModal').classList.add('active');
+      $('#signatureTitle').textContent = type === 'client' ? 'Firma del Cliente' : 'Firma del Responsable';
+      
+      // Limpiar canvas
+      clearModalSignature();
+      
+      // Si ya hay firma, cargarla
+      if (signatures[type]) {
+        const img = new Image();
+        img.onload = function() {
+          signatureCtx.drawImage(img, 0, 0);
+        };
+        img.src = signatures[type];
+      }
+    }
+
+    function closeSignatureModal() {
+      $('#signatureModal').classList.remove('active');
+      currentSignatureType = null;
+    }
+
+    function clearModalSignature() {
+      if (signatureCtx) {
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      }
+    }
+
+    function saveSignature() {
+      if (signatureCanvas && currentSignatureType) {
+        // Verificar si hay algo dibujado
+        const imageData = signatureCtx.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
+        const pixels = imageData.data;
+        let hasContent = false;
+        
+        for (let i = 0; i < pixels.length; i += 4) {
+          if (pixels[i + 3] > 0) {
+            hasContent = true;
+            break;
+          }
+        }
+        
+        if (!hasContent) {
+          showNotification('Por favor dibuje una firma', 'error');
+          return;
+        }
+        
+        // Guardar firma
+        signatures[currentSignatureType] = signatureCanvas.toDataURL();
+        
+        // Mostrar en el recibo
+        const targetCanvas = currentSignatureType === 'client' ? $('#clientSigCanvas') : $('#companySigCanvas');
+        const targetCtx = targetCanvas.getContext('2d');
+        targetCanvas.style.display = 'block';
+        
+        // Copiar firma al canvas pequeño
+        targetCtx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+        targetCtx.drawImage(signatureCanvas, 0, 0, targetCanvas.width, targetCanvas.height);
+        
+        // Marcar como firmado
+        const sigDiv = currentSignatureType === 'client' ? $('#clientSignature') : $('#companySignature');
+        sigDiv.classList.add('signed');
+        
+        closeSignatureModal();
+        showNotification('Firma guardada correctamente', 'success');
+      }
+    }
+
+    function clearSignature(event, type) {
+      event.stopPropagation();
+      
+      signatures[type] = null;
+      
+      const canvas = type === 'client' ? $('#clientSigCanvas') : $('#companySigCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.style.display = 'none';
+      
+      const sigDiv = type === 'client' ? $('#clientSignature') : $('#companySignature');
+      sigDiv.classList.remove('signed');
+      
+      showNotification('Firma eliminada', 'success');
+    }
+
+    // Notificaciones
+    function showNotification(message, type = 'success') {
+      const notification = $('#notification');
+      const messageEl = $('#notification-message');
+      
+      notification.className = `notification ${type} show`;
+      messageEl.textContent = message;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+
+    // Guardar recibo
+    function saveReceipt() {
+      const receiptData = {
+        number: $('#receiptNumber').textContent,
+        date: new Date().toISOString(),
+        client: {
+          name: $('#clientName').textContent,
+          phone: $('#clientPhone').textContent,
+          email: $('#clientEmail').textContent,
+          address: $('#clientAddress').textContent
+        },
+        items: [],
+        totals: {
+          subtotal: $('#subtotal').textContent,
+          discount: $('#descuento').textContent,
+          iva: $('#iva').textContent,
+          total: $('#total').textContent
+        },
+        signatures: signatures,
+        observations: $('#observations').textContent,
+        policy: $('#policy').textContent
+      };
+      
+      // Guardar items
+      $$('#tabla-items tbody tr').forEach(tr => {
+        const cells = $$('td', tr);
+        receiptData.items.push({
+          description: cells[0].textContent,
+          qty: cells[1].textContent,
+          price: cells[2].textContent,
+          subtotal: cells[3].textContent,
+          sku: cells[4].textContent
+        });
+      });
+      
+      // Guardar en localStorage
+      const receipts = JSON.parse(localStorage.getItem('premium_receipts') || '[]');
+      
+      // Verificar si ya existe
+      const existingIndex = receipts.findIndex(r => r.number === receiptData.number);
+      if (existingIndex >= 0) {
+        receipts[existingIndex] = receiptData;
+      } else {
+        receipts.push(receiptData);
+      }
+      
+      localStorage.setItem('premium_receipts', JSON.stringify(receipts));
+      showNotification('Recibo guardado correctamente', 'success');
+    }
+
+    // Nuevo recibo
+    function newReceipt() {
+      if (confirm('¿Crear un nuevo recibo? Los cambios no guardados se perderán.')) {
+        // Limpiar formulario
+        $('#clientName').textContent = 'Nombre del Cliente';
+        $('#clientPhone').textContent = '+52 1 55 0000 0000';
+        $('#clientEmail').textContent = 'cliente@email.com';
+        $('#clientAddress').textContent = 'Dirección completa';
+        
+        // Limpiar tabla
+        $('#itemsBody').innerHTML = `
+          <tr>
+            <td class="editable" contenteditable>Artículo de joyería</td>
+            <td class="center editable qty" contenteditable>1</td>
+            <td class="right editable price" contenteditable>0.00</td>
+            <td class="right subtotal">0.00</td>
+            <td class="center editable" contenteditable>—</td>
+            <td style="position:relative;">
+              <span class="delete-row" onclick="deleteRow(this)">×</span>
+            </td>
+          </tr>
+        `;
+        
+        // Limpiar totales
+        $('#descuento').textContent = '0.00';
+        
+        // Limpiar firmas
+        signatures = { client: null, company: null };
+        clearSignature(new Event('click'), 'client');
+        clearSignature(new Event('click'), 'company');
+        
+        // Generar nuevo número
+        generateReceiptNumber();
+        initializeDates();
+        recalc();
+        
+        showNotification('Nuevo recibo creado', 'success');
+      }
+    }
+
+    // Generar PDF
+    async function generatePDF() {
+      try {
+        showNotification('Generando PDF...', 'success');
+        
+        // Ocultar elementos no deseados
+        $$('.delete-row, .clear-sig, .actions, .watermark').forEach(el => el.style.display = 'none');
+        
+        // Capturar el contenido
+        const element = $('.gilded-frame');
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          backgroundColor: '#ffffff'
+        });
+        
+        // Restaurar elementos
+        $$('.delete-row, .clear-sig, .actions').forEach(el => el.style.display = '');
+        $('.watermark').style.display = 'flex';
+        
+        // Crear PDF
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'letter'
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = 210;
+        const pageHeight = 295;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        
+        // Descargar
+        const fileName = `Recibo_${$('#receiptNumber').textContent}_${$('#clientName').textContent.replace(/\s+/g, '_')}.pdf`;
+        pdf.save(fileName);
+        
+        showNotification('PDF generado correctamente', 'success');
+      } catch (error) {
+        console.error('Error generando PDF:', error);
+        showNotification('Error al generar PDF', 'error');
+      }
+    }
+
+    // Event Listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar
+      generateReceiptNumber();
+      initializeDates();
+      initSignatureCanvas();
+      recalc();
+      
+      // Año actual
+      $('#year').textContent = new Date().getFullYear();
+      
+      // Botones
+      $('#add-row').addEventListener('click', addRow);
+      $('#save-receipt').addEventListener('click', saveReceipt);
+      $('#new-receipt').addEventListener('click', newReceipt);
+      
+      // Recalcular en cambios
+      document.addEventListener('input', (e) => {
+        if (e.target.matches('[contenteditable]')) {
+          recalc();
+        }
+      });
+      
+      // Prevenir saltos de línea en campos editables
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.matches('[contenteditable]')) {
+          e.preventDefault();
+          
+          // Mover al siguiente campo editable
+          const editables = $$('[contenteditable]');
+          const currentIndex = editables.indexOf(e.target);
+          if (currentIndex < editables.length - 1) {
+            editables[currentIndex + 1].focus();
+          }
+        }
+      });
+      
+      // Auto-guardar cada 30 segundos
+      setInterval(() => {
+        if ($('#receiptNumber').textContent !== '---') {
+          saveReceipt();
+        }
+      }, 30000);
+    });
+
+    // Cerrar modal con Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && $('#signatureModal').classList.contains('active')) {
+        closeSignatureModal();
+      }
+    });
+  </script>
 </body>
 </html>
