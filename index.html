@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIAO CIAO MX - Generador de Recibos Profesionales</title>
+    <link rel="stylesheet" href="receipt-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <h1 class="brand-name">CIAO CIAO MX</h1>
+                    <p class="brand-tagline">Joyería Fina</p>
+                </div>
+                <div class="header-title">
+                    <h2>Generador de Recibos Profesionales</h2>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="form-container">
+                <form id="receiptForm" class="receipt-form">
+                    <!-- Receipt Info Section -->
+                    <section class="form-section">
+                        <h3 class="section-title">Información del Recibo</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="receiptNumber">Número de Folio</label>
+                                <input type="text" id="receiptNumber" placeholder="Auto-generado" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="transactionType">Tipo de Transacción *</label>
+                                <select id="transactionType" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="venta">Venta</option>
+                                    <option value="apartado">Apartado</option>
+                                    <option value="reparacion">Reparación</option>
+                                    <option value="consignacion">Consignación</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="orderNumber">Número de Orden</label>
+                                <input type="text" id="orderNumber" placeholder="Ej: ORD-2025-001">
+                            </div>
+                            <div class="form-group">
+                                <label for="currency">Moneda</label>
+                                <select id="currency">
+                                    <option value="MXN">MXN - Peso Mexicano</option>
+                                    <option value="USD">USD - Dólar</option>
+                                    <option value="EUR">EUR - Euro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="paymentMethod">Método de Pago</label>
+                                <select id="paymentMethod">
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Tarjeta">Tarjeta</option>
+                                    <option value="Efectivo / Tarjeta">Efectivo / Tarjeta</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                </select>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Client Info Section -->
+                    <section class="form-section">
+                        <h3 class="section-title">Datos del Cliente</h3>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="clientName">Nombre Completo *</label>
+                                <input type="text" id="clientName" required placeholder="Ej: José Fernando Hernández">
+                            </div>
+                            <div class="form-group">
+                                <label for="clientPhone">Teléfono</label>
+                                <input type="tel" id="clientPhone" placeholder="Ej: 55 1234 5678">
+                            </div>
+                            <div class="form-group">
+                                <label for="clientEmail">Correo Electrónico</label>
+                                <input type="email" id="clientEmail" placeholder="correo@ejemplo.com">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="clientAddress">Dirección</label>
+                                <input type="text" id="clientAddress" placeholder="Dirección completa (opcional)">
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Jewelry Details Section -->
+                    <section class="form-section">
+                        <h3 class="section-title">Detalles de la Pieza</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="pieceType">Tipo de Pieza</label>
+                                <select id="pieceType">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="anillo">Anillo</option>
+                                    <option value="collar">Collar</option>
+                                    <option value="pulsera">Pulsera</option>
+                                    <option value="aretes">Aretes</option>
+                                    <option value="reloj">Reloj</option>
+                                    <option value="dije">Dije</option>
+                                    <option value="brazalete">Brazalete</option>
+                                    <option value="broche">Broche</option>
+                                    <option value="cadena">Cadena</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="material">Material</label>
+                                <select id="material">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="oro-10k">Oro 10k</option>
+                                    <option value="oro-14k">Oro 14k</option>
+                                    <option value="oro-18k">Oro 18k</option>
+                                    <option value="oro-24k">Oro 24k</option>
+                                    <option value="oro-blanco">Oro Blanco</option>
+                                    <option value="plata-925">Plata .925</option>
+                                    <option value="platino">Platino</option>
+                                    <option value="acero">Acero Inoxidable</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="weight">Peso (gramos)</label>
+                                <input type="number" id="weight" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="size">Talla / Tamaño</label>
+                                <input type="text" id="size" placeholder="Ej: 7, M, 18cm">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="stones">Piedras / Gemas</label>
+                                <input type="text" id="stones" placeholder="Ej: Diamante 0.5ct, Esmeraldas, Zafiros">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="pieceDescription">Descripción Detallada</label>
+                                <textarea id="pieceDescription" rows="3" placeholder="Descripción completa de la pieza..."></textarea>
+                            </div>
+                            <div class="form-group full-width" id="repairSection" style="display: none;">
+                                <label for="pieceCondition">Estado de la Pieza (para reparación)</label>
+                                <textarea id="pieceCondition" rows="2" placeholder="Describe el estado actual y el trabajo a realizar"></textarea>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Dates Section -->
+                    <section class="form-section">
+                        <h3 class="section-title">Fechas</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="issueDate">Fecha de Emisión *</label>
+                                <input type="date" id="issueDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="deliveryDate">Fecha de Entrega</label>
+                                <input type="date" id="deliveryDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="deliveryStatus">Estado de Entrega</label>
+                                <select id="deliveryStatus">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="entregado">Entregado</option>
+                                    <option value="pendiente">Pendiente de Entrega</option>
+                                    <option value="proceso">En Proceso</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="validUntil">Válido Hasta</label>
+                                <input type="date" id="validUntil">
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Products Section -->
+                    <section class="form-section">
+                        <h3 class="section-title">Productos / Servicios</h3>
+                        <div id="productsContainer">
+                            <div class="product-item" data-product-index="0">
+                                <div class="product-grid">
+                                    <div class="form-group">
+                                        <label>Descripción *</label>
+                                        <input type="text" class="product-description" placeholder="Ej: Pulsera de esmeralda & diamante" required>
+                                    </div>
+                                    <div class="form-group small">
+                                        <label>Cantidad *</label>
+                                        <input type="number" class="product-quantity" value="1" min="1" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Precio Unitario *</label>
+                                        <input type="number" class="product-price" step="0.01" min="0" placeholder="0.00" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>SKU / Código</label>
+                                        <input type="text" class="product-sku" placeholder="Opcional">
+                                    </div>
+                                    <button type="button" class="btn-remove-product" onclick="removeProduct(0)">×</button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-add-product" onclick="addProduct()">+ Agregar Producto</button>
+                    </section>
+
+                    <!-- Financial Information Section -->
+                    <section class="form-section totals-section">
+                        <h3 class="section-title">Información Financiera</h3>
+                        <div class="totals-grid">
+                            <div class="form-group">
+                                <label for="totalPrice">Precio Total</label>
+                                <input type="number" id="totalPrice" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="contributions">Aportaciones Previas</label>
+                                <input type="number" id="contributions" step="0.01" min="0" placeholder="0.00" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="deposit">Anticipo / Depósito</label>
+                                <input type="number" id="deposit" step="0.01" min="0" placeholder="0.00" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="discount">Descuento</label>
+                                <input type="number" id="discount" step="0.01" min="0" placeholder="0.00" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="taxRate">IVA (%)</label>
+                                <input type="number" id="taxRate" step="0.01" min="0" max="100" placeholder="16" value="16">
+                            </div>
+                        </div>
+                        <div class="totals-display">
+                            <div class="total-row">
+                                <span>Precio Total:</span>
+                                <span id="priceDisplay">$0.00</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Aportaciones:</span>
+                                <span id="contributionsDisplay">$0.00</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Subtotal:</span>
+                                <span id="subtotalDisplay">$0.00</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Anticipo:</span>
+                                <span id="depositDisplay">$0.00</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Descuento:</span>
+                                <span id="discountDisplay">$0.00</span>
+                            </div>
+                            <div class="total-row">
+                                <span>IVA:</span>
+                                <span id="taxDisplay">$0.00</span>
+                            </div>
+                            <div class="total-row total-final">
+                                <span>Total Final:</span>
+                                <span id="totalDisplay">$0.00</span>
+                            </div>
+                            <div class="total-row total-final" style="color: var(--error);">
+                                <span>Saldo Pendiente:</span>
+                                <span id="balanceDisplay">$0.00</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Observations Section -->
+                    <section class="form-section">
+                        <h3 class="section-title">Observaciones</h3>
+                        <div class="form-group full-width">
+                            <textarea id="observations" rows="4" placeholder="Observaciones adicionales (opcional)">Joyas inspeccionadas y entregadas en perfecto estado. Se recomienda evitar contacto con químicos. Servicio de ajuste/limpieza disponible. Este documento no es factura fiscal.</textarea>
+                        </div>
+                    </section>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                            Limpiar Formulario
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="generateReceipt()">
+                            Generar Recibo
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-container" id="previewContainer" style="display: none;">
+                <h3 class="section-title">Vista Previa del Recibo</h3>
+                <div class="preview-content">
+                    <img id="receiptPreview" src="" alt="Vista previa del recibo">
+                </div>
+                <div class="preview-actions">
+                    <button class="btn btn-download" onclick="downloadReceipt('png')">
+                        📥 Descargar PNG
+                    </button>
+                    <button class="btn btn-download" onclick="downloadReceipt('jpeg')">
+                        📥 Descargar JPEG
+                    </button>
+                    <button class="btn btn-share" onclick="shareWhatsApp()">
+                        📱 Compartir por WhatsApp
+                    </button>
+                    <button class="btn btn-new" onclick="newReceipt()">
+                        ➕ Nuevo Recibo
+                    </button>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="history-container" id="historyContainer">
+                <h3 class="section-title">Historial de Recibos</h3>
+                <div id="historyList" class="history-list">
+                    <!-- Receipt history will be loaded here -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>&copy; 2025 CIAO CIAO MX - Joyería Fina. Todos los derechos reservados.</p>
+            <p>Sistema de Generación de Recibos Profesionales v1.0</p>
+        </footer>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <p>Generando recibo...</p>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="notification"></div>
+
+    <script src="receipt-script.js"></script>
+</body>
+</html>
