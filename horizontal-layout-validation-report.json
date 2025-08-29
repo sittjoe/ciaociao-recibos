@@ -1,0 +1,24 @@
+{
+  "timestamp": "2025-08-27T18:20:26.647Z",
+  "results": {
+    "archivosRequeridos": true,
+    "orientacionHorizontal": true,
+    "layoutTresColumnas": true,
+    "seccionFinancieraExpandida": true,
+    "fuentesOptimizadas": true,
+    "prevencionCortes": true
+  },
+  "allPassed": true,
+  "details": {
+    "landscapeConfigurations": 3,
+    "portraitConfigurations": 0,
+    "hasThreeColumnLayout": true,
+    "hasExpandedFinancialSection": true,
+    "hasOptimizedFontSizes": true,
+    "preventsCutoffs": {
+      "hasNoWrapStyling": true,
+      "hasExpandedPadding": true,
+      "hasLargerFonts": true
+    }
+  }
+}

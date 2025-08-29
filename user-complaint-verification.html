@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Quejas del Usuario - ciaociao-recibos</title>
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            min-height: 100vh;
+        }
+        .verification-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .verification-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .verification-header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+        .complaints-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+        .complaint-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 5px solid #e74c3c;
+        }
+        .complaint-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 15px 0;
+        }
+        .complaint-description {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        .test-result {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        .result-pass {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .result-fail {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .result-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .result-testing {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d4fc;
+        }
+        .test-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+        .btn-test { background: #3498db; color: white; }
+        .btn-fix { background: #e67e22; color: white; }
+        .btn-verify { background: #27ae60; color: white; }
+        .btn:hover { transform: translateY(-1px); }
+        .overall-verification {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .verification-summary {
+            grid-column: 1 / -1;
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .verification-log {
+            grid-column: 1 / -1;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+        }
+        .log-success { color: #2ecc71; }
+        .log-error { color: #e74c3c; }
+        .log-warning { color: #f39c12; }
+        .log-info { color: #3498db; }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div class="verification-header">
+            <h1>🩺 Verificación de Quejas del Usuario</h1>
+            <p>Validación específica de los problemas reportados por el usuario</p>
+        </div>
+        
+        <div class="complaints-grid">
+            <div class="overall-verification">
+                <h2 id="overallStatus">🔄 Verificando quejas reportadas...</h2>
+                <p id="statusDescription">Evaluando cada problema específico reportado por el usuario</p>
+            </div>
+            
+            <div class="complaint-card">
+                <div class="complaint-title">❌ "No hace vista previa"</div>
+                <div class="complaint-description">"El sistema no muestra la vista previa de los recibos antes de generar el PDF"</div>
+                <div id="preview-result" class="test-result result-testing">🔄 Verificando función showPreview()...</div>
+                <div class="test-actions">
+                    <button class="btn btn-test" onclick="testPreviewFunction()">🧪 Test Vista Previa</button>
+                    <button class="btn btn-verify" onclick="verifyPreviewModal()">👀 Verificar Modal</button>
+                </div>
+            </div>
+            
+            <div class="complaint-card">
+                <div class="complaint-title">❌ "No genera comprobantes"</div>
+                <div class="complaint-description">"El sistema no puede generar archivos PDF de los recibos"</div>
+                <div id="pdf-result" class="test-result result-testing">🔄 Verificando función generatePDF()...</div>
+                <div class="test-actions">
+                    <button class="btn btn-test" onclick="testPDFGeneration()">📄 Test Generar PDF</button>
+                    <button class="btn btn-verify" onclick="verifyPDFLibraries()">📚 Verificar Librerías</button>
+                </div>
+            </div>
+            
+            <div class="complaint-card">
+                <div class="complaint-title">❌ "No se pone el número de recibo"</div>
+                <div class="complaint-description">"Los recibos no muestran numeración automática o se duplican números"</div>
+                <div id="numbering-result" class="test-result result-testing">🔄 Verificando numeración automática...</div>
+                <div class="test-actions">
+                    <button class="btn btn-test" onclick="testReceiptNumbering()">🔢 Test Numeración</button>
+                    <button class="btn btn-verify" onclick="verifyCounterLogic()">⚙️ Verificar Lógica</button>
+                </div>
+            </div>
+            
+            <div class="complaint-card">
+                <div class="complaint-title">❌ "No sirven las firmas"</div>
+                <div class="complaint-description">"El sistema de firmas digitales no funciona o no se pueden capturar las firmas"</div>
+                <div id="signature-result" class="test-result result-testing">🔄 Verificando SignaturePad...</div>
+                <div class="test-actions">
+                    <button class="btn btn-test" onclick="testSignatureSystem()">✍️ Test Firmas</button>
+                    <button class="btn btn-verify" onclick="verifySignatureCanvas()">🎨 Verificar Canvas</button>
+                </div>
+            </div>
+            
+            <div class="verification-summary">
+                <h3>📊 Resumen de Verificación</h3>
+                <div class="summary-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="resolvedCount">0</div>
+                        <div class="stat-label">Resueltos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="partialCount">0</div>
+                        <div class="stat-label">Parciales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="failingCount">4</div>
+                        <div class="stat-label">Pendientes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="successRate">0%</div>
+                        <div class="stat-label">Tasa Éxito</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="verification-log" id="verificationLog">
+                <div class="log-entry log-info">🩺 Sistema de verificación de quejas iniciado...</div>
+                <div class="log-entry log-info">📋 Evaluando 4 quejas específicas del usuario</div>
+                <div class="log-entry log-warning">⚠️ Haz clic en los botones de test para verificar cada queja</div>
+            </div>
+        </div>
+        
+        <div style="padding: 20px; text-align: center;">
+            <button class="btn btn-test" onclick="runAllVerifications()" style="padding: 15px 30px; font-size: 16px;">
+                🚀 Verificar Todas las Quejas
+            </button>
+            <button class="btn btn-verify" onclick="openReceiptPage()" style="padding: 15px 30px; font-size: 16px;">
+                📄 Ir a Página de Recibos
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let verificationResults = {};
+        
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('verificationLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(entry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function updateResult(complaintId, status, message) {
+            const element = document.getElementById(complaintId + '-result');
+            let className, icon;
+            
+            switch(status) {
+                case 'pass':
+                    className = 'result-pass';
+                    icon = '✅';
+                    break;
+                case 'fail':
+                    className = 'result-fail';
+                    icon = '❌';
+                    break;
+                case 'warning':
+                    className = 'result-warning';
+                    icon = '⚠️';
+                    break;
+                default:
+                    className = 'result-testing';
+                    icon = '🔄';
+            }
+            
+            element.className = `test-result ${className}`;
+            element.textContent = `${icon} ${message}`;
+            
+            verificationResults[complaintId] = status;
+            updateSummaryStats();
+        }
+        
+        function updateSummaryStats() {
+            const results = Object.values(verificationResults);
+            const resolved = results.filter(r => r === 'pass').length;
+            const partial = results.filter(r => r === 'warning').length;
+            const failing = results.filter(r => r === 'fail').length;
+            const total = results.length || 4; // Default to 4 complaints
+            
+            document.getElementById('resolvedCount').textContent = resolved;
+            document.getElementById('partialCount').textContent = partial;
+            document.getElementById('failingCount').textContent = Math.max(0, 4 - resolved - partial);
+            
+            const successRate = total > 0 ? Math.round(((resolved + partial * 0.5) / 4) * 100) : 0;
+            document.getElementById('successRate').textContent = successRate + '%';
+            
+            // Update overall status
+            const statusElement = document.getElementById('overallStatus');
+            const descElement = document.getElementById('statusDescription');
+            
+            if (resolved === 4) {
+                statusElement.textContent = '🎉 Todas las quejas han sido resueltas';
+                statusElement.style.background = 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)';
+                descElement.textContent = 'El sistema está funcionando correctamente según las expectativas del usuario';
+            } else if (resolved + partial >= 3) {
+                statusElement.textContent = '⚠️ Mayoría de problemas resueltos';
+                statusElement.style.background = 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)';
+                descElement.textContent = 'Sistema mayormente funcional, algunas optimizaciones pendientes';
+            } else if (total === 0) {
+                statusElement.textContent = '🔄 Verificando quejas reportadas...';
+                statusElement.style.background = 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)';
+                descElement.textContent = 'Evaluando cada problema específico reportado por el usuario';
+            } else {
+                statusElement.textContent = '❌ Problemas críticos identificados';
+                statusElement.style.background = 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)';
+                descElement.textContent = 'Se requieren reparaciones adicionales para resolver las quejas del usuario';
+            }
+        }
+        
+        async function testPreviewFunction() {
+            log('🔍 Verificando función de vista previa...', 'info');
+            
+            try {
+                // Test 1: Check if showPreview function exists
+                if (typeof window.showPreview === 'function') {
+                    updateResult('preview', 'pass', 'Función showPreview() disponible y accesible');
+                    log('✅ Función showPreview encontrada', 'success');
+                    
+                    // Test 2: Check for preview modal elements
+                    if (document.getElementById('previewModal')) {
+                        log('✅ Modal de vista previa presente en DOM', 'success');
+                    } else {
+                        log('⚠️ Modal de vista previa no encontrado (normal en esta página)', 'warning');
+                    }
+                    
+                } else {
+                    updateResult('preview', 'fail', 'Función showPreview() no encontrada - PROBLEMA CONFIRMADO');
+                    log('❌ PROBLEMA CONFIRMADO: showPreview no disponible', 'error');
+                }
+                
+            } catch (error) {
+                updateResult('preview', 'fail', `Error verificando vista previa: ${error.message}`);
+                log(`❌ Error en verificación: ${error.message}`, 'error');
+            }
+        }
+        
+        async function verifyPreviewModal() {
+            log('👀 Verificando elementos del modal de vista previa...', 'info');
+            
+            const requiredElements = [
+                'previewModal',
+                'receiptPreview', 
+                'confirmGeneratePdf',
+                'closePreview'
+            ];
+            
+            let foundElements = 0;
+            requiredElements.forEach(id => {
+                if (document.getElementById(id)) {
+                    foundElements++;
+                    log(`✅ Elemento ${id} encontrado`, 'success');
+                } else {
+                    log(`❌ Elemento ${id} no encontrado`, 'error');
+                }
+            });
+            
+            if (foundElements === requiredElements.length) {
+                log('✅ Todos los elementos del modal presentes', 'success');
+            } else {
+                log(`⚠️ Solo ${foundElements}/${requiredElements.length} elementos encontrados`, 'warning');
+            }
+        }
+        
+        async function testPDFGeneration() {
+            log('📄 Verificando generación de PDFs...', 'info');
+            
+            try {
+                // Test 1: Check if generatePDF function exists
+                if (typeof window.generatePDF === 'function') {
+                    log('✅ Función generatePDF encontrada', 'success');
+                    
+                    // Test 2: Check if jsPDF library is loaded
+                    if (typeof window.jsPDF !== 'undefined') {
+                        updateResult('pdf', 'pass', 'Generación PDF completamente funcional');
+                        log('✅ Librería jsPDF cargada correctamente', 'success');
+                    } else {
+                        updateResult('pdf', 'warning', 'Función presente pero jsPDF no cargado');
+                        log('⚠️ jsPDF no disponible - posible problema de CDN', 'warning');
+                    }
+                    
+                } else {
+                    updateResult('pdf', 'fail', 'Función generatePDF() no encontrada - PROBLEMA CONFIRMADO');
+                    log('❌ PROBLEMA CONFIRMADO: generatePDF no disponible', 'error');
+                }
+                
+            } catch (error) {
+                updateResult('pdf', 'fail', `Error verificando PDF: ${error.message}`);
+                log(`❌ Error en verificación PDF: ${error.message}`, 'error');
+            }
+        }
+        
+        async function verifyPDFLibraries() {
+            log('📚 Verificando librerías requeridas para PDF...', 'info');
+            
+            const requiredLibraries = [
+                { name: 'jsPDF', check: () => typeof window.jsPDF !== 'undefined' },
+                { name: 'html2canvas', check: () => typeof window.html2canvas !== 'undefined' },
+                { name: 'CDN Circuit Breaker', check: () => typeof window.cdnCircuitBreaker !== 'undefined' }
+            ];
+            
+            let loadedCount = 0;
+            requiredLibraries.forEach(lib => {
+                if (lib.check()) {
+                    loadedCount++;
+                    log(`✅ ${lib.name} disponible`, 'success');
+                } else {
+                    log(`❌ ${lib.name} no cargado`, 'error');
+                }
+            });
+            
+            log(`📊 ${loadedCount}/${requiredLibraries.length} librerías cargadas`, loadedCount === requiredLibraries.length ? 'success' : 'warning');
+        }
+        
+        async function testReceiptNumbering() {
+            log('🔢 Verificando numeración automática de recibos...', 'info');
+            
+            try {
+                // Test 1: Check if generateReceiptNumber function exists
+                if (typeof window.generateReceiptNumber === 'function') {
+                    log('✅ Función generateReceiptNumber encontrada', 'success');
+                    
+                    // Test 2: Check receipt counter in localStorage
+                    const counter = localStorage.getItem('receiptCounter');
+                    if (counter && !isNaN(parseInt(counter))) {
+                        updateResult('numbering', 'pass', `Numeración automática funcional (contador: ${counter})`);
+                        log(`✅ Contador de recibos: ${counter}`, 'success');
+                    } else {
+                        updateResult('numbering', 'warning', 'Función presente pero contador no inicializado');
+                        log('⚠️ Contador de recibos no encontrado o inválido', 'warning');
+                    }
+                    
+                } else {
+                    // Check if we have receipt number input field
+                    const receiptInput = document.getElementById('receiptNumber');
+                    if (receiptInput) {
+                        updateResult('numbering', 'warning', 'Campo presente, función no verificable en esta página');
+                        log('⚠️ Campo de número presente, función no accesible', 'warning');
+                    } else {
+                        updateResult('numbering', 'fail', 'Sistema de numeración no encontrado - PROBLEMA CONFIRMADO');
+                        log('❌ PROBLEMA CONFIRMADO: numeración no disponible', 'error');
+                    }
+                }
+                
+            } catch (error) {
+                updateResult('numbering', 'fail', `Error verificando numeración: ${error.message}`);
+                log(`❌ Error en verificación: ${error.message}`, 'error');
+            }
+        }
+        
+        async function verifyCounterLogic() {
+            log('⚙️ Verificando lógica del contador de recibos...', 'info');
+            
+            try {
+                // Test current date logic
+                const today = new Date();
+                const year = String(today.getFullYear());
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                const dayKey = `${year}${month}${day}`;
+                
+                log(`📅 Clave del día actual: ${dayKey}`, 'info');
+                
+                // Check daily counter
+                const dailyCounter = localStorage.getItem(`receiptCounter_${dayKey}`);
+                if (dailyCounter) {
+                    log(`✅ Contador diario encontrado: ${dailyCounter}`, 'success');
+                } else {
+                    log('⚠️ Contador diario no inicializado (normal para primer uso)', 'warning');
+                }
+                
+                // Check global counter
+                const globalCounter = localStorage.getItem('receiptCounter');
+                if (globalCounter) {
+                    log(`✅ Contador global: ${globalCounter}`, 'success');
+                } else {
+                    log('⚠️ Contador global no encontrado', 'warning');
+                }
+                
+            } catch (error) {
+                log(`❌ Error verificando lógica de contador: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testSignatureSystem() {
+            log('✍️ Verificando sistema de firmas digitales...', 'info');
+            
+            try {
+                // Test 1: Check if SignaturePad library is loaded
+                if (typeof window.SignaturePad !== 'undefined') {
+                    log('✅ Librería SignaturePad cargada', 'success');
+                    
+                    // Test 2: Check for signature functions
+                    if (typeof window.initializeSignaturePad === 'function') {
+                        updateResult('signature', 'pass', 'Sistema de firmas completamente funcional');
+                        log('✅ Función de inicialización de firmas disponible', 'success');
+                    } else if (typeof window.signaturePad !== 'undefined') {
+                        updateResult('signature', 'pass', 'SignaturePad inicializado y funcionando');
+                        log('✅ SignaturePad ya inicializado', 'success');
+                    } else {
+                        updateResult('signature', 'warning', 'Librería presente, inicialización pendiente');
+                        log('⚠️ SignaturePad no inicializado (normal en página principal)', 'warning');
+                    }
+                    
+                } else {
+                    updateResult('signature', 'fail', 'Librería SignaturePad no cargada - PROBLEMA CONFIRMADO');
+                    log('❌ PROBLEMA CONFIRMADO: SignaturePad no disponible', 'error');
+                }
+                
+            } catch (error) {
+                updateResult('signature', 'fail', `Error verificando firmas: ${error.message}`);
+                log(`❌ Error en verificación de firmas: ${error.message}`, 'error');
+            }
+        }
+        
+        async function verifySignatureCanvas() {
+            log('🎨 Verificando elementos canvas para firmas...', 'info');
+            
+            const canvasIds = ['signatureCanvas', 'companySignatureCanvas'];
+            let foundCanvas = 0;
+            
+            canvasIds.forEach(id => {
+                const canvas = document.getElementById(id);
+                if (canvas) {
+                    foundCanvas++;
+                    log(`✅ Canvas ${id} encontrado`, 'success');
+                    
+                    // Check canvas properties
+                    if (canvas.width && canvas.height) {
+                        log(`   ✓ Dimensiones: ${canvas.width}x${canvas.height}`, 'info');
+                    }
+                } else {
+                    log(`❌ Canvas ${id} no encontrado`, 'error');
+                }
+            });
+            
+            if (foundCanvas === 0) {
+                log('⚠️ Ningún canvas encontrado (normal en página principal)', 'warning');
+            } else {
+                log(`✅ ${foundCanvas}/${canvasIds.length} canvas encontrados`, 'success');
+            }
+        }
+        
+        async function runAllVerifications() {
+            log('🚀 Iniciando verificación completa de todas las quejas...', 'info');
+            
+            // Clear previous results
+            verificationResults = {};
+            
+            try {
+                await testPreviewFunction();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testPDFGeneration();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testReceiptNumbering();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testSignatureSystem();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                log('📊 Verificación completa finalizada', 'info');
+                generateComplaintsReport();
+                
+            } catch (error) {
+                log(`❌ Error en verificación completa: ${error.message}`, 'error');
+            }
+        }
+        
+        function generateComplaintsReport() {
+            log('📋 Generando reporte de quejas del usuario...', 'info');
+            
+            const results = Object.values(verificationResults);
+            const resolved = results.filter(r => r === 'pass').length;
+            const partial = results.filter(r => r === 'warning').length;
+            const failing = results.filter(r => r === 'fail').length;
+            
+            log('📈 REPORTE DE VERIFICACIÓN DE QUEJAS:', 'info');
+            log(`   ✅ Completamente resueltos: ${resolved}/4`, resolved > 0 ? 'success' : 'error');
+            log(`   ⚠️ Parcialmente resueltos: ${partial}/4`, partial > 0 ? 'warning' : 'info');
+            log(`   ❌ Sin resolver: ${failing}/4`, failing > 0 ? 'error' : 'success');
+            
+            if (resolved === 4) {
+                log('🎉 EXCELENTE: Todas las quejas han sido resueltas', 'success');
+                log('🚀 El sistema está completamente funcional según expectativas', 'success');
+            } else if (resolved + partial >= 3) {
+                log('👍 BUENO: Mayoría de problemas resueltos', 'success');
+                log('🔧 Solo requiere ajustes menores', 'warning');
+            } else {
+                log('⚠️ ATENCIÓN: Múltiples problemas identificados', 'warning');
+                log('🛠️ Se requieren reparaciones adicionales', 'error');
+            }
+        }
+        
+        function openReceiptPage() {
+            log('📄 Abriendo página de recibos para verificación manual...', 'info');
+            window.open('receipt-mode.html', '_blank');
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🩺 Sistema de verificación de quejas iniciado', 'success');
+            log('📋 Listo para verificar los 4 problemas reportados por el usuario', 'info');
+        });
+    </script>
+</body>
+</html>

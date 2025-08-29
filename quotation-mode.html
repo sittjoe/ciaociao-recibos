@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Cotizaciones - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container quotation-mode">
+        <header class="main-header">
+            <button onclick="window.location.href='index.html'" class="btn-back">← Volver al Inicio</button>
+            <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" class="logo">
+            <h1>Generador de Cotizaciones</h1>
+        </header>
+
+        <div class="form-container">
+            <form id="quotationForm">
+                <!-- Información de la Cotización -->
+                <section class="form-section">
+                    <h2>Información de la Cotización</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quotationNumber">Número de Cotización</label>
+                            <input type="text" id="quotationNumber" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="quotationDate">Fecha</label>
+                            <input type="date" id="quotationDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="validity">Validez (días)</label>
+                            <input type="number" id="validity" min="1" max="365" value="30" required placeholder="Ej: 30">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Datos del Cliente -->
+                <section class="form-section">
+                    <h2>Datos del Cliente</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clientName">Nombre Completo *</label>
+                            <input type="text" id="clientName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientPhone">Teléfono *</label>
+                            <input type="tel" id="clientPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientEmail">Email</label>
+                            <input type="email" id="clientEmail">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Lista de Productos -->
+                <section class="form-section">
+                    <h2>Productos</h2>
+                    <div class="products-header">
+                        <button type="button" id="addProductBtn" class="btn-add-product">➕ Agregar Producto</button>
+                    </div>
+                    
+                    <div id="productsList" class="products-list">
+                        <!-- Los productos se agregarán dinámicamente aquí -->
+                    </div>
+
+                    <!-- Resumen Financiero -->
+                    <div class="quotation-summary">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="quotationSubtotal">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Tipo de Descuento:</span>
+                            <div class="discount-type-selector">
+                                <label>
+                                    <input type="radio" name="discountType" value="percentage" checked>
+                                    <span>Porcentaje (%)</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="discountType" value="amount">
+                                    <span>Monto ($)</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="summary-row">
+                            <span>Descuento Global:</span>
+                            <div class="discount-input">
+                                <input type="number" id="globalDiscount" min="0" value="0" step="0.01">
+                                <span id="discountSymbol">%</span>
+                            </div>
+                        </div>
+                        <div class="summary-row">
+                            <span>Descuento:</span>
+                            <span id="discountAmount">-$0.00</span>
+                        </div>
+                        <div class="summary-row credit-section">
+                            <span>Crédito del Cliente:</span>
+                            <div class="credit-input">
+                                <select id="creditType" class="credit-type-selector">
+                                    <option value="none">Sin crédito</option>
+                                    <option value="favor">Crédito a favor</option>
+                                    <option value="debe">Cliente debe</option>
+                                </select>
+                                <input type="number" id="creditAmount" min="0" value="0" step="0.01" class="credit-amount-input" disabled>
+                                <span class="credit-currency">$</span>
+                            </div>
+                        </div>
+                        <div class="summary-row credit-display" id="creditDisplay" style="display: none;">
+                            <span id="creditLabel">Crédito a favor:</span>
+                            <span id="creditAmountDisplay">+$0.00</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>TOTAL:</span>
+                            <span id="quotationTotal">$0.00</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Términos y Condiciones -->
+                <section class="form-section">
+                    <h2>Términos y Condiciones</h2>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <textarea id="terms" rows="5" placeholder="Ingrese términos y condiciones...">
+• Los precios están sujetos a cambios sin previo aviso después de la fecha de vencimiento
+• Esta cotización no garantiza la disponibilidad del producto
+• Los tiempos de entrega están sujetos a disponibilidad de materiales
+• Se requiere un anticipo del 30% para confirmar el pedido
+• Puede apartar su producto con el 30% de anticipo
+• Garantía de por vida en mano de obra</textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Observaciones -->
+                <section class="form-section">
+                    <h2>Observaciones</h2>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <textarea id="quotationObservations" rows="3" placeholder="Notas adicionales..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Firma de la Empresa -->
+                <section class="form-section">
+                    <h2>Firma de CIAOCIAO.MX</h2>
+                    <div class="signature-container">
+                        <canvas id="companySignatureCanvas"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" id="clearCompanySignature" class="btn-secondary">Limpiar Firma</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Botones de Acción -->
+                <div class="action-buttons">
+                    <button type="button" id="previewQuotationBtn" class="btn-primary">Vista Previa</button>
+                    <button type="button" id="generateQuotationPdfBtn" class="btn-success">Generar PDF</button>
+                    <button type="button" id="shareQuotationWhatsappBtn" class="btn-whatsapp">Compartir por WhatsApp</button>
+                    <button type="button" id="quotationHistoryBtn" class="btn-info">📚 Historial</button>
+                    <button type="button" id="convertToReceiptBtn" class="btn-convert">🔄 Convertir a Recibo</button>
+                    <button type="button" id="resetQuotationBtn" class="btn-secondary">Limpiar Formulario</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal de Vista Previa de Cotización -->
+        <div id="quotationPreviewModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <div id="quotationPreview" class="quotation-preview"></div>
+                <div class="modal-actions">
+                    <button id="confirmGenerateQuotationPdf" class="btn-success">Confirmar y Generar PDF</button>
+                    <button id="closeQuotationPreview" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Historial de Cotizaciones -->
+        <div id="quotationHistoryModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📚 Historial de Cotizaciones</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="history-controls">
+                    <input type="text" id="quotationHistorySearch" placeholder="🔍 Buscar por cliente, número...">
+                    <select id="quotationStatusFilter">
+                        <option value="">Todos los estados</option>
+                        <option value="pending">Pendientes</option>
+                        <option value="accepted">Aceptadas</option>
+                        <option value="rejected">Rechazadas</option>
+                        <option value="expired">Vencidas</option>
+                    </select>
+                    <button id="exportQuotationsBtn" class="btn-secondary">📊 Exportar</button>
+                </div>
+                <div id="quotationHistoryList" class="history-list">
+                    <!-- Lista de cotizaciones aparecerá aquí -->
+                </div>
+                <div class="modal-actions">
+                    <button id="closeQuotationHistory" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Agregar Producto -->
+        <div id="addProductModal" class="modal">
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h3 id="productModalTitle">➕ Agregar Producto</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="product-form">
+                    <div class="form-group">
+                        <label for="productType">Tipo de Pieza *</label>
+                        <select id="productType" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="anillo">Anillo</option>
+                            <option value="collar">Collar</option>
+                            <option value="pulsera">Pulsera</option>
+                            <option value="aretes">Aretes</option>
+                            <option value="reloj">Reloj</option>
+                            <option value="dije">Dije</option>
+                            <option value="brazalete">Brazalete</option>
+                            <option value="broche">Broche</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productMaterial">Material *</label>
+                        <select id="productMaterial" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="oro-10k">Oro 10k</option>
+                            <option value="oro-14k">Oro 14k</option>
+                            <option value="oro-18k">Oro 18k</option>
+                            <option value="oro-24k">Oro 24k</option>
+                            <option value="plata-925">Plata .925</option>
+                            <option value="platino">Platino</option>
+                            <option value="oro-blanco">Oro Blanco</option>
+                            <option value="acero">Acero Inoxidable</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">Descripción *</label>
+                        <textarea id="productDescription" rows="2" placeholder="Ej: con diamante de 0.5ct
+Piedra central: esmeralda 1.2ct" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="productSKU">SKU/Código</label>
+                        <input type="text" id="productSKU" placeholder="Código del producto">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productQuantity">Cantidad *</label>
+                            <input type="number" id="productQuantity" min="1" value="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productPrice">Precio Unitario *</label>
+                            <input type="number" id="productPrice" min="0" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="productDiscount">Descuento del Producto:</label>
+                        <div class="discount-type-selector">
+                            <label>
+                                <input type="radio" name="productDiscountType" value="percentage" checked>
+                                <span>Porcentaje (%)</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="productDiscountType" value="amount">
+                                <span>Monto ($)</span>
+                            </label>
+                        </div>
+                        <div class="discount-input">
+                            <input type="number" id="productDiscount" min="0" value="0" step="0.01">
+                            <span id="productDiscountSymbol">%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="saveProductBtn" class="btn-success">Guardar Producto</button>
+                    <button id="cancelProductBtn" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - SISTEMA CORREGIDO CON AUTENTICACIÓN -->
+    
+    <!-- DOMPurify XSS Protection with CDN Fallbacks -->
+    <script>
+        // Load DOMPurify with multiple CDN fallbacks
+        const domPurifyUrls = [
+            'https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js',
+            'https://unpkg.com/dompurify@3.0.5/dist/purify.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js'
+        ];
+        
+        let domPurifyLoaded = false;
+        
+        function loadDOMPurifyScript(index = 0) {
+            if (index >= domPurifyUrls.length) {
+                console.warn('⚠️ All DOMPurify CDNs failed, XSS protection will use fallback methods');
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = domPurifyUrls[index];
+            script.async = true;
+            
+            script.onload = function() {
+                domPurifyLoaded = true;
+                console.log(`✅ DOMPurify loaded from: ${domPurifyUrls[index]}`);
+            };
+            
+            script.onerror = function() {
+                console.warn(`❌ Failed to load DOMPurify from: ${domPurifyUrls[index]}`);
+                loadDOMPurifyScript(index + 1);
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        loadDOMPurifyScript();
+    </script>
+    
+    <!-- XSS Protection System -->
+    <!-- <script src="xss-protection.js"></script> TEMPORALMENTE DESHABILITADO - BLOQUEA PASSWORD INPUT -->
+    
+    <!-- CDN Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Sistema Base -->
+    <script src="security-manager.js"></script>
+    <script src="auth.js"></script>
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    
+    <!-- Auto-Complete System -->
+    <script src="autocomplete-engine.js"></script>
+    <script src="smart-dropdown.js"></script>
+    <script src="autocomplete-integration.js"></script>
+    
+    <!-- Sistema de Cotizaciones -->
+    <script src="quotations-system.js"></script>
+</body>
+</html>

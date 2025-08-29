@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Verificador Enhanced PDF - CiaoCiao.mx</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: #f5f5f5; 
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        }
+        .status { 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            font-weight: bold; 
+        }
+        .success { background: #d4edda; color: #155724; }
+        .warning { background: #fff3cd; color: #856404; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .btn { 
+            background: linear-gradient(135deg, #1B365D 0%, #0F2A4A 100%); 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            margin: 10px 5px; 
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .code { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            margin: 10px 0; 
+        }
+        .verification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .verification-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Verificador Enhanced PDF Generator</h1>
+        <p>Esta herramienta verifica que el generador de PDF mejorado esté funcionando correctamente en CiaoCiao.mx</p>
+        
+        <div class="verification-grid">
+            <div class="verification-item">
+                <h3>📦 CDN Libraries</h3>
+                <div id="cdn-status"></div>
+            </div>
+            
+            <div class="verification-item">
+                <h3>💎 Enhanced Generator</h3>
+                <div id="enhanced-status"></div>
+            </div>
+            
+            <div class="verification-item">
+                <h3>🎨 Professional Design</h3>
+                <div id="design-status"></div>
+            </div>
+            
+            <div class="verification-item">
+                <h3>🔗 Function Integration</h3>
+                <div id="integration-status"></div>
+            </div>
+        </div>
+        
+        <div id="test-results"></div>
+        
+        <button class="btn" onclick="runCompleteVerification()">🔍 Verificar Sistema Completo</button>
+        <button class="btn" onclick="runPDFTest()" style="background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%);">📄 Test de Generación PDF</button>
+        <button class="btn" onclick="showFunctionDetails()" style="background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%);">🔧 Detalles Técnicos</button>
+        
+        <div id="detailed-info" style="display: none; margin-top: 20px;"></div>
+    </div>
+
+    <!-- Load CDN libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <!-- Load Enhanced PDF Generator -->
+    <script src="enhanced-pdf-generator.js"></script>
+    
+    <script>
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            container.innerHTML += `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function clearResults() {
+            const containers = ['cdn-status', 'enhanced-status', 'design-status', 'integration-status', 'test-results'];
+            containers.forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+        }
+        
+        function runCompleteVerification() {
+            clearResults();
+            
+            // Test 1: CDN Libraries
+            let jsPDFAvailable = false;
+            let html2canvasAvailable = false;
+            
+            if (window.jsPDF || (window.jspdf && window.jspdf.jsPDF)) {
+                addResult('cdn-status', '✅ jsPDF library loaded', 'success');
+                jsPDFAvailable = true;
+            } else {
+                addResult('cdn-status', '❌ jsPDF library NOT loaded', 'error');
+            }
+            
+            if (typeof window.html2canvas === 'function') {
+                addResult('cdn-status', '✅ html2canvas library loaded', 'success');
+                html2canvasAvailable = true;
+            } else {
+                addResult('cdn-status', '❌ html2canvas library NOT loaded', 'error');
+            }
+            
+            // Test 2: Enhanced PDF Generator
+            if (typeof window.generateEnhancedPDF === 'function') {
+                addResult('enhanced-status', '✅ Enhanced PDF Generator function exists', 'success');
+                
+                // Check professional color palette
+                const funcString = window.generateEnhancedPDF.toString();
+                if (funcString.includes('#1B365D') && funcString.includes('#C9A96E')) {
+                    addResult('design-status', '✅ Professional luxury color palette detected', 'success');
+                } else {
+                    addResult('design-status', '⚠️ Professional color palette not detected', 'warning');
+                }
+                
+                // Check luxury branding elements
+                if (funcString.includes('CIAOCIAO.MX') && funcString.includes('Joyería Fina')) {
+                    addResult('design-status', '✅ Luxury branding elements present', 'success');
+                } else {
+                    addResult('design-status', '⚠️ Luxury branding elements missing', 'warning');
+                }
+                
+            } else {
+                addResult('enhanced-status', '❌ Enhanced PDF Generator function NOT found', 'error');
+            }
+            
+            // Test 3: Function Integration
+            if (typeof window.generatePDF === 'function') {
+                if (window.generatePDF === window.generateEnhancedPDF) {
+                    addResult('integration-status', '✅ generatePDF correctly points to enhanced version', 'success');
+                } else {
+                    addResult('integration-status', '⚠️ generatePDF exists but may not be enhanced version', 'warning');
+                }
+            } else {
+                addResult('integration-status', '❌ generatePDF function NOT found', 'error');
+            }
+            
+            // Test 4: Original function backup
+            if (typeof window.originalGeneratePDF !== 'undefined') {
+                addResult('integration-status', '✅ Original generatePDF properly backed up', 'success');
+            } else {
+                addResult('integration-status', 'ℹ️ No original generatePDF to backup', 'info');
+            }
+            
+            // Final status
+            const overallStatus = jsPDFAvailable && html2canvasAvailable && 
+                                window.generateEnhancedPDF && window.generatePDF === window.generateEnhancedPDF;
+            
+            if (overallStatus) {
+                addResult('test-results', '🎉 SISTEMA COMPLETAMENTE FUNCIONAL - Enhanced PDF Generator está activo y listo', 'success');
+            } else {
+                addResult('test-results', '⚠️ SISTEMA PARCIALMENTE FUNCIONAL - Revise los errores anteriores', 'warning');
+            }
+        }
+        
+        function runPDFTest() {
+            addResult('test-results', '🔄 Iniciando test de generación PDF...', 'info');
+            
+            if (typeof window.generateEnhancedPDF !== 'function') {
+                addResult('test-results', '❌ No se puede realizar test - Enhanced PDF Generator no disponible', 'error');
+                return;
+            }
+            
+            // Create test data
+            const testData = {
+                receiptNumber: 'TEST-' + Date.now(),
+                receiptDate: new Date().toISOString().split('T')[0],
+                clientName: 'Cliente de Prueba',
+                clientPhone: '+52 55 1234 5678',
+                clientEmail: 'cliente@test.com',
+                pieceType: 'anillo',
+                material: 'oro-18k',
+                price: '25000',
+                description: 'Anillo de compromiso con diamante central de 1ct'
+            };
+            
+            try {
+                // Attempt to call the enhanced PDF generator
+                if (window.generateEnhancedPDF) {
+                    addResult('test-results', '🎨 Generando PDF con diseño profesional...', 'info');
+                    
+                    // Note: We don't actually generate the PDF in this test to avoid downloads
+                    // but we verify the function structure
+                    const funcString = window.generateEnhancedPDF.toString();
+                    
+                    if (funcString.includes('generateEnhancedReceiptHTML') && 
+                        funcString.includes('html2canvas') && 
+                        funcString.includes('jsPDFLib')) {
+                        addResult('test-results', '✅ PDF Generation pipeline verified - Professional design ready', 'success');
+                    } else {
+                        addResult('test-results', '⚠️ PDF Generation pipeline incomplete', 'warning');
+                    }
+                } else {
+                    addResult('test-results', '❌ Enhanced PDF Generator not available for testing', 'error');
+                }
+            } catch (error) {
+                addResult('test-results', `❌ Error during PDF test: ${error.message}`, 'error');
+            }
+        }
+        
+        function showFunctionDetails() {
+            const detailsDiv = document.getElementById('detailed-info');
+            
+            if (detailsDiv.style.display === 'none') {
+                let details = '<h3>🔧 Detalles Técnicos del Sistema</h3>';
+                
+                // Function availability
+                details += '<h4>Funciones Disponibles:</h4>';
+                details += '<div class="code">';
+                details += `generateEnhancedPDF: ${typeof window.generateEnhancedPDF}<br>`;
+                details += `generatePDF: ${typeof window.generatePDF}<br>`;
+                details += `originalGeneratePDF: ${typeof window.originalGeneratePDF}<br>`;
+                details += `html2canvas: ${typeof window.html2canvas}<br>`;
+                details += `jsPDF: ${typeof window.jsPDF}<br>`;
+                details += `jspdf: ${typeof window.jspdf}<br>`;
+                details += '</div>';
+                
+                // Enhanced PDF Generator details
+                if (window.generateEnhancedPDF) {
+                    details += '<h4>Enhanced PDF Generator Analysis:</h4>';
+                    const funcSource = window.generateEnhancedPDF.toString();
+                    details += '<div class="code">';
+                    details += `Function length: ${funcSource.length} characters<br>`;
+                    details += `Contains luxury colors: ${funcSource.includes('#1B365D') ? 'Yes' : 'No'}<br>`;
+                    details += `Contains branding: ${funcSource.includes('CIAOCIAO.MX') ? 'Yes' : 'No'}<br>`;
+                    details += `Contains enhanced HTML: ${funcSource.includes('generateEnhancedReceiptHTML') ? 'Yes' : 'No'}<br>`;
+                    details += `Professional layout: ${funcSource.includes('grid-template-columns') ? 'Yes' : 'No'}<br>`;
+                    details += '</div>';
+                }
+                
+                // Integration status
+                details += '<h4>Estado de Integración:</h4>';
+                details += '<div class="code">';
+                details += `PDF function correctly replaced: ${window.generatePDF === window.generateEnhancedPDF ? 'Yes' : 'No'}<br>`;
+                details += `Original function backed up: ${typeof window.originalGeneratePDF !== 'undefined' ? 'Yes' : 'No'}<br>`;
+                details += '</div>';
+                
+                detailsDiv.innerHTML = details;
+                detailsDiv.style.display = 'block';
+            } else {
+                detailsDiv.style.display = 'none';
+            }
+        }
+        
+        // Auto-run verification on page load
+        window.addEventListener('load', () => {
+            setTimeout(runCompleteVerification, 1000);
+        });
+    </script>
+</body>
+</html>

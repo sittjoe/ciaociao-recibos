@@ -3,337 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CIAO CIAO MX - Generador de Recibos Profesionales</title>
-    <link rel="stylesheet" href="receipt-styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Content Security Policy para bloquear extensiones maliciosas -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://api.metals.live https://api.kitco.com; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self';">
+    <title>Sistema de Gestión - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts will be loaded via CDN Circuit Breaker -->
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="header-content">
-                <div class="logo-section">
-                    <h1 class="brand-name">CIAO CIAO MX</h1>
-                    <p class="brand-tagline">Joyería Fina</p>
-                </div>
-                <div class="header-title">
-                    <h2>Generador de Recibos Profesionales</h2>
-                </div>
-            </div>
+    <div class="mode-selector-container">
+        <header class="selector-header">
+            <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" class="logo-main">
+            <h1 class="selector-title">Sistema de Gestión</h1>
+            <p class="selector-subtitle">¿Qué deseas hacer hoy?</p>
         </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <div class="form-container">
-                <form id="receiptForm" class="receipt-form">
-                    <!-- Receipt Info Section -->
-                    <section class="form-section">
-                        <h3 class="section-title">Información del Recibo</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="receiptNumber">Número de Folio</label>
-                                <input type="text" id="receiptNumber" placeholder="Auto-generado" readonly>
-                            </div>
-                            <div class="form-group">
-                                <label for="transactionType">Tipo de Transacción *</label>
-                                <select id="transactionType" required>
-                                    <option value="">Seleccionar...</option>
-                                    <option value="venta">Venta</option>
-                                    <option value="apartado">Apartado</option>
-                                    <option value="reparacion">Reparación</option>
-                                    <option value="consignacion">Consignación</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="orderNumber">Número de Orden</label>
-                                <input type="text" id="orderNumber" placeholder="Ej: ORD-2025-001">
-                            </div>
-                            <div class="form-group">
-                                <label for="currency">Moneda</label>
-                                <select id="currency">
-                                    <option value="MXN">MXN - Peso Mexicano</option>
-                                    <option value="USD">USD - Dólar</option>
-                                    <option value="EUR">EUR - Euro</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="paymentMethod">Método de Pago</label>
-                                <select id="paymentMethod">
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Tarjeta">Tarjeta</option>
-                                    <option value="Efectivo / Tarjeta">Efectivo / Tarjeta</option>
-                                    <option value="Transferencia">Transferencia</option>
-                                </select>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Client Info Section -->
-                    <section class="form-section">
-                        <h3 class="section-title">Datos del Cliente</h3>
-                        <div class="form-grid">
-                            <div class="form-group full-width">
-                                <label for="clientName">Nombre Completo *</label>
-                                <input type="text" id="clientName" required placeholder="Ej: José Fernando Hernández">
-                            </div>
-                            <div class="form-group">
-                                <label for="clientPhone">Teléfono</label>
-                                <input type="tel" id="clientPhone" placeholder="Ej: 55 1234 5678">
-                            </div>
-                            <div class="form-group">
-                                <label for="clientEmail">Correo Electrónico</label>
-                                <input type="email" id="clientEmail" placeholder="correo@ejemplo.com">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="clientAddress">Dirección</label>
-                                <input type="text" id="clientAddress" placeholder="Dirección completa (opcional)">
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Jewelry Details Section -->
-                    <section class="form-section">
-                        <h3 class="section-title">Detalles de la Pieza</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="pieceType">Tipo de Pieza</label>
-                                <select id="pieceType">
-                                    <option value="">Seleccionar...</option>
-                                    <option value="anillo">Anillo</option>
-                                    <option value="collar">Collar</option>
-                                    <option value="pulsera">Pulsera</option>
-                                    <option value="aretes">Aretes</option>
-                                    <option value="reloj">Reloj</option>
-                                    <option value="dije">Dije</option>
-                                    <option value="brazalete">Brazalete</option>
-                                    <option value="broche">Broche</option>
-                                    <option value="cadena">Cadena</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="material">Material</label>
-                                <select id="material">
-                                    <option value="">Seleccionar...</option>
-                                    <option value="oro-10k">Oro 10k</option>
-                                    <option value="oro-14k">Oro 14k</option>
-                                    <option value="oro-18k">Oro 18k</option>
-                                    <option value="oro-24k">Oro 24k</option>
-                                    <option value="oro-blanco">Oro Blanco</option>
-                                    <option value="plata-925">Plata .925</option>
-                                    <option value="platino">Platino</option>
-                                    <option value="acero">Acero Inoxidable</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="weight">Peso (gramos)</label>
-                                <input type="number" id="weight" step="0.01" min="0" placeholder="0.00">
-                            </div>
-                            <div class="form-group">
-                                <label for="size">Talla / Tamaño</label>
-                                <input type="text" id="size" placeholder="Ej: 7, M, 18cm">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="stones">Piedras / Gemas</label>
-                                <input type="text" id="stones" placeholder="Ej: Diamante 0.5ct, Esmeraldas, Zafiros">
-                            </div>
-                            <div class="form-group full-width">
-                                <label for="pieceDescription">Descripción Detallada</label>
-                                <textarea id="pieceDescription" rows="3" placeholder="Descripción completa de la pieza..."></textarea>
-                            </div>
-                            <div class="form-group full-width" id="repairSection" style="display: none;">
-                                <label for="pieceCondition">Estado de la Pieza (para reparación)</label>
-                                <textarea id="pieceCondition" rows="2" placeholder="Describe el estado actual y el trabajo a realizar"></textarea>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Dates Section -->
-                    <section class="form-section">
-                        <h3 class="section-title">Fechas</h3>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="issueDate">Fecha de Emisión *</label>
-                                <input type="date" id="issueDate" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="deliveryDate">Fecha de Entrega</label>
-                                <input type="date" id="deliveryDate">
-                            </div>
-                            <div class="form-group">
-                                <label for="deliveryStatus">Estado de Entrega</label>
-                                <select id="deliveryStatus">
-                                    <option value="">Seleccionar...</option>
-                                    <option value="entregado">Entregado</option>
-                                    <option value="pendiente">Pendiente de Entrega</option>
-                                    <option value="proceso">En Proceso</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="validUntil">Válido Hasta</label>
-                                <input type="date" id="validUntil">
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Products Section -->
-                    <section class="form-section">
-                        <h3 class="section-title">Productos / Servicios</h3>
-                        <div id="productsContainer">
-                            <div class="product-item" data-product-index="0">
-                                <div class="product-grid">
-                                    <div class="form-group">
-                                        <label>Descripción *</label>
-                                        <input type="text" class="product-description" placeholder="Ej: Pulsera de esmeralda & diamante" required>
-                                    </div>
-                                    <div class="form-group small">
-                                        <label>Cantidad *</label>
-                                        <input type="number" class="product-quantity" value="1" min="1" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Precio Unitario *</label>
-                                        <input type="number" class="product-price" step="0.01" min="0" placeholder="0.00" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>SKU / Código</label>
-                                        <input type="text" class="product-sku" placeholder="Opcional">
-                                    </div>
-                                    <button type="button" class="btn-remove-product" onclick="removeProduct(0)">×</button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-add-product" onclick="addProduct()">+ Agregar Producto</button>
-                    </section>
-
-                    <!-- Financial Information Section -->
-                    <section class="form-section totals-section">
-                        <h3 class="section-title">Información Financiera</h3>
-                        <div class="totals-grid">
-                            <div class="form-group">
-                                <label for="totalPrice">Precio Total</label>
-                                <input type="number" id="totalPrice" step="0.01" min="0" placeholder="0.00">
-                            </div>
-                            <div class="form-group">
-                                <label for="contributions">Aportaciones Previas</label>
-                                <input type="number" id="contributions" step="0.01" min="0" placeholder="0.00" value="0">
-                            </div>
-                            <div class="form-group">
-                                <label for="deposit">Anticipo / Depósito</label>
-                                <input type="number" id="deposit" step="0.01" min="0" placeholder="0.00" value="0">
-                            </div>
-                            <div class="form-group">
-                                <label for="discount">Descuento</label>
-                                <input type="number" id="discount" step="0.01" min="0" placeholder="0.00" value="0">
-                            </div>
-                            <div class="form-group">
-                                <label for="taxRate">IVA (%)</label>
-                                <input type="number" id="taxRate" step="0.01" min="0" max="100" placeholder="16" value="16">
-                            </div>
-                        </div>
-                        <div class="totals-display">
-                            <div class="total-row">
-                                <span>Precio Total:</span>
-                                <span id="priceDisplay">$0.00</span>
-                            </div>
-                            <div class="total-row">
-                                <span>Aportaciones:</span>
-                                <span id="contributionsDisplay">$0.00</span>
-                            </div>
-                            <div class="total-row">
-                                <span>Subtotal:</span>
-                                <span id="subtotalDisplay">$0.00</span>
-                            </div>
-                            <div class="total-row">
-                                <span>Anticipo:</span>
-                                <span id="depositDisplay">$0.00</span>
-                            </div>
-                            <div class="total-row">
-                                <span>Descuento:</span>
-                                <span id="discountDisplay">$0.00</span>
-                            </div>
-                            <div class="total-row">
-                                <span>IVA:</span>
-                                <span id="taxDisplay">$0.00</span>
-                            </div>
-                            <div class="total-row total-final">
-                                <span>Total Final:</span>
-                                <span id="totalDisplay">$0.00</span>
-                            </div>
-                            <div class="total-row total-final" style="color: var(--error);">
-                                <span>Saldo Pendiente:</span>
-                                <span id="balanceDisplay">$0.00</span>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- Observations Section -->
-                    <section class="form-section">
-                        <h3 class="section-title">Observaciones</h3>
-                        <div class="form-group full-width">
-                            <textarea id="observations" rows="4" placeholder="Observaciones adicionales (opcional)">Joyas inspeccionadas y entregadas en perfecto estado. Se recomienda evitar contacto con químicos. Servicio de ajuste/limpieza disponible. Este documento no es factura fiscal.</textarea>
-                        </div>
-                    </section>
-
-                    <!-- Action Buttons -->
-                    <div class="action-buttons">
-                        <button type="button" class="btn btn-secondary" onclick="clearForm()">
-                            Limpiar Formulario
-                        </button>
-                        <button type="button" class="btn btn-primary" onclick="generateReceipt()">
-                            Generar Recibo
-                        </button>
-                    </div>
-                </form>
+        <div class="mode-cards">
+            <div class="mode-card" onclick="selectMode('receipt')">
+                <div class="mode-icon">📄</div>
+                <h2>RECIBOS</h2>
+                <p class="mode-description">Generar recibos de venta, reparación y apartados</p>
+                <div class="mode-features">
+                    <span>✓ Pagos y abonos</span>
+                    <span>✓ Firma digital</span>
+                    <span>✓ WhatsApp integrado</span>
+                </div>
+                <div class="mode-stats" id="receiptStats">
+                    <span class="stat-item">Total: <strong>0</strong></span>
+                    <span class="stat-item">Hoy: <strong>0</strong></span>
+                </div>
+                <button class="mode-button">Ir a Recibos →</button>
             </div>
 
-            <!-- Preview Section -->
-            <div class="preview-container" id="previewContainer" style="display: none;">
-                <h3 class="section-title">Vista Previa del Recibo</h3>
-                <div class="preview-content">
-                    <img id="receiptPreview" src="" alt="Vista previa del recibo">
+            <div class="mode-card" onclick="selectMode('quotation')">
+                <div class="mode-icon">💰</div>
+                <h2>COTIZACIONES</h2>
+                <p class="mode-description">Crear cotizaciones profesionales con múltiples productos</p>
+                <div class="mode-features">
+                    <span>✓ Múltiples productos</span>
+                    <span>✓ Descuentos automáticos</span>
+                    <span>✓ Convertir a recibo</span>
                 </div>
-                <div class="preview-actions">
-                    <button class="btn btn-download" onclick="downloadReceipt('png')">
-                        📥 Descargar PNG
-                    </button>
-                    <button class="btn btn-download" onclick="downloadReceipt('jpeg')">
-                        📥 Descargar JPEG
-                    </button>
-                    <button class="btn btn-share" onclick="shareWhatsApp()">
-                        📱 Compartir por WhatsApp
-                    </button>
-                    <button class="btn btn-new" onclick="newReceipt()">
-                        ➕ Nuevo Recibo
-                    </button>
+                <div class="mode-stats" id="quotationStats">
+                    <span class="stat-item">Total: <strong>0</strong></span>
+                    <span class="stat-item">Pendientes: <strong>0</strong></span>
                 </div>
+                <button class="mode-button">Ir a Cotizaciones →</button>
             </div>
 
-            <!-- History Section -->
-            <div class="history-container" id="historyContainer">
-                <h3 class="section-title">Historial de Recibos</h3>
-                <div id="historyList" class="history-list">
-                    <!-- Receipt history will be loaded here -->
+            <div class="mode-card" onclick="selectMode('calculator')">
+                <div class="mode-icon">🔧</div>
+                <h2>CALCULADORA</h2>
+                <p class="mode-description">Calcular costos de fabricación con precios actuales de mercado</p>
+                <div class="mode-features">
+                    <span>✓ Precios en tiempo real</span>
+                    <span>✓ Metales y piedras</span>
+                    <span>✓ Exportar a cotización</span>
                 </div>
+                <div class="mode-stats" id="calculatorStats">
+                    <span class="stat-item">Proyectos: <strong>0</strong></span>
+                    <span class="stat-item">Guardados: <strong>0</strong></span>
+                </div>
+                <button class="mode-button">Ir a Calculadora →</button>
             </div>
-        </main>
+        </div>
 
-        <!-- Footer -->
-        <footer class="app-footer">
-            <p>&copy; 2025 CIAO CIAO MX - Joyería Fina. Todos los derechos reservados.</p>
-            <p>Sistema de Generación de Recibos Profesionales v1.0</p>
-        </footer>
+        <div class="selector-footer">
+            <button id="logoutBtnSelector" class="btn-logout-selector">🔒 Cerrar Sesión</button>
+            <p class="footer-info">© 2025 ciaociao.mx - Sistema de Gestión v3.0</p>
+        </div>
     </div>
 
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" class="loading-indicator" style="display: none;">
-        <div class="spinner"></div>
-        <p>Generando recibo...</p>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="notification" class="notification"></div>
-
-    <script src="receipt-script.js"></script>
+    <!-- Scripts -->
+    <!-- Browser Extension Filter - DEBE CARGARSE PRIMERO para interceptar errores -->
+    <script src="browser-extension-filter.js"></script>
+    <!-- Extension Detector - Detecta y analiza extensiones problemáticas -->
+    <script src="extension-detector.js"></script>
+    
+    <!-- CDN Circuit Breaker System - Enterprise-grade CDN Management -->
+    <script src="cdn-circuit-breaker.js"></script>
+    <script src="cdn-health-monitor.js"></script>
+    <script src="cdn-cache-manager.js"></script>
+    
+    <!-- Enhanced CDN Loading with Circuit Breaker -->
+    <script>
+        // Initialize CDN Circuit Breaker system
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log('🚀 Initializing CDN Circuit Breaker System...');
+                
+                // Wait for CDN Circuit Breaker to initialize
+                let maxAttempts = 50; // 5 seconds max wait
+                while (maxAttempts > 0 && (!window.cdnCircuitBreaker || !window.cdnCircuitBreaker.isInitialized)) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    maxAttempts--;
+                }
+                
+                if (!window.cdnCircuitBreaker || !window.cdnCircuitBreaker.isInitialized) {
+                    console.warn('⚠️ CDN Circuit Breaker not initialized, falling back to legacy loading');
+                    loadDOMPurifyLegacy();
+                    return;
+                }
+                
+                // Load critical libraries through Circuit Breaker
+                await loadLibrariesWithCircuitBreaker();
+                
+            } catch (error) {
+                console.error('❌ CDN Circuit Breaker initialization failed:', error);
+                loadDOMPurifyLegacy();
+            }
+        });
+        
+        // Enhanced library loading with Circuit Breaker
+        async function loadLibrariesWithCircuitBreaker() {
+            const libraries = ['domPurify', 'googleFonts'];
+            const results = [];
+            
+            for (const library of libraries) {
+                try {
+                    console.log(`📦 Loading ${library} with Circuit Breaker...`);
+                    const result = await window.cdnCircuitBreaker.loadLibrary(library);
+                    results.push({ library, result });
+                    
+                    if (result.success) {
+                        console.log(`✅ ${library} loaded successfully from ${result.source}`);
+                        
+                        // Special handling for DOMPurify
+                        if (library === 'domPurify' && typeof DOMPurify !== 'undefined') {
+                            window.domPurifyLoaded = true;
+                            console.log('🛡️ DOMPurify ready for XSS protection');
+                        }
+                    } else {
+                        console.warn(`⚠️ ${library} loading failed:`, result.error || result.message);
+                        
+                        // Handle fallbacks
+                        if (library === 'domPurify') {
+                            console.log('🔄 Enabling XSS protection fallback methods');
+                            if (window.xssProtection) {
+                                window.xssProtection.setupFallbackProtection();
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error(`❌ Failed to load ${library}:`, error);
+                    results.push({ library, error: error.message });
+                }
+            }
+            
+            // Log loading summary
+            console.log('📊 CDN Loading Summary:', results);
+            
+            // Display system status (for debugging)
+            setTimeout(() => {
+                displayCDNStatus();
+            }, 2000);
+        }
+        
+        // Legacy DOMPurify loading (fallback)
+        function loadDOMPurifyLegacy() {
+            console.log('🔄 Using legacy DOMPurify loading...');
+            
+            const domPurifyUrls = [
+                'https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js',
+                'https://unpkg.com/dompurify@3.0.5/dist/purify.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js'
+            ];
+            
+            function loadDOMPurifyScript(index = 0) {
+                if (index >= domPurifyUrls.length) {
+                    console.warn('⚠️ All DOMPurify CDNs failed, XSS protection will use fallback methods');
+                    if (window.xssProtection) {
+                        window.xssProtection.setupFallbackProtection();
+                    }
+                    return;
+                }
+                
+                const script = document.createElement('script');
+                script.src = domPurifyUrls[index];
+                script.async = true;
+                
+                script.onload = function() {
+                    window.domPurifyLoaded = true;
+                    console.log(`✅ DOMPurify loaded from: ${domPurifyUrls[index]}`);
+                };
+                
+                script.onerror = function() {
+                    console.warn(`❌ Failed to load DOMPurify from: ${domPurifyUrls[index]}`);
+                    loadDOMPurifyScript(index + 1);
+                };
+                
+                document.head.appendChild(script);
+            }
+            
+            loadDOMPurifyScript();
+        }
+        
+        // Display CDN system status (for debugging and monitoring)
+        function displayCDNStatus() {
+            if (!window.cdnCircuitBreaker) return;
+            
+            try {
+                const status = window.cdnCircuitBreaker.getSystemStatus();
+                console.group('🔍 CDN Circuit Breaker Status');
+                console.log('System Initialized:', status.isInitialized);
+                console.log('Circuit Breakers:', status.circuitBreakers.length);
+                console.log('Cache Size:', status.cache.size);
+                console.log('Performance:', status.performance);
+                
+                // Log circuit breaker states
+                status.circuitBreakers.forEach(cb => {
+                    const stateEmoji = cb.state === 'CLOSED' ? '✅' : cb.state === 'OPEN' ? '❌' : '⚠️';
+                    console.log(`${stateEmoji} ${cb.id}: ${cb.state} (Health: ${cb.isHealthy ? 'Good' : 'Poor'})`);
+                });
+                
+                console.groupEnd();
+                
+                // Show health alerts if any
+                if (window.cdnHealthMonitor) {
+                    const alerts = window.cdnHealthMonitor.getActiveAlerts();
+                    if (alerts.length > 0) {
+                        console.warn('🚨 Active CDN Health Alerts:', alerts.length);
+                        alerts.forEach(alert => {
+                            console.warn(`[${alert.severity}] ${alert.message}`);
+                        });
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Failed to get CDN status:', error);
+            }
+        }
+        
+        // Expose CDN management functions globally
+        window.CDNManager = {
+            getStatus: () => {
+                if (window.cdnCircuitBreaker) {
+                    return window.cdnCircuitBreaker.getSystemStatus();
+                }
+                return { error: 'CDN Circuit Breaker not available' };
+            },
+            
+            getHealthReport: () => {
+                if (window.cdnHealthMonitor) {
+                    return window.cdnHealthMonitor.getHealthStatus();
+                }
+                return { error: 'CDN Health Monitor not available' };
+            },
+            
+            getCacheStats: () => {
+                if (window.cdnCacheManager) {
+                    return window.cdnCacheManager.getStats();
+                }
+                return { error: 'CDN Cache Manager not available' };
+            },
+            
+            forceLibraryReload: async (libraryName) => {
+                if (window.cdnCircuitBreaker) {
+                    return await window.cdnCircuitBreaker.loadLibrary(libraryName, { maxAttempts: 10 });
+                }
+                return { error: 'CDN Circuit Breaker not available' };
+            },
+            
+            clearCache: () => {
+                if (window.cdnCacheManager) {
+                    return window.cdnCacheManager.clear();
+                }
+                return { error: 'CDN Cache Manager not available' };
+            },
+            
+            displayStatus: displayCDNStatus
+        };
+        
+        // Add CDN status to SecurityManager if available
+        if (window.securityManager) {
+            setTimeout(() => {
+                window.securityManager.getCDNCircuitBreakerStatus = () => {
+                    return window.CDNManager.getStatus();
+                };
+            }, 3000);
+        }
+        
+        console.log('🔧 CDN Management functions exposed at window.CDNManager');
+    </script>
+    
+    <!-- Core Security and Application Systems -->
+    <!-- <script src="xss-protection.js"></script> TEMPORALMENTE DESHABILITADO - BLOQUEA PASSWORD INPUT -->
+    <script src="security-manager.js"></script>
+    <script src="auth.js"></script>
+    <script src="database.js"></script>
+    <script src="mode-selector.js"></script>
+    
+    <!-- Development Helper: CDN Status Monitor -->
+    <script>
+        // Add keyboard shortcut for CDN status (Ctrl+Shift+C)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+                console.clear();
+                console.log('%c🔍 CDN CIRCUIT BREAKER SYSTEM STATUS', 'font-size: 16px; font-weight: bold; color: #00ff00;');
+                window.CDNManager.displayStatus();
+                
+                // Also log security status
+                if (window.securityManager && window.securityManager.getComprehensiveSecurityStatus) {
+                    const securityStatus = window.securityManager.getComprehensiveSecurityStatus();
+                    console.log('%c🔒 COMPREHENSIVE SECURITY STATUS', 'font-size: 14px; font-weight: bold; color: #ff9000;');
+                    console.log(securityStatus);
+                }
+                
+                e.preventDefault();
+            }
+        });
+        
+        console.log('%c🔧 Development Helper: Press Ctrl+Shift+C to view CDN status', 'color: #00aaff;');
+    </script>
 </body>
 </html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Storage - Test</title>
+</head>
+<body>
+    <h1>Limpiar Storage y Probar Login</h1>
+    <button onclick="clearStorageAndTest()">🧹 Limpiar y Probar</button>
+    <button onclick="openApp()">🚀 Abrir App</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        function clearStorageAndTest() {
+            // Limpiar todo el localStorage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            document.getElementById('result').innerHTML = `
+                <p>✅ Storage limpiado</p>
+                <p>📋 Keys removidas: ${Object.keys(localStorage).length}</p>
+                <p>🔄 <a href="/" target="_blank">Abrir App Principal</a></p>
+                <p>📄 <a href="/receipt-mode.html" target="_blank">Abrir Recibos</a></p>
+            `;
+        }
+        
+        function openApp() {
+            window.open('/', '_blank');
+        }
+        
+        // Mostrar estado actual
+        document.addEventListener('DOMContentLoaded', () => {
+            const keys = Object.keys(localStorage);
+            document.getElementById('result').innerHTML = `
+                <h3>Estado Actual del Storage:</h3>
+                <p>🗂️ Keys encontradas: ${keys.length}</p>
+                <ul>${keys.map(key => `<li>${key}: ${localStorage.getItem(key).substring(0, 50)}...</li>`).join('')}</ul>
+            `;
+        });
+    </script>
+</body>
+</html>

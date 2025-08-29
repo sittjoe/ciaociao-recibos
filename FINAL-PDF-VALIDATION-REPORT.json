@@ -1,0 +1,34 @@
+{
+  "testExecution": {
+    "startTime": "2025-08-27T17:36:18.614Z",
+    "endTime": "2025-08-27T17:36:20.459Z",
+    "executionTimeMs": 1844,
+    "executionTimeMinutes": 0.03,
+    "success": false,
+    "exitCode": 1
+  },
+  "results": {
+    "screenshots": 0,
+    "pdfDownloads": 0,
+    "totalFileSize": 0,
+    "testsPassed": 0,
+    "testsFailed": 0,
+    "hasJsonResults": false,
+    "hasHtmlReport": true,
+    "criticalIssues": [
+      "No PDF files were generated - PDF functionality may be broken",
+      "No screenshots captured - tests may not have run properly"
+    ]
+  },
+  "validation": {
+    "pdfGenerationFunctional": false,
+    "testsExecuted": false,
+    "noFailures": true,
+    "hasArtifacts": false
+  },
+  "conclusion": "CRITICAL FAILURE: PDF generation is not working - immediate attention required",
+  "recommendations": [
+    "Do not deploy to production - fix critical issues first",
+    "Review test logs and console output for debugging information"
+  ]
+}

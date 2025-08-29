@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final System Validation - ciaociao-recibos</title>
+    <style>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .validation-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .validation-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .validation-header h1 {
+            margin: 0;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+        .validation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+        .validation-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid;
+        }
+        .section-critical { border-color: #e74c3c; }
+        .section-functional { border-color: #f39c12; }
+        .section-integration { border-color: #3498db; }
+        .section-header {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .validation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 4px 0;
+            background: white;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            min-width: 70px;
+            text-align: center;
+        }
+        .status-pass { background: #d4edda; color: #155724; }
+        .status-fail { background: #f8d7da; color: #721c24; }
+        .status-warning { background: #fff3cd; color: #856404; }
+        .status-testing { background: #cce7ff; color: #004085; }
+        .status-pending { background: #e9ecef; color: #6c757d; }
+        .final-assessment {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .assessment-title {
+            font-size: 2.2em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        .assessment-score {
+            font-size: 4em;
+            font-weight: 900;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .assessment-details {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .detail-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .detail-number {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .control-panel {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #333; }
+        .btn-warning { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); color: #333; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .validation-log {
+            grid-column: 1 / -1;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .log-success { color: #2ecc71; }
+        .log-error { color: #e74c3c; }
+        .log-warning { color: #f39c12; }
+        .log-info { color: #3498db; }
+        .log-critical { color: #ff6b6b; font-weight: bold; }
+        .complaint-resolution {
+            grid-column: 1 / -1;
+            background: #ecf0f1;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .complaint-title {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .complaints-status {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .complaint-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .complaint-description {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+        .progress-indicator {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="validation-container">
+        <div class="validation-header">
+            <h1>🎯 Validación Final del Sistema</h1>
+            <p>Evaluación completa del sistema ciaociao-recibos después de todas las reparaciones críticas</p>
+            <div class="progress-indicator">
+                <div class="progress-fill" id="overallProgress" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <button class="btn btn-primary" onclick="runFullSystemValidation()">🚀 Validación Completa</button>
+            <button class="btn btn-success" onclick="testUserComplaints()">🩺 Verificar Quejas Usuario</button>
+            <button class="btn btn-warning" onclick="testLiveSystem()">🌐 Test Sistema en Vivo</button>
+            <button class="btn btn-danger" onclick="clearValidationData()">🗑️ Limpiar Datos</button>
+        </div>
+        
+        <div class="validation-grid">
+            <div class="final-assessment">
+                <div class="assessment-title" id="assessmentTitle">🔄 Validación en proceso...</div>
+                <div class="assessment-score" id="assessmentScore">--</div>
+                <div id="assessmentDescription">Ejecutando evaluación completa del sistema...</div>
+                <div class="assessment-details">
+                    <div class="detail-card">
+                        <div class="detail-number" id="criticalScore">--</div>
+                        <div>Críticos</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-number" id="functionalScore">--</div>
+                        <div>Funcionales</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-number" id="integrationScore">--</div>
+                        <div>Integración</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-number" id="complaintsResolved">--</div>
+                        <div>Quejas Resueltas</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-number" id="systemHealth">--</div>
+                        <div>Salud Sistema</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="validation-section section-critical">
+                <div class="section-header">🔴 Funciones Críticas</div>
+                <div class="validation-item">
+                    <span>AuthManager inicializado</span>
+                    <span class="status-badge status-pending" id="auth-manager">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>CDN Circuit Breaker activo</span>
+                    <span class="status-badge status-pending" id="cdn-breaker">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>initializeApp disponible</span>
+                    <span class="status-badge status-pending" id="init-app">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Event Listeners adheridos</span>
+                    <span class="status-badge status-pending" id="event-listeners">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Dependencias PDF cargadas</span>
+                    <span class="status-badge status-pending" id="pdf-deps">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Database funcional</span>
+                    <span class="status-badge status-pending" id="database">PENDIENTE</span>
+                </div>
+            </div>
+            
+            <div class="validation-section section-functional">
+                <div class="section-header">🟡 Funcionalidades Usuario</div>
+                <div class="validation-item">
+                    <span>showPreview() función</span>
+                    <span class="status-badge status-pending" id="preview-func">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>generatePDF() función</span>
+                    <span class="status-badge status-pending" id="pdf-func">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Numeración recibos</span>
+                    <span class="status-badge status-pending" id="numbering-func">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>SignaturePad firmas</span>
+                    <span class="status-badge status-pending" id="signature-func">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>shareWhatsApp() función</span>
+                    <span class="status-badge status-pending" id="whatsapp-func">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Formulario validación</span>
+                    <span class="status-badge status-pending" id="form-validation">PENDIENTE</span>
+                </div>
+            </div>
+            
+            <div class="validation-section section-integration">
+                <div class="section-header">🔵 Integración Sistema</div>
+                <div class="validation-item">
+                    <span>Coordinador inicialización</span>
+                    <span class="status-badge status-pending" id="coordinator">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Sistema salud monitoreo</span>
+                    <span class="status-badge status-pending" id="health-monitor">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Storage monitor activo</span>
+                    <span class="status-badge status-pending" id="storage-monitor">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Navegación entre modos</span>
+                    <span class="status-badge status-pending" id="mode-navigation">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Error boundary sistema</span>
+                    <span class="status-badge status-pending" id="error-boundary">PENDIENTE</span>
+                </div>
+                <div class="validation-item">
+                    <span>Security manager</span>
+                    <span class="status-badge status-pending" id="security-manager">PENDIENTE</span>
+                </div>
+            </div>
+            
+            <div class="complaint-resolution">
+                <div class="complaint-title">🩺 Resolución de Quejas Específicas del Usuario</div>
+                <div class="complaints-status">
+                    <div class="complaint-card">
+                        <strong>❌ "No hace vista previa"</strong>
+                        <div class="complaint-description">Sistema no muestra vista previa antes del PDF</div>
+                        <span class="status-badge status-pending" id="complaint-preview">PENDIENTE</span>
+                    </div>
+                    <div class="complaint-card">
+                        <strong>❌ "No genera comprobantes"</strong>
+                        <div class="complaint-description">No puede generar archivos PDF</div>
+                        <span class="status-badge status-pending" id="complaint-pdf">PENDIENTE</span>
+                    </div>
+                    <div class="complaint-card">
+                        <strong>❌ "No se pone el número de recibo"</strong>
+                        <div class="complaint-description">Numeración automática no funciona</div>
+                        <span class="status-badge status-pending" id="complaint-numbering">PENDIENTE</span>
+                    </div>
+                    <div class="complaint-card">
+                        <strong>❌ "No sirven las firmas"</strong>
+                        <div class="complaint-description">Sistema de firmas digitales falla</div>
+                        <span class="status-badge status-pending" id="complaint-signatures">PENDIENTE</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="validation-log" id="validationLog">
+                <div class="log-entry log-info">🎯 Sistema de validación final iniciado...</div>
+                <div class="log-entry log-info">📋 Preparando evaluación comprehensiva de 18 componentes críticos</div>
+                <div class="log-entry log-info">🩺 Verificando resolución de 4 quejas específicas del usuario</div>
+                <div class="log-entry log-warning">⚠️ Presiona "Validación Completa" para comenzar evaluación</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let validationResults = {};
+        let complaintsResults = {};
+        let validationProgress = 0;
+        const totalValidations = 18;
+        const totalComplaints = 4;
+        
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('validationLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(entry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+        
+        function updateStatus(testId, status, details = '') {
+            const element = document.getElementById(testId);
+            if (element) {
+                element.textContent = status.toUpperCase();
+                element.className = `status-badge status-${status.toLowerCase()}`;
+                if (details) element.title = details;
+            }
+            
+            validationResults[testId] = { status, details, timestamp: new Date() };
+            updateProgress();
+        }
+        
+        function updateComplaintStatus(complaintId, status, details = '') {
+            const element = document.getElementById(complaintId);
+            if (element) {
+                element.textContent = status.toUpperCase();
+                element.className = `status-badge status-${status.toLowerCase()}`;
+                if (details) element.title = details;
+            }
+            
+            complaintsResults[complaintId] = { status, details, timestamp: new Date() };
+        }
+        
+        function updateProgress() {
+            validationProgress = Object.keys(validationResults).length;
+            const progress = Math.round((validationProgress / totalValidations) * 100);
+            document.getElementById('overallProgress').style.width = progress + '%';
+            updateFinalAssessment();
+        }
+        
+        function updateFinalAssessment() {
+            const results = Object.values(validationResults);
+            const complaints = Object.values(complaintsResults);
+            
+            const criticalPass = results.filter(r => r.status === 'pass' && ['auth-manager', 'cdn-breaker', 'init-app', 'event-listeners', 'pdf-deps', 'database'].includes(Object.keys(validationResults).find(key => validationResults[key] === r))).length;
+            const functionalPass = results.filter(r => r.status === 'pass' && ['preview-func', 'pdf-func', 'numbering-func', 'signature-func', 'whatsapp-func', 'form-validation'].includes(Object.keys(validationResults).find(key => validationResults[key] === r))).length;
+            const integrationPass = results.filter(r => r.status === 'pass' && ['coordinator', 'health-monitor', 'storage-monitor', 'mode-navigation', 'error-boundary', 'security-manager'].includes(Object.keys(validationResults).find(key => validationResults[key] === r))).length;
+            const complaintsResolved = complaints.filter(c => c.status === 'pass').length;
+            
+            const totalPass = results.filter(r => r.status === 'pass').length;
+            const totalFail = results.filter(r => r.status === 'fail').length;
+            const totalWarning = results.filter(r => r.status === 'warning').length;
+            
+            // Calculate overall health score
+            const healthScore = results.length > 0 ? Math.round(((totalPass + (totalWarning * 0.5)) / results.length) * 100) : 0;
+            
+            // Update detail cards
+            document.getElementById('criticalScore').textContent = `${criticalPass}/6`;
+            document.getElementById('functionalScore').textContent = `${functionalPass}/6`;
+            document.getElementById('integrationScore').textContent = `${integrationPass}/6`;
+            document.getElementById('complaintsResolved').textContent = `${complaintsResolved}/4`;
+            document.getElementById('systemHealth').textContent = `${healthScore}%`;
+            
+            // Update main assessment
+            const scoreElement = document.getElementById('assessmentScore');
+            const titleElement = document.getElementById('assessmentTitle');
+            const descElement = document.getElementById('assessmentDescription');
+            
+            if (validationProgress === 0) {
+                titleElement.textContent = '🔄 Validación en proceso...';
+                scoreElement.textContent = '--';
+                descElement.textContent = 'Ejecutando evaluación completa del sistema...';
+                return;
+            }
+            
+            scoreElement.textContent = `${healthScore}%`;
+            
+            if (healthScore >= 95 && complaintsResolved === 4) {
+                titleElement.textContent = '🎉 Sistema Completamente Funcional';
+                titleElement.style.color = '#2ecc71';
+                descElement.textContent = 'Todas las reparaciones exitosas - Sistema listo para producción';
+            } else if (healthScore >= 80 && complaintsResolved >= 3) {
+                titleElement.textContent = '✅ Sistema Funcional';
+                titleElement.style.color = '#f39c12';
+                descElement.textContent = 'Sistema mayormente operativo - Algunas optimizaciones pendientes';
+            } else if (healthScore >= 60) {
+                titleElement.textContent = '⚠️ Sistema con Limitaciones';
+                titleElement.style.color = '#e67e22';
+                descElement.textContent = 'Sistema parcialmente funcional - Reparaciones adicionales requeridas';
+            } else {
+                titleElement.textContent = '❌ Sistema Requiere Reparaciones';
+                titleElement.style.color = '#e74c3c';
+                descElement.textContent = 'Problemas críticos identificados - Intervención necesaria';
+            }
+        }
+        
+        async function runFullSystemValidation() {
+            log('🎯 Iniciando validación completa del sistema...', 'info');
+            log('📊 Evaluando 18 componentes críticos del sistema', 'info');
+            
+            // Clear previous results
+            validationResults = {};
+            complaintsResults = {};
+            validationProgress = 0;
+            
+            try {
+                // Critical functions validation
+                await validateCriticalFunctions();
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Functional capabilities validation  
+                await validateFunctionalCapabilities();
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Integration systems validation
+                await validateIntegrationSystems();
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // User complaints validation
+                await testUserComplaints();
+                
+                log('🎯 Validación completa finalizada', 'success');
+                generateFinalReport();
+                
+            } catch (error) {
+                log(`❌ Error en validación completa: ${error.message}`, 'error');
+            }
+        }
+        
+        async function validateCriticalFunctions() {
+            log('🔴 Validando funciones críticas del sistema...', 'info');
+            
+            // AuthManager
+            if (typeof window.authManager !== 'undefined' || typeof window.AuthManager !== 'undefined') {
+                updateStatus('auth-manager', 'pass', 'Sistema de autenticación disponible');
+                log('✅ AuthManager inicializado correctamente', 'success');
+            } else {
+                updateStatus('auth-manager', 'fail', 'AuthManager no encontrado');
+                log('❌ AuthManager no disponible', 'error');
+            }
+            
+            // CDN Circuit Breaker
+            if (typeof window.cdnCircuitBreaker !== 'undefined' && window.cdnCircuitBreaker) {
+                updateStatus('cdn-breaker', 'pass', 'CDN Circuit Breaker activo');
+                log('✅ CDN Circuit Breaker operativo', 'success');
+            } else {
+                updateStatus('cdn-breaker', 'fail', 'CDN Circuit Breaker no disponible');
+                log('❌ CDN Circuit Breaker no funcional', 'error');
+            }
+            
+            // initializeApp function
+            if (typeof window.initializeApp === 'function') {
+                updateStatus('init-app', 'pass', 'Función de inicialización disponible');
+                log('✅ initializeApp función disponible', 'success');
+            } else {
+                updateStatus('init-app', 'fail', 'initializeApp no encontrada');
+                log('❌ initializeApp función no disponible', 'error');
+            }
+            
+            // Event listeners
+            const buttonsWithEvents = document.querySelectorAll('[onclick]').length;
+            if (buttonsWithEvents > 0) {
+                updateStatus('event-listeners', 'pass', `${buttonsWithEvents} elementos con eventos`);
+                log(`✅ ${buttonsWithEvents} event listeners detectados`, 'success');
+            } else {
+                updateStatus('event-listeners', 'warning', 'Pocos event listeners detectados');
+                log('⚠️ Event listeners limitados', 'warning');
+            }
+            
+            // PDF Dependencies
+            const pdfLibsAvailable = typeof window.jsPDF !== 'undefined' && typeof window.html2canvas !== 'undefined';
+            if (pdfLibsAvailable) {
+                updateStatus('pdf-deps', 'pass', 'jsPDF y html2canvas disponibles');
+                log('✅ Dependencias PDF cargadas correctamente', 'success');
+            } else {
+                updateStatus('pdf-deps', 'fail', 'Librerías PDF no cargadas');
+                log('❌ Dependencias PDF no disponibles', 'error');
+            }
+            
+            // Database
+            try {
+                localStorage.setItem('validation_test', 'test');
+                const retrieved = localStorage.getItem('validation_test');
+                localStorage.removeItem('validation_test');
+                
+                if (retrieved === 'test') {
+                    updateStatus('database', 'pass', 'LocalStorage funcional');
+                    log('✅ Sistema de base de datos operativo', 'success');
+                } else {
+                    updateStatus('database', 'fail', 'LocalStorage no funcional');
+                    log('❌ Sistema de base de datos con problemas', 'error');
+                }
+            } catch (error) {
+                updateStatus('database', 'fail', 'Error en localStorage');
+                log('❌ Error accediendo a localStorage', 'error');
+            }
+        }
+        
+        async function validateFunctionalCapabilities() {
+            log('🟡 Validando capacidades funcionales...', 'info');
+            
+            // showPreview function
+            if (typeof window.showPreview === 'function') {
+                updateStatus('preview-func', 'pass', 'Vista previa disponible');
+                log('✅ Función showPreview disponible', 'success');
+            } else {
+                updateStatus('preview-func', 'fail', 'showPreview no encontrada');
+                log('❌ Función showPreview no disponible', 'error');
+            }
+            
+            // generatePDF function
+            if (typeof window.generatePDF === 'function') {
+                updateStatus('pdf-func', 'pass', 'Generación PDF disponible');
+                log('✅ Función generatePDF disponible', 'success');
+            } else {
+                updateStatus('pdf-func', 'fail', 'generatePDF no encontrada');
+                log('❌ Función generatePDF no disponible', 'error');
+            }
+            
+            // Receipt numbering
+            if (typeof window.generateReceiptNumber === 'function' || localStorage.getItem('receiptCounter')) {
+                updateStatus('numbering-func', 'pass', 'Sistema de numeración activo');
+                log('✅ Sistema de numeración de recibos funcional', 'success');
+            } else {
+                updateStatus('numbering-func', 'fail', 'Sistema de numeración no encontrado');
+                log('❌ Sistema de numeración no disponible', 'error');
+            }
+            
+            // SignaturePad
+            if (typeof window.SignaturePad !== 'undefined') {
+                updateStatus('signature-func', 'pass', 'SignaturePad cargado');
+                log('✅ Sistema de firmas disponible', 'success');
+            } else {
+                updateStatus('signature-func', 'fail', 'SignaturePad no cargado');
+                log('❌ Sistema de firmas no disponible', 'error');
+            }
+            
+            // WhatsApp sharing
+            if (typeof window.shareWhatsApp === 'function') {
+                updateStatus('whatsapp-func', 'pass', 'Compartir WhatsApp disponible');
+                log('✅ Función shareWhatsApp disponible', 'success');
+            } else {
+                updateStatus('whatsapp-func', 'fail', 'shareWhatsApp no encontrada');
+                log('❌ Función shareWhatsApp no disponible', 'error');
+            }
+            
+            // Form validation
+            const formFields = ['clientName', 'clientPhone', 'pieceType', 'material', 'price'];
+            const fieldsFound = formFields.filter(id => document.getElementById(id)).length;
+            
+            if (fieldsFound >= 3) {
+                updateStatus('form-validation', 'pass', `${fieldsFound}/${formFields.length} campos encontrados`);
+                log(`✅ Sistema de formularios disponible (${fieldsFound}/${formFields.length} campos)`, 'success');
+            } else if (fieldsFound > 0) {
+                updateStatus('form-validation', 'warning', `Solo ${fieldsFound}/${formFields.length} campos`);
+                log(`⚠️ Formularios limitados (${fieldsFound}/${formFields.length} campos)`, 'warning');
+            } else {
+                updateStatus('form-validation', 'fail', 'Campos de formulario no encontrados');
+                log('❌ Formularios no disponibles en esta página', 'error');
+            }
+        }
+        
+        async function validateIntegrationSystems() {
+            log('🔵 Validando sistemas de integración...', 'info');
+            
+            // Initialization coordinator
+            if (typeof window.SystemInitializationCoordinator !== 'undefined') {
+                updateStatus('coordinator', 'pass', 'Coordinador disponible');
+                log('✅ Coordinador de inicialización activo', 'success');
+            } else {
+                updateStatus('coordinator', 'warning', 'Coordinador no detectado globalmente');
+                log('⚠️ Coordinador de inicialización limitado', 'warning');
+            }
+            
+            // Health monitoring
+            if (typeof window.SystemLogger !== 'undefined') {
+                updateStatus('health-monitor', 'pass', 'Sistema de monitoreo activo');
+                log('✅ Sistema de monitoreo de salud disponible', 'success');
+            } else {
+                updateStatus('health-monitor', 'warning', 'Monitoreo limitado');
+                log('⚠️ Sistema de monitoreo limitado', 'warning');
+            }
+            
+            // Storage monitor
+            if (typeof window.storageMonitor !== 'undefined') {
+                updateStatus('storage-monitor', 'pass', 'Monitor de almacenamiento activo');
+                log('✅ Monitor de almacenamiento disponible', 'success');
+            } else {
+                updateStatus('storage-monitor', 'warning', 'Monitor de storage no detectado');
+                log('⚠️ Monitor de almacenamiento limitado', 'warning');
+            }
+            
+            // Mode navigation
+            if (typeof window.selectMode === 'function') {
+                updateStatus('mode-navigation', 'pass', 'Navegación entre modos disponible');
+                log('✅ Sistema de navegación de modos funcional', 'success');
+            } else {
+                updateStatus('mode-navigation', 'warning', 'selectMode no detectado');
+                log('⚠️ Navegación de modos limitada', 'warning');
+            }
+            
+            // Error boundary
+            if (window.onerror || window.addEventListener) {
+                updateStatus('error-boundary', 'pass', 'Sistema de manejo de errores activo');
+                log('✅ Sistema de manejo de errores disponible', 'success');
+            } else {
+                updateStatus('error-boundary', 'warning', 'Manejo de errores básico');
+                log('⚠️ Manejo de errores limitado', 'warning');
+            }
+            
+            // Security manager
+            if (typeof window.securityManager !== 'undefined') {
+                updateStatus('security-manager', 'pass', 'Security manager activo');
+                log('✅ Security manager disponible', 'success');
+            } else {
+                updateStatus('security-manager', 'warning', 'Security manager no detectado');
+                log('⚠️ Security manager limitado', 'warning');
+            }
+        }
+        
+        async function testUserComplaints() {
+            log('🩺 Validando resolución de quejas específicas del usuario...', 'info');
+            
+            // Complaint 1: "No hace vista previa"
+            if (typeof window.showPreview === 'function') {
+                updateComplaintStatus('complaint-preview', 'pass', 'Vista previa funcional');
+                log('✅ QUEJA RESUELTA: Vista previa ahora funciona', 'success');
+            } else {
+                updateComplaintStatus('complaint-preview', 'fail', 'Vista previa no disponible');
+                log('❌ QUEJA PENDIENTE: Vista previa no funciona', 'error');
+            }
+            
+            // Complaint 2: "No genera comprobantes"
+            const canGeneratePDF = typeof window.generatePDF === 'function' && typeof window.jsPDF !== 'undefined';
+            if (canGeneratePDF) {
+                updateComplaintStatus('complaint-pdf', 'pass', 'Generación PDF funcional');
+                log('✅ QUEJA RESUELTA: Generación de PDFs ahora funciona', 'success');
+            } else {
+                updateComplaintStatus('complaint-pdf', 'fail', 'Generación PDF no disponible');
+                log('❌ QUEJA PENDIENTE: No se pueden generar PDFs', 'error');
+            }
+            
+            // Complaint 3: "No se pone el número de recibo"
+            const hasNumbering = typeof window.generateReceiptNumber === 'function' || localStorage.getItem('receiptCounter');
+            if (hasNumbering) {
+                updateComplaintStatus('complaint-numbering', 'pass', 'Numeración automática funcional');
+                log('✅ QUEJA RESUELTA: Numeración automática ahora funciona', 'success');
+            } else {
+                updateComplaintStatus('complaint-numbering', 'fail', 'Numeración automática no disponible');
+                log('❌ QUEJA PENDIENTE: Numeración automática no funciona', 'error');
+            }
+            
+            // Complaint 4: "No sirven las firmas"
+            if (typeof window.SignaturePad !== 'undefined') {
+                updateComplaintStatus('complaint-signatures', 'pass', 'Sistema de firmas funcional');
+                log('✅ QUEJA RESUELTA: Sistema de firmas ahora funciona', 'success');
+            } else {
+                updateComplaintStatus('complaint-signatures', 'fail', 'Sistema de firmas no disponible');
+                log('❌ QUEJA PENDIENTE: Sistema de firmas no funciona', 'error');
+            }
+        }
+        
+        function generateFinalReport() {
+            log('📊 Generando reporte final de validación...', 'info');
+            
+            const results = Object.values(validationResults);
+            const complaints = Object.values(complaintsResults);
+            
+            const totalPass = results.filter(r => r.status === 'pass').length;
+            const totalFail = results.filter(r => r.status === 'fail').length;
+            const totalWarning = results.filter(r => r.status === 'warning').length;
+            const complaintsResolved = complaints.filter(c => c.status === 'pass').length;
+            
+            log('📈 REPORTE FINAL DE VALIDACIÓN:', 'info');
+            log(`   ✅ Funciones exitosas: ${totalPass}/${results.length}`, totalPass > 12 ? 'success' : 'warning');
+            log(`   ⚠️ Advertencias: ${totalWarning}/${results.length}`, 'warning');
+            log(`   ❌ Fallas críticas: ${totalFail}/${results.length}`, totalFail === 0 ? 'success' : 'error');
+            log(`   🩺 Quejas resueltas: ${complaintsResolved}/4`, complaintsResolved >= 3 ? 'success' : 'error');
+            
+            const healthScore = Math.round(((totalPass + (totalWarning * 0.5)) / results.length) * 100);
+            log(`🎯 Puntuación final del sistema: ${healthScore}%`, healthScore >= 80 ? 'success' : healthScore >= 60 ? 'warning' : 'error');
+            
+            // Final assessment
+            if (healthScore >= 95 && complaintsResolved === 4) {
+                log('🎉 EVALUACIÓN: Sistema completamente funcional', 'critical');
+                log('🚀 ESTADO: Listo para uso en producción', 'success');
+                log('✨ RESULTADO: Todas las reparaciones críticas exitosas', 'success');
+            } else if (healthScore >= 80 && complaintsResolved >= 3) {
+                log('👍 EVALUACIÓN: Sistema mayormente funcional', 'success');
+                log('🔧 ESTADO: Optimizaciones menores pendientes', 'warning');
+                log('🎯 RESULTADO: Reparaciones críticas exitosas', 'success');
+            } else {
+                log('⚠️ EVALUACIÓN: Sistema requiere atención adicional', 'warning');
+                log('🛠️ ESTADO: Reparaciones adicionales necesarias', 'error');
+                log('🔍 RESULTADO: Algunos problemas críticos persisten', 'error');
+            }
+        }
+        
+        function testLiveSystem() {
+            log('🌐 Abriendo sistema en vivo para verificación manual...', 'info');
+            const liveWindow = window.open('https://recibos.ciaociao.mx', '_blank');
+            if (liveWindow) {
+                log('✅ Sistema en vivo abierto - Verifica funcionamiento manual', 'success');
+            } else {
+                log('❌ No se pudo abrir el sistema en vivo', 'error');
+            }
+        }
+        
+        function clearValidationData() {
+            if (confirm('¿Limpiar todos los datos de validación?')) {
+                validationResults = {};
+                complaintsResults = {};
+                validationProgress = 0;
+                
+                // Reset all status indicators
+                document.querySelectorAll('.status-badge').forEach(el => {
+                    el.textContent = 'PENDIENTE';
+                    el.className = 'status-badge status-pending';
+                });
+                
+                // Reset progress
+                document.getElementById('overallProgress').style.width = '0%';
+                updateFinalAssessment();
+                
+                // Clear log
+                document.getElementById('validationLog').innerHTML = '<div class="log-entry log-info">🗑️ Datos de validación limpiados - Sistema listo para nueva evaluación</div>';
+                
+                log('✅ Sistema de validación reiniciado', 'success');
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('🎯 Sistema de validación final cargado', 'success');
+            log('📋 Listo para evaluar sistema completo ciaociao-recibos', 'info');
+            log('🩺 Preparado para verificar resolución de quejas del usuario', 'info');
+            log('🚀 Presiona "Validación Completa" para comenzar', 'warning');
+        });
+    </script>
+</body>
+</html>

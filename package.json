@@ -1,28 +1,63 @@
 {
-  "name": "ciaociao-receipt-generator",
+  "name": "ciaociao-recibos",
   "version": "1.0.0",
-  "description": "Professional receipt image generator for CIAO CIAO MX Jewelry",
-  "main": "server/receipt-server.js",
+  "type": "module",
+  "main": "advanced-cache-system.js",
   "scripts": {
-    "start": "node server/receipt-server.js",
-    "dev": "nodemon server/receipt-server.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "npx playwright test",
+    "test:pdf": "npx playwright test tests/pdf-validation.spec.js",
+    "test:context7": "npx playwright test tests/context7/",
+    "test:debug-pdf": "npx playwright test tests/pdf-debugging/ --headed",
+    "test:advanced": "npx playwright test tests/advanced-tests/",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:report": "npx playwright show-report",
+    "start:server": "python3 -m http.server 8080",
+    "test:watch": "npx playwright test --watch",
+    "test:full-suite": "npm run test:context7 && npm run test:advanced && npm run test:pdf",
+    "test:critical": "node run-critical-tests.js",
+    "test:critical-only": "npx playwright test tests/system-critical-functionality.spec.js --config=tests/critical-system.config.js",
+    "test:verify-system": "npm run test:critical && npm run test:report",
+    "test:final-validation": "node run-final-pdf-validation.js",
+    "validate:pdf-generation": "npm run test:final-validation",
+    "test:multi-tool": "node run-multi-tool-tests.js",
+    "test:multi-tool:quick": "node run-multi-tool-tests.js --mode quick",
+    "test:multi-tool:standard": "node run-multi-tool-tests.js --mode standard",
+    "test:multi-tool:comprehensive": "node run-multi-tool-tests.js --mode comprehensive",
+    "test:multi-tool:ci": "node run-multi-tool-tests.js --mode ci --workers 1",
+    "test:multi-tool:debug": "node run-multi-tool-tests.js --headed --verbose",
+    "test:currency": "npx playwright test tests/currency-format-validation.spec.js --config=playwright-multi-tool.config.js",
+    "test:context7:comprehensive": "npx playwright test tests/context7/comprehensive-currency-pdf-validation.spec.js --config=playwright-multi-tool.config.js",
+    "test:puppeteer:cross-browser": "node tests/puppeteer/cross-browser-pdf-testing.js",
+    "test:visual": "npx playwright test tests/visual-regression/ --config=playwright-multi-tool.config.js",
+    "test:mobile": "npx playwright test tests/mobile-responsive/ --config=playwright-multi-tool.config.js",
+    "test:performance": "npx playwright test tests/performance/ --config=playwright-multi-tool.config.js",
+    "test:formats": "npx playwright test tests/pdf-formats/ --config=playwright-multi-tool.config.js",
+    "validate:20-agents": "node run-20-agents-validation.js",
+    "validate:20-agents:quick": "node run-20-agents-validation.js --mode quick",
+    "validate:20-agents:verbose": "node run-20-agents-validation.js --verbose"
   },
-  "keywords": [
-    "receipt",
-    "generator",
-    "jewelry",
-    "image",
-    "canvas"
-  ],
-  "author": "CIAO CIAO MX",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sittjoe/ciaociao-recibos.git"
+  },
+  "keywords": [],
+  "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sittjoe/ciaociao-recibos/issues"
+  },
+  "homepage": "https://github.com/sittjoe/ciaociao-recibos#readme",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.3.0",
+    "playwright": "^1.55.0"
+  },
   "dependencies": {
     "canvas": "^2.11.2",
-    "cors": "^2.8.5",
-    "express": "^4.18.2"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
+    "pdf-parse": "^1.1.1",
+    "jimp": "^0.22.12",
+    "puppeteer": "^22.0.0"
   }
 }

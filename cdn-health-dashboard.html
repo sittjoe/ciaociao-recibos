@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDN Health Dashboard - CIAOCIAO.MX</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-healthy .stat-value { color: #4CAF50; }
+        .status-warning .stat-value { color: #FF9800; }
+        .status-error .stat-value { color: #F44336; }
+        .status-info .stat-value { color: #2196F3; }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #f8f9fa;
+            padding: 20px 25px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .panel-header h3 {
+            color: #495057;
+            margin-bottom: 5px;
+        }
+
+        .panel-content {
+            padding: 25px;
+        }
+
+        .library-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .library-status:last-child {
+            border-bottom: none;
+        }
+
+        .library-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-healthy { background: #4CAF50; }
+        .status-warning { background: #FF9800; }
+        .status-error { background: #F44336; }
+        .status-loading { background: #2196F3; animation: pulse 1.5s infinite; }
+
+        .library-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .library-details {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .status-text.healthy {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-text.warning {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status-text.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .log-entry {
+            padding: 12px 15px;
+            border-left: 4px solid #e9ecef;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry.info { border-color: #2196F3; }
+        .log-entry.success { border-color: #4CAF50; }
+        .log-entry.warning { border-color: #FF9800; }
+        .log-entry.error { border-color: #F44336; }
+
+        .log-timestamp {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .log-message {
+            margin-top: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .logs-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::before {
+            content: '⏳';
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .metrics-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .metrics-table th,
+        .metrics-table td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .metrics-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f1b0b7;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🔍 CDN Health Dashboard</h1>
+            <p>Sistema de Monitoreo de Dependencias - CIAOCIAO.MX</p>
+        </div>
+
+        <div id="alerts-container"></div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="refreshStatus()">🔄 Actualizar Estado</button>
+            <button class="btn btn-secondary" onclick="testAllLibraries()">🧪 Probar Librerías</button>
+            <button class="btn btn-secondary" onclick="activateFallbacks()">⚡ Activar Fallbacks</button>
+            <button class="btn btn-danger" onclick="clearLogs()">🗑️ Limpiar Logs</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card status-info">
+                <div class="stat-value" id="total-libraries">-</div>
+                <div class="stat-label">Librerías Totales</div>
+            </div>
+            <div class="stat-card status-healthy">
+                <div class="stat-value" id="healthy-libraries">-</div>
+                <div class="stat-label">Funcionando</div>
+            </div>
+            <div class="stat-card status-warning">
+                <div class="stat-value" id="fallback-libraries">-</div>
+                <div class="stat-label">Con Fallback</div>
+            </div>
+            <div class="stat-card status-error">
+                <div class="stat-value" id="failed-libraries">-</div>
+                <div class="stat-label">Fallidas</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>📦 Estado de Librerías CDN</h3>
+                    <div id="last-update" class="library-details">Última actualización: Nunca</div>
+                </div>
+                <div class="panel-content">
+                    <div id="libraries-status">
+                        <div class="loading">Cargando estado de librerías...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>📊 Métricas de Rendimiento</h3>
+                </div>
+                <div class="panel-content">
+                    <div id="performance-metrics">
+                        <div class="loading">Cargando métricas...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel full-width">
+            <div class="panel-header">
+                <h3>📋 Registro de Actividad</h3>
+                <div class="library-details">Últimos eventos del sistema</div>
+            </div>
+            <div class="panel-content">
+                <div class="logs-container">
+                    <div id="logs-list">
+                        <div class="loading">Cargando logs del sistema...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CDNHealthDashboard {
+            constructor() {
+                this.refreshInterval = null;
+                this.isRefreshing = false;
+                
+                this.init();
+            }
+            
+            init() {
+                console.log('🚀 CDN Health Dashboard initializing...');
+                
+                // Wait for parent systems to load
+                setTimeout(() => {
+                    this.checkSystemAvailability();
+                    this.refreshStatus();
+                    this.startAutoRefresh();
+                }, 1000);
+            }
+            
+            checkSystemAvailability() {
+                const alerts = document.getElementById('alerts-container');
+                
+                if (!parent.window.CDNManager) {
+                    alerts.innerHTML = `
+                        <div class="alert alert-error">
+                            <strong>⚠️ Sistema No Disponible</strong><br>
+                            CDN Manager no está disponible. Este dashboard requiere que el sistema principal esté cargado.
+                        </div>
+                    `;
+                    return false;
+                }
+                
+                if (!parent.window.cdnFallbackManager) {
+                    alerts.innerHTML = `
+                        <div class="alert alert-warning">
+                            <strong>⚠️ Fallback Manager No Disponible</strong><br>
+                            El sistema de respaldo no está cargado. Funcionalidad limitada.
+                        </div>
+                    `;
+                }
+                
+                return true;
+            }
+            
+            async refreshStatus() {
+                if (this.isRefreshing) return;
+                this.isRefreshing = true;
+                
+                try {
+                    console.log('🔄 Refreshing dashboard status...');
+                    
+                    // Update library status
+                    await this.updateLibrariesStatus();
+                    
+                    // Update metrics
+                    await this.updatePerformanceMetrics();
+                    
+                    // Update logs
+                    await this.updateLogs();
+                    
+                    // Update statistics
+                    this.updateStatistics();
+                    
+                    // Update last refresh time
+                    document.getElementById('last-update').textContent = 
+                        `Última actualización: ${new Date().toLocaleTimeString()}`;
+                    
+                } catch (error) {
+                    console.error('❌ Error refreshing dashboard:', error);
+                    this.showError('Error actualizando el dashboard: ' + error.message);
+                } finally {
+                    this.isRefreshing = false;
+                }
+            }
+            
+            async updateLibrariesStatus() {
+                const container = document.getElementById('libraries-status');
+                
+                if (!parent.window.CDNManager) {
+                    container.innerHTML = '<div class="library-status"><span class="status-text error">CDN Manager no disponible</span></div>';
+                    return;
+                }
+                
+                const status = parent.window.CDNManager.getStatus();
+                const librariesHtml = [];
+                
+                for (const [libName, libStatus] of Object.entries(status.libraryStatus)) {
+                    const isHealthy = libStatus.isHealthy;
+                    const statusClass = isHealthy ? 'healthy' : 'error';
+                    const indicatorClass = isHealthy ? 'status-healthy' : 'status-error';
+                    const statusText = isHealthy ? 'Funcionando' : 'Error';
+                    
+                    librariesHtml.push(`
+                        <div class="library-status">
+                            <div class="library-info">
+                                <div class="status-indicator ${indicatorClass}"></div>
+                                <div>
+                                    <div class="library-name">${libName}</div>
+                                    <div class="library-details">
+                                        Global: ${libStatus.globalAvailable ? '✅' : '❌'} | 
+                                        Funcional: ${libStatus.functionalAvailable ? '✅' : '❌'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="status-text ${statusClass}">${statusText}</div>
+                        </div>
+                    `);
+                }
+                
+                container.innerHTML = librariesHtml.join('');
+            }
+            
+            async updatePerformanceMetrics() {
+                const container = document.getElementById('performance-metrics');
+                
+                if (!parent.window.CDNManager) {
+                    container.innerHTML = '<div class="library-details">CDN Manager no disponible</div>';
+                    return;
+                }
+                
+                const status = parent.window.CDNManager.getStatus();
+                const loadTime = status.totalTime || 0;
+                const loadedCount = status.loadedLibraries?.length || 0;
+                const failedCount = status.failedLibraries?.length || 0;
+                
+                container.innerHTML = `
+                    <table class="metrics-table">
+                        <tr>
+                            <th>Métrica</th>
+                            <th>Valor</th>
+                        </tr>
+                        <tr>
+                            <td>Tiempo de Carga Total</td>
+                            <td>${loadTime}ms</td>
+                        </tr>
+                        <tr>
+                            <td>Librerías Cargadas</td>
+                            <td>${loadedCount}</td>
+                        </tr>
+                        <tr>
+                            <td>Librerías Fallidas</td>
+                            <td>${failedCount}</td>
+                        </tr>
+                        <tr>
+                            <td>Estado General</td>
+                            <td>${status.status || 'Desconocido'}</td>
+                        </tr>
+                        <tr>
+                            <td>Sistema Inicializado</td>
+                            <td>${status.initialized ? 'Sí' : 'No'}</td>
+                        </tr>
+                    </table>
+                `;
+            }
+            
+            async updateLogs() {
+                const container = document.getElementById('logs-list');
+                
+                let logs = [];
+                
+                // Get CDN Manager logs
+                if (parent.window.CDNManager) {
+                    const cdnLogs = parent.window.CDNManager.getLogs() || [];
+                    logs = logs.concat(cdnLogs.map(log => ({...log, source: 'CDN'})));
+                }
+                
+                // Get Fallback Manager logs
+                if (parent.window.cdnFallbackManager) {
+                    const fallbackLogs = parent.window.cdnFallbackManager.getLogs() || [];
+                    logs = logs.concat(fallbackLogs.map(log => ({...log, source: 'FALLBACK'})));
+                }
+                
+                // Sort by timestamp (newest first)
+                logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                // Take only the last 50 logs
+                logs = logs.slice(0, 50);
+                
+                if (logs.length === 0) {
+                    container.innerHTML = '<div class="library-details">No hay logs disponibles</div>';
+                    return;
+                }
+                
+                const logsHtml = logs.map(log => `
+                    <div class="log-entry ${log.level.toLowerCase()}">
+                        <div class="log-timestamp">
+                            [${log.timestamp}] [${log.source}] [${log.level}]
+                        </div>
+                        <div class="log-message">${log.message}</div>
+                        ${log.data ? `<div class="log-message"><small>Data: ${JSON.stringify(log.data, null, 2)}</small></div>` : ''}
+                    </div>
+                `).join('');
+                
+                container.innerHTML = logsHtml;
+            }
+            
+            updateStatistics() {
+                if (!parent.window.CDNManager) {
+                    document.getElementById('total-libraries').textContent = '?';
+                    document.getElementById('healthy-libraries').textContent = '?';
+                    document.getElementById('fallback-libraries').textContent = '?';
+                    document.getElementById('failed-libraries').textContent = '?';
+                    return;
+                }
+                
+                const status = parent.window.CDNManager.getStatus();
+                const libraryStatus = status.libraryStatus || {};
+                
+                let healthyCount = 0;
+                let fallbackCount = 0;
+                let failedCount = 0;
+                let totalCount = 0;
+                
+                for (const [libName, libStatus] of Object.entries(libraryStatus)) {
+                    totalCount++;
+                    if (libStatus.isHealthy) {
+                        healthyCount++;
+                    } else if (libStatus.globalAvailable) {
+                        fallbackCount++;
+                    } else {
+                        failedCount++;
+                    }
+                }
+                
+                document.getElementById('total-libraries').textContent = totalCount;
+                document.getElementById('healthy-libraries').textContent = healthyCount;
+                document.getElementById('fallback-libraries').textContent = fallbackCount;
+                document.getElementById('failed-libraries').textContent = failedCount;
+            }
+            
+            startAutoRefresh() {
+                // Refresh every 30 seconds
+                this.refreshInterval = setInterval(() => {
+                    this.refreshStatus();
+                }, 30000);
+                
+                console.log('🔄 Auto-refresh started (30s interval)');
+            }
+            
+            stopAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                    this.refreshInterval = null;
+                    console.log('⏹️ Auto-refresh stopped');
+                }
+            }
+            
+            showError(message) {
+                const alerts = document.getElementById('alerts-container');
+                alerts.innerHTML = `
+                    <div class="alert alert-error">
+                        <strong>❌ Error</strong><br>
+                        ${message}
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    alerts.innerHTML = '';
+                }, 10000);
+            }
+            
+            showSuccess(message) {
+                const alerts = document.getElementById('alerts-container');
+                alerts.innerHTML = `
+                    <div class="alert alert-success" style="background: #d4edda; color: #155724; border: 1px solid #c3e6cb;">
+                        <strong>✅ Éxito</strong><br>
+                        ${message}
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    alerts.innerHTML = '';
+                }, 5000);
+            }
+        }
+        
+        // Global functions for buttons
+        window.refreshStatus = function() {
+            if (window.dashboard) {
+                window.dashboard.refreshStatus();
+            }
+        };
+        
+        window.testAllLibraries = function() {
+            if (!parent.window.CDNManager) {
+                alert('CDN Manager no disponible');
+                return;
+            }
+            
+            console.log('🧪 Testing all libraries...');
+            
+            // Perform health check
+            const healthResult = parent.window.CDNManager.performHealthCheck();
+            
+            if (window.dashboard) {
+                if (healthResult.healthy === healthResult.total) {
+                    window.dashboard.showSuccess(`Todas las librerías funcionan correctamente (${healthResult.healthy}/${healthResult.total})`);
+                } else {
+                    window.dashboard.showError(`Algunas librerías tienen problemas (${healthResult.healthy}/${healthResult.total} saludables)`);
+                }
+                
+                setTimeout(() => window.dashboard.refreshStatus(), 1000);
+            }
+        };
+        
+        window.activateFallbacks = function() {
+            if (!parent.window.cdnFallbackManager) {
+                alert('Fallback Manager no disponible');
+                return;
+            }
+            
+            console.log('⚡ Activating fallbacks...');
+            const result = parent.window.cdnFallbackManager.activateAllFallbacks();
+            
+            if (window.dashboard) {
+                if (result.success) {
+                    window.dashboard.showSuccess(`Fallbacks activados: ${result.activated}/${result.total}`);
+                } else {
+                    window.dashboard.showError('Error activando fallbacks');
+                }
+                
+                setTimeout(() => window.dashboard.refreshStatus(), 1000);
+            }
+        };
+        
+        window.clearLogs = function() {
+            if (confirm('¿Está seguro de que desea limpiar todos los logs?')) {
+                // Clear CDN Manager logs
+                if (parent.window.CDNManager && parent.window.CDNManager.clearLogs) {
+                    parent.window.CDNManager.clearLogs();
+                }
+                
+                // Clear Fallback Manager logs  
+                if (parent.window.cdnFallbackManager && parent.window.cdnFallbackManager.logs) {
+                    parent.window.cdnFallbackManager.logs = [];
+                }
+                
+                if (window.dashboard) {
+                    window.dashboard.showSuccess('Logs limpiados correctamente');
+                    setTimeout(() => window.dashboard.refreshStatus(), 1000);
+                }
+            }
+        };
+        
+        // Initialize dashboard when page loads
+        window.addEventListener('load', () => {
+            window.dashboard = new CDNHealthDashboard();
+        });
+        
+        // Handle page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.dashboard) {
+                window.dashboard.stopAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

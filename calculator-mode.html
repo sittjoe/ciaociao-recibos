@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Precios - ciaociao.mx</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container calculator-mode">
+        <header class="main-header">
+            <button onclick="window.location.href='index.html'" class="btn-back">← Volver al Inicio</button>
+            <img src="https://i.postimg.cc/FRC6PkXn/FINE-JEWELRY-85-x-54-mm-2000-x-1200-px.png" alt="ciaociao.mx" class="logo">
+            <h1>CALCULADORA DE PRECIOS</h1>
+        </header>
+
+        <div class="form-container">
+            <form id="calculatorForm">
+                <!-- Información del Proyecto -->
+                <section class="form-section">
+                    <h2>Información del Proyecto</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="projectName">Nombre del Proyecto</label>
+                            <input type="text" id="projectName" placeholder="Ej: Anillo de compromiso">
+                        </div>
+                        <div class="form-group">
+                            <label for="calculatorDate">Fecha</label>
+                            <input type="date" id="calculatorDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientReference">Cliente/Referencia</label>
+                            <input type="text" id="clientReference" placeholder="Para quién es el cálculo">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Panel de Precios Actuales -->
+                <section class="form-section price-dashboard">
+                    <h2 class="collapsible-header">
+                        <span>📊 Precios Actuales del Mercado</span>
+                        <button type="button" class="collapse-btn" id="togglePricePanel">−</button>
+                    </h2>
+                    <div class="collapsible-content" id="pricePanelContent">
+                        <div class="price-controls">
+                            <button type="button" id="refreshPrices" class="btn-secondary">🔄 Actualizar Precios</button>
+                            <button type="button" id="togglePriceMode" class="btn-mode">🔧 Modo: Automático</button>
+                            <span class="price-timestamp" id="priceTimestamp">Última actualización: --</span>
+                        </div>
+                        
+                        <div class="price-sections">
+                            <!-- Control Manual de Oro 24k -->
+                            <div class="price-category manual-gold-control">
+                                <h3>🎯 Control Manual de Oro</h3>
+                                <div class="manual-control-container">
+                                    <div class="gold-24k-input">
+                                        <label for="manual24kPrice">Precio Oro 24k (MXN/gramo):</label>
+                                        <input type="number" id="manual24kPrice" placeholder="1700.00" step="0.01" min="0">
+                                        <button type="button" id="calculateAllKarats" class="btn-calculate">🧮 Calcular Todos</button>
+                                    </div>
+                                    
+                                    <div class="calculated-results" id="calculatedResults">
+                                        <div class="results-header">Precios Calculados (MXN/gramo):</div>
+                                        <div class="results-grid">
+                                            <div class="result-item">
+                                                <span class="karat-label">24k (100%):</span>
+                                                <span class="karat-price" id="calc24k">--</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="karat-label">22k (91.7%):</span>
+                                                <span class="karat-price" id="calc22k">--</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="karat-label">18k (75.0%):</span>
+                                                <span class="karat-price" id="calc18k">--</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="karat-label">14k (58.3%):</span>
+                                                <span class="karat-price" id="calc14k">--</span>
+                                            </div>
+                                            <div class="result-item">
+                                                <span class="karat-label">10k (41.7%):</span>
+                                                <span class="karat-price" id="calc10k">--</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" id="applyCalculatedPrices" class="btn-apply" style="display:none;">
+                                            ✅ Aplicar Precios a la Calculadora
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Metales -->
+                            <div class="price-category">
+                                <h3>🥇 Metales Preciosos (MXN/gramo)</h3>
+                                <div class="price-grid">
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 24k:</span>
+                                        <input type="number" id="priceGold24k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold24k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 22k:</span>
+                                        <input type="number" id="priceGold22k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold22k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 18k:</span>
+                                        <input type="number" id="priceGold18k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold18k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 14k:</span>
+                                        <input type="number" id="priceGold14k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold14k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Oro 10k:</span>
+                                        <input type="number" id="priceGold10k" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="gold10k">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Plata 925:</span>
+                                        <input type="number" id="priceSilver925" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="silver925">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Platino:</span>
+                                        <input type="number" id="pricePlatinum" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="platinum">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Diamantes -->
+                            <div class="price-category">
+                                <h3>💎 Diamantes (USD/quilate)</h3>
+                                <div class="price-grid">
+                                    <div class="price-item">
+                                        <span class="price-label">Base (1ct, SI1, H, Good):</span>
+                                        <input type="number" id="priceDiamondBase" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="diamondBase">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Piedras Preciosas -->
+                            <div class="price-category">
+                                <h3>💍 Piedras Preciosas (USD/quilate)</h3>
+                                <div class="price-grid">
+                                    <div class="price-item">
+                                        <span class="price-label">Rubí:</span>
+                                        <input type="number" id="priceRuby" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="ruby">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Esmeralda:</span>
+                                        <input type="number" id="priceEmerald" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="emerald">✏️</button>
+                                    </div>
+                                    <div class="price-item">
+                                        <span class="price-label">Zafiro:</span>
+                                        <input type="number" id="priceSapphire" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="sapphire">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tipo de Cambio -->
+                            <div class="price-category">
+                                <h3>💱 Tipo de Cambio</h3>
+                                <div class="price-grid">
+                                    <div class="price-item">
+                                        <span class="price-label">USD a MXN:</span>
+                                        <input type="number" id="priceExchangeRate" class="price-input" step="0.01" readonly>
+                                        <button type="button" class="price-edit-btn" data-price="exchangeRate">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Metales Preciosos -->
+                <section class="form-section collapsible">
+                    <h2 class="collapsible-header">
+                        <span>Metales Preciosos</span>
+                        <button type="button" class="collapse-btn">−</button>
+                    </h2>
+                    <div class="collapsible-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="metalType">Tipo de Metal *</label>
+                                <select id="metalType" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="oro">Oro</option>
+                                    <option value="plata">Plata .925</option>
+                                    <option value="platino">Platino</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="goldKaratsGroup" style="display: none;">
+                                <label for="goldKarats">Quilates del Oro</label>
+                                <select id="goldKarats">
+                                    <option value="10k">10k</option>
+                                    <option value="14k" selected>14k</option>
+                                    <option value="18k">18k</option>
+                                    <option value="22k">22k</option>
+                                    <option value="24k">24k</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="metalWeight">Peso (gramos)</label>
+                                <input type="number" id="metalWeight" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="metalPricePerGram">Precio por gramo</label>
+                                <input type="number" id="metalPricePerGram" step="0.01" min="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="metalTotalCost">Costo Total Metal</label>
+                                <input type="number" id="metalTotalCost" step="0.01" min="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <!-- Espacio para mantener diseño -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Diamantes -->
+                <section class="form-section collapsible">
+                    <h2 class="collapsible-header">
+                        <span>Diamantes</span>
+                        <button type="button" class="collapse-btn">−</button>
+                    </h2>
+                    <div class="collapsible-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="diamondCarats">Quilates</label>
+                                <input type="number" id="diamondCarats" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="diamondClarity">Claridad</label>
+                                <select id="diamondClarity">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="FL">FL (Flawless)</option>
+                                    <option value="IF">IF (Internally Flawless)</option>
+                                    <option value="VVS1">VVS1 (Very Very Slightly Included 1)</option>
+                                    <option value="VVS2">VVS2 (Very Very Slightly Included 2)</option>
+                                    <option value="VS1">VS1 (Very Slightly Included 1)</option>
+                                    <option value="VS2">VS2 (Very Slightly Included 2)</option>
+                                    <option value="SI1">SI1 (Slightly Included 1)</option>
+                                    <option value="SI2">SI2 (Slightly Included 2)</option>
+                                    <option value="I1">I1 (Included 1)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="diamondColor">Color</label>
+                                <select id="diamondColor">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="D">D (Incoloro excepcional)</option>
+                                    <option value="E">E (Incoloro)</option>
+                                    <option value="F">F (Incoloro)</option>
+                                    <option value="G">G (Casi incoloro)</option>
+                                    <option value="H">H (Casi incoloro)</option>
+                                    <option value="I">I (Casi incoloro)</option>
+                                    <option value="J">J (Casi incoloro)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="diamondCut">Corte</label>
+                                <select id="diamondCut">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Excellent">Excellent</option>
+                                    <option value="Very Good">Very Good</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="diamondQuantity">Cantidad</label>
+                                <input type="number" id="diamondQuantity" min="0" value="0" placeholder="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="diamondTotalCost">Costo Total Diamantes</label>
+                                <input type="number" id="diamondTotalCost" step="0.01" min="0" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Piedras Preciosas -->
+                <section class="form-section collapsible">
+                    <h2 class="collapsible-header">
+                        <span>Piedras Preciosas</span>
+                        <button type="button" class="collapse-btn">−</button>
+                    </h2>
+                    <div class="collapsible-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="gemstoneType">Tipo de Piedra</label>
+                                <select id="gemstoneType">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="ruby">Ruby</option>
+                                    <option value="emerald">Emerald</option>
+                                    <option value="sapphire">Sapphire</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="gemstoneCarats">Quilates</label>
+                                <input type="number" id="gemstoneCarats" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="gemstoneQuality">Calidad</label>
+                                <select id="gemstoneQuality">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="premium">Premium</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="gemstonePricePerCarat">Precio por quilate</label>
+                                <input type="number" id="gemstonePricePerCarat" step="0.01" min="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="gemstoneTotalCost">Costo Total Piedras</label>
+                                <input type="number" id="gemstoneTotalCost" step="0.01" min="0" readonly>
+                            </div>
+                            <div class="form-group">
+                                <!-- Espacio para mantener diseño -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Costos de Fabricación -->
+                <section class="form-section collapsible">
+                    <h2 class="collapsible-header">
+                        <span>Costos de Fabricación</span>
+                        <button type="button" class="collapse-btn">−</button>
+                    </h2>
+                    <div class="collapsible-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="laborHours">Horas de Mano de Obra</label>
+                                <input type="number" id="laborHours" step="0.5" min="0" placeholder="0.0">
+                            </div>
+                            <div class="form-group">
+                                <label for="laborRate">Tarifa por Hora</label>
+                                <input type="number" id="laborRate" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <label for="laborCost">Costo Mano de Obra</label>
+                                <input type="number" id="laborCost" step="0.01" min="0" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profitMargin">Margen de Ganancia (%)</label>
+                                <input type="number" id="profitMargin" min="0" max="100" placeholder="0" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="additionalCosts">Costos Adicionales</label>
+                                <input type="number" id="additionalCosts" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                            <div class="form-group">
+                                <!-- Espacio para mantener diseño -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Resultados -->
+                <section class="form-section">
+                    <h2>Desglose de Costos</h2>
+                    <div class="calculator-results">
+                        <div class="result-row">
+                            <span>Costo de Metales:</span>
+                            <span id="resultMetalCost">$0.00</span>
+                        </div>
+                        <div class="result-row">
+                            <span>Costo de Diamantes:</span>
+                            <span id="resultDiamondCost">$0.00</span>
+                        </div>
+                        <div class="result-row">
+                            <span>Costo de Piedras:</span>
+                            <span id="resultGemstoneCost">$0.00</span>
+                        </div>
+                        <div class="result-row">
+                            <span>Mano de Obra:</span>
+                            <span id="resultLaborCost">$0.00</span>
+                        </div>
+                        <div class="result-row">
+                            <span>Costos Adicionales:</span>
+                            <span id="resultAdditionalCosts">$0.00</span>
+                        </div>
+                        <div class="result-row subtotal">
+                            <span>Subtotal:</span>
+                            <span id="resultSubtotal">$0.00</span>
+                        </div>
+                        <div class="result-row">
+                            <span>Margen de Ganancia (<span id="resultProfitPercentage">0</span>%):</span>
+                            <span id="resultProfitAmount">$0.00</span>
+                        </div>
+                        <div class="result-row total">
+                            <span>PRECIO FINAL:</span>
+                            <span id="resultFinalPrice">$0.00</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Observaciones -->
+                <section class="form-section">
+                    <h2>Observaciones</h2>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <textarea id="calculatorObservations" rows="3" placeholder="Notas adicionales sobre el proyecto..."></textarea>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Botones de Acción -->
+                <div class="action-buttons">
+                    <button type="button" id="createQuotationBtn" class="btn-primary">Crear Cotización</button>
+                    <button type="button" id="createReceiptBtn" class="btn-success">Crear Recibo</button>
+                    <button type="button" id="saveProjectBtn" class="btn-info">Guardar Proyecto</button>
+                    <button type="button" id="printCalculationBtn" class="btn-secondary">Imprimir Cálculo</button>
+                    <button type="button" id="resetCalculatorBtn" class="btn-secondary">Limpiar Calculadora</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal de Guardar Proyecto -->
+        <div id="saveProjectModal" class="modal">
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h3>Guardar Proyecto</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="save-project-content">
+                    <div class="form-group">
+                        <label for="saveProjectName">Nombre del Proyecto</label>
+                        <input type="text" id="saveProjectName" placeholder="Ingrese un nombre para el proyecto">
+                    </div>
+                    <div class="form-group">
+                        <label for="saveProjectNotes">Notas</label>
+                        <textarea id="saveProjectNotes" rows="3" placeholder="Notas adicionales..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="confirmSaveProject" class="btn-success">Guardar</button>
+                    <button id="cancelSaveProject" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Proyectos Guardados -->
+        <div id="savedProjectsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Proyectos Guardados</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="projects-controls">
+                    <input type="text" id="projectSearch" placeholder="Buscar proyecto...">
+                    <button id="loadProjectBtn" class="btn-primary" disabled>Cargar Proyecto</button>
+                </div>
+                <div id="savedProjectsList" class="projects-list">
+                    <!-- Lista de proyectos aparecerá aquí -->
+                </div>
+                <div class="modal-actions">
+                    <button id="closeSavedProjects" class="btn-secondary">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmación para Crear Cotización/Recibo -->
+        <div id="createDocumentModal" class="modal">
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h3 id="createDocumentTitle">Crear Documento</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="create-document-content">
+                    <p>¿Deseas crear un <span id="documentType">documento</span> con los datos calculados?</p>
+                    <div class="form-group">
+                        <label for="documentClientName">Nombre del Cliente</label>
+                        <input type="text" id="documentClientName" placeholder="Nombre completo">
+                    </div>
+                    <div class="form-group">
+                        <label for="documentClientPhone">Teléfono del Cliente</label>
+                        <input type="tel" id="documentClientPhone" placeholder="Teléfono">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="confirmCreateDocument" class="btn-success">Crear</button>
+                    <button id="cancelCreateDocument" class="btn-secondary">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- DOMPurify XSS Protection with CDN Fallbacks -->
+    <script>
+        // Load DOMPurify with multiple CDN fallbacks
+        const domPurifyUrls = [
+            'https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js',
+            'https://unpkg.com/dompurify@3.0.5/dist/purify.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js'
+        ];
+        
+        let domPurifyLoaded = false;
+        
+        function loadDOMPurifyScript(index = 0) {
+            if (index >= domPurifyUrls.length) {
+                console.warn('⚠️ All DOMPurify CDNs failed, XSS protection will use fallback methods');
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = domPurifyUrls[index];
+            script.async = true;
+            
+            script.onload = function() {
+                domPurifyLoaded = true;
+                console.log(`✅ DOMPurify loaded from: ${domPurifyUrls[index]}`);
+            };
+            
+            script.onerror = function() {
+                console.warn(`❌ Failed to load DOMPurify from: ${domPurifyUrls[index]}`);
+                loadDOMPurifyScript(index + 1);
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        loadDOMPurifyScript();
+    </script>
+    
+    <!-- XSS Protection System -->
+    <!-- <script src="xss-protection.js"></script> TEMPORALMENTE DESHABILITADO - BLOQUEA PASSWORD INPUT -->
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="security-manager.js"></script>
+    <script src="auth.js"></script>
+    <script src="utils.js"></script>
+    <script src="database.js"></script>
+    
+    <!-- Auto-Complete System -->
+    <script src="autocomplete-engine.js"></script>
+    <script src="smart-dropdown.js"></script>
+    <script src="autocomplete-integration.js"></script>
+    
+    <!-- Sistema de Precios Unificado -->
+    <script src="pricing-master.js"></script>
+    
+    <!-- Calculadora principal -->
+    <script src="calculator-system.js"></script>
+</body>
+</html>
